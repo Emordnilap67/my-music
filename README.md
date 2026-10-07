@@ -3,7 +3,26 @@
 A music player for Android for the songs on your own phone. Your playlists
 are plain folders, there's no account and no ads, and nothing streams. Add
 music by sharing a YouTube or YouTube Music link to the app, or copy in MP3s
-you already have.
+you already have.I made MY MUSIC, a free Android music player for the songs on your own phone
+
+I wanted a player with no playlist limits, no ads and no account, that keeps my music on my phone. So I built one.
+
+What it does:
+- Your playlists are just folders on your phone, so nothing is locked inside the app
+- Share a YouTube or YouTube Music playlist to MY MUSIC and it becomes a playlist in the app. Every song shows up straight away and fills in as it downloads (MP3 with cover art and tags)
+- Share a single song and you pick which playlist it goes in
+- If YouTube slows the downloads down, it waits and carries on by itself
+- Timed lyrics: tap a line to jump to that part of the song
+- A spectrum ring around the record that moves with the music, in each song's own colours
+- Sort by Recently played, Most played, Recently added, Title or Artist (A to Z or Z to A)
+- Home-screen widget, lock-screen controls, shuffle and repeat
+
+It's free and open source (GPL-3.0). Android 8 or newer, 64-bit phone.
+
+Download: https://github.com/Emordnilap67/my-music/releases/latest
+Code: https://github.com/Emordnilap67/my-music
+
+Feedback and ideas welcome.
 
 Made by **Emordnilap67**.
 
