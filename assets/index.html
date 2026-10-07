@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>MY MUSIC</title>
+<style>
+/* fonts live inside the app (fetched once when it is built); if they are
+   missing, Georgia / the phone's own font stand in */
+@font-face{font-family:"Cinzel";src:url(/fonts/Cinzel.ttf) format("truetype");font-weight:400 900;font-display:swap}
+@font-face{font-family:"Outfit";src:url(/fonts/Outfit.ttf) format("truetype");font-weight:100 900;font-display:swap}
+:root{
+  --void:#000000; --ink:#F2EEFF; --mist:#9C95B9; --line:#221C35; --raise:#0E0B17;
+  --orchid:#CF49FF; --violet:#7976FF; --cyan:#0FEBFF;
+  --grad:linear-gradient(90deg,var(--orchid),var(--violet) 55%,var(--cyan));
+  --pc1:rgb(207,73,255);--pc2:rgb(15,235,255);      /* the playing song's colours (set from its picture) */
+  --body:"Outfit",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --display:"Cinzel",Georgia,"Times New Roman",serif;
+  --bar:68px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--void);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+body{min-height:100vh;padding-bottom:calc(var(--bar) + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:6px}
+img{display:block}
+.hidden{display:none!important}
+
+/* ---------- home ---------- */
+.home{padding:20px 20px 24px;max-width:640px;margin:0 auto}
+.hero{text-align:center}
+.disc0{display:block;width:96px;height:96px;margin:28px auto 22px;filter:drop-shadow(0 0 18px rgba(124,77,255,.45))}
+.mark{font-family:var(--display);font-weight:700;font-size:clamp(40px,12vw,60px);letter-spacing:.08em;line-height:1;margin:0;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag{margin:12px 0 0;font-size:12px;letter-spacing:.28em;text-transform:uppercase;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rule{height:1px;margin:28px 0 8px;background:linear-gradient(90deg,transparent,var(--violet) 30%,var(--violet) 70%,transparent);opacity:.6}
+.pls{list-style:none;margin:0;padding:0}
+.pl{display:flex;align-items:center;gap:18px;width:100%;padding:16px 0;border-bottom:1px solid var(--line);text-align:left}
+.pl:last-child{border-bottom:0}
+.pl h2{font-family:var(--display);font-weight:500;font-size:22px;letter-spacing:.04em;margin:0}
+.pl p{margin:4px 0 0;color:var(--mist);font-size:14px}
+.homefoot{margin-top:28px;display:flex;align-items:center;gap:14px;color:var(--mist);font-size:14px}
+.ghost{border:1px solid var(--line);border-radius:999px;padding:9px 16px;color:var(--ink)}
+.ghost:active{border-color:var(--violet)}
+
+/* vinyl: the one bold thing. Used small on playlists, big in the player */
+.vinyl{--s:76px;position:relative;flex:none;width:var(--s);height:var(--s);border-radius:50%;
+  background:
+    repeating-radial-gradient(circle,transparent 0 3px,rgba(255,255,255,.035) 3px 4px),
+    conic-gradient(from 200deg,transparent 0 8%,rgba(207,73,255,.18) 14%,transparent 22% 58%,rgba(15,235,255,.14) 66%,transparent 74%),
+    radial-gradient(circle at 30% 25%,#2a1f47,#08060f 62%);
+  box-shadow:0 0 0 1.5px var(--violet),0 0 18px -4px var(--orchid),0 0 22px -6px var(--cyan)}
+.vinyl .label{position:absolute;inset:30%;border-radius:50%;overflow:hidden;background:var(--grad)}
+.vinyl .label img{width:100%;height:100%;object-fit:cover}
+.vinyl::after{content:"";position:absolute;left:50%;top:50%;width:6%;height:6%;margin:-3% 0 0 -3%;border-radius:50%;background:var(--void)}
+
+/* ---------- playlist ---------- */
+.list{max-width:640px;margin:0 auto}
+.lhead{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.lrow{display:flex;align-items:center;gap:12px}
+.back{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;margin-left:-8px}
+.lhead h2{font-family:var(--display);font-weight:500;font-size:21px;letter-spacing:.04em;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.count{color:var(--mist);font-size:13px}
+.search{width:100%;margin-top:10px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--ink);font:inherit}
+.search::placeholder{color:var(--mist)}
+.tools{display:flex;align-items:center;gap:10px;margin-top:10px}
+.pill{border-radius:999px;padding:9px 18px;font-weight:600}
+.pill.main{background:var(--grad);color:#07050d}
+.pill.alt{border:1px solid var(--line)}
+/* the sort button (opens "Sort by") */
+.sortbtn{margin-left:auto;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);
+  font-size:14px;color:var(--ink);white-space:nowrap;max-width:52%}
+.sortbtn span{overflow:hidden;text-overflow:ellipsis}
+.sortbtn svg{flex:none;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;transition:transform .2s}
+.sortbtn.rev svg{transform:scaleY(-1)}
+.srow.sortrow{display:flex;align-items:center;justify-content:space-between}
+.srow.sortrow[aria-checked="true"]{color:var(--pc1,var(--violet));font-weight:600}
+.srow.sortrow[aria-checked="true"]::after{content:"";display:block;flex:none;width:7px;height:13px;margin:0 8px 4px 0;
+  border:solid currentColor;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.order{display:flex;gap:8px;margin:14px 0 6px}
+.order button{flex:1;padding:10px 8px;border-radius:12px;border:1px solid var(--line);color:var(--mist);font-size:15px}
+.order button[aria-pressed="true"]{color:var(--ink);background:var(--raise);box-shadow:inset 0 0 0 1px var(--pc1,var(--violet))}
+.order-label{display:block;color:var(--mist);font-size:13px;margin-top:12px}
+.songs{list-style:none;margin:0;padding:4px 0}
+.song{display:flex;align-items:center;gap:12px;padding:8px 16px;content-visibility:auto;contain-intrinsic-size:auto 60px}
+.song .th{flex:none;width:44px;height:44px;border-radius:8px;overflow:hidden;background:var(--raise)}
+.song .th img{width:100%;height:100%;object-fit:cover}
+.song .tx{flex:1;min-width:0}
+.song b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song span{display:block;color:var(--mist);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song time{color:var(--mist);font-size:13px;font-variant-numeric:tabular-nums}
+.song.on b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* the song playing now glows in its own colours, with moving bars on its picture (like Spotify) */
+.song.on{background:linear-gradient(90deg,color-mix(in srgb,var(--pc1) 16%,transparent),transparent 85%);box-shadow:inset 3px 0 0 var(--pc1)}
+.song.on b{background:linear-gradient(90deg,var(--pc1),var(--pc2));-webkit-background-clip:text;background-clip:text;
+  filter:drop-shadow(0 0 6px color-mix(in srgb,var(--pc1) 75%,transparent)) drop-shadow(0 0 12px color-mix(in srgb,var(--pc2) 45%,transparent));font-weight:600}
+.song.on .th{position:relative}
+.song.on .th::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.song.on .th::after{content:"";position:absolute;left:12px;right:12px;bottom:12px;top:12px;
+  background:linear-gradient(var(--pc2),var(--pc1)) 0 100%/4px 40% no-repeat,linear-gradient(var(--pc2),var(--pc1)) 50% 100%/4px 90% no-repeat,
+  linear-gradient(var(--pc2),var(--pc1)) 100% 100%/4px 60% no-repeat;animation:eq .9s ease-in-out infinite alternate;animation-play-state:paused}
+body.playing .song.on .th::after{animation-play-state:running}
+@keyframes eq{
+  0%{background-size:4px 40%,4px 90%,4px 60%}
+  25%{background-size:4px 85%,4px 35%,4px 75%}
+  50%{background-size:4px 55%,4px 70%,4px 30%}
+  75%{background-size:4px 95%,4px 45%,4px 80%}
+  100%{background-size:4px 30%,4px 85%,4px 50%}}
+@media (prefers-reduced-motion:reduce){.song.on .th::after{animation:none}}
+.empty{padding:40px 20px;color:var(--mist);text-align:center}
+
+/* ---------- mini player ---------- */
+.mini{position:fixed;left:0;right:0;bottom:0;z-index:10;height:calc(var(--bar) + env(safe-area-inset-bottom));padding:0 12px env(safe-area-inset-bottom);
+  display:flex;align-items:center;gap:12px;background:rgba(9,7,16,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+.mini .prog{position:absolute;left:0;top:-1px;height:2px;background:var(--grad);width:0}
+.mini .open{display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left;height:100%}
+.mini .th{width:46px;height:46px;border-radius:8px;overflow:hidden;background:var(--raise);flex:none}
+.mini .th img{width:100%;height:100%;object-fit:cover}
+.mini b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini span{display:block;color:var(--mist);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;flex:none}
+.ib svg{width:26px;height:26px;fill:currentColor}
+
+/* ---------- full player ---------- */
+.now{position:fixed;inset:0;z-index:20;background:radial-gradient(120% 70% at 50% 0%,#170f2b 0%,#000 60%);
+  display:flex;flex-direction:column;padding:12px 22px calc(26px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .32s ease}
+.now.show{transform:none}
+.nowtop{display:flex;align-items:center;justify-content:space-between;color:var(--mist);font-size:14px}
+.nowtop .pname{font-family:var(--display);letter-spacing:.06em}
+.stage{flex:1;display:grid;place-items:center;min-height:0}
+.now .vinyl{--s:min(86vw,50vh,420px)}
+.now .vinyl .label{inset:22%}
+.spin{animation:spin 6s linear infinite;animation-play-state:paused}
+.go .spin{animation-play-state:running}
+@keyframes spin{to{transform:rotate(360deg)}}
+.meta{text-align:center;margin:8px 0 14px}
+.meta h3{margin:0;font-size:22px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta p{margin:6px 0 0;color:var(--mist)}
+.wave{display:flex;align-items:center;gap:3px;height:56px;touch-action:none;cursor:pointer}
+.wave i{flex:1;border-radius:2px;background:#2b2442;min-height:4px}
+.wave i.on{background:var(--c)}
+.times{display:flex;justify-content:space-between;color:var(--mist);font-size:13px;font-variant-numeric:tabular-nums;margin-top:6px}
+.ctrl{display:flex;align-items:center;justify-content:space-between;margin-top:18px}
+.ctrl .ib svg{width:28px;height:28px}
+.big{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:#07050d;box-shadow:0 0 28px -6px var(--orchid)}
+.big svg{width:34px;height:34px;fill:currentColor}
+.tog{color:var(--mist);position:relative}
+.tog[aria-pressed="true"]{color:var(--cyan)}
+.tog .one{position:absolute;right:6px;top:6px;font-size:10px;font-weight:700}
+
+.toast{position:fixed;left:50%;bottom:calc(var(--bar) + 16px);transform:translateX(-50%);z-index:50;background:var(--raise);border:1px solid var(--line);
+  padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw}
+.song,.pl{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.plart{flex:none;width:84px;height:84px;border-radius:16px;overflow:hidden;background:var(--raise);
+  box-shadow:0 0 0 1.5px var(--violet),0 0 18px -4px var(--orchid),0 0 22px -6px var(--cyan)}
+.plart img{width:100%;height:100%;object-fit:cover}
+.song .pill{flex:none;padding:7px 14px;font-size:14px}
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
+.sheetcard{width:100%;max-width:640px;margin:0 auto;background:#120E1F;border-top:1px solid var(--line);border-radius:18px 18px 0 0;
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheetcard>b{display:block;font-size:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheetcard>span{display:block;color:var(--mist);margin:2px 0 12px}
+.srow{display:block;width:100%;text-align:left;padding:14px 4px;border-top:1px solid var(--line);font-size:16px}
+.srow small{display:block;color:var(--mist);font-size:13px;margin-top:2px}
+.srow.danger{color:#FF6B8B}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--grad);color:#07050D;border-color:transparent;font-weight:600}
+.sheetcard .search{margin:0 0 8px}
+.pill.wide{display:block;width:100%;margin:4px 0 8px;padding:12px}
+.homefoot{flex-wrap:wrap}
+.dl{margin:16px 0 0;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--raise)}
+.dl b{display:block;font-weight:600}
+.dl .bar{height:6px;border-radius:3px;background:#2B2442;margin:10px 0 8px;overflow:hidden}
+.dl .bar i{display:block;height:100%;background:var(--grad);width:0;transition:width .6s ease}
+.dl .bar.busy i{width:35%;animation:slide 1.4s ease-in-out infinite}
+@keyframes slide{0%{margin-left:-35%}100%{margin-left:100%}}
+.dl .row{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--mist);font-size:14px}
+.dl .warn{color:#FF6B8B;font-size:13px;margin-top:8px}
+.dl .note{color:var(--mist);font-size:13px;margin-top:8px}
+/* songs on their way into a playlist */
+.slist{max-height:56vh;overflow-y:auto}
+#sNewRow{margin:8px 0 4px}
+#sNewRow .pill{margin-top:10px}
+.pendhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 16px 4px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--raise)}
+.pendhead b{display:block;font-weight:600}
+.pendhead span{display:block;color:var(--mist);font-size:13px;margin-top:2px}
+.pendhead .ghost{flex:none}
+.song.soon{opacity:.55}
+.song.soon .th{display:grid;place-items:center}
+.song.soon .th::after{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--mist);border-top-color:transparent}
+.song.soon.bad{opacity:.75}
+.song.soon.bad span{color:#FF6B8B}
+.song.soon.bad .th::after{border:0;width:auto;height:auto;content:"!";color:#FF6B8B;font-weight:700}
+@media (prefers-reduced-motion:reduce){.dl .bar.busy i{animation:none;width:100%;opacity:.5}}
+.homefoot #made{flex-basis:100%}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}.now{transition:none}}
+
+/* ---------- each song's own colours, the moving ring, lyrics, add to playlist ---------- */
+@property --c1{syntax:"<color>";inherits:true;initial-value:#CF49FF}
+@property --c2{syntax:"<color>";inherits:true;initial-value:#0FEBFF}
+.now{--grad:linear-gradient(90deg,var(--c1),var(--c2));transition:transform .32s ease,--c1 .9s ease,--c2 .9s ease;
+  background:radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--c1) 20%,#000) 0%,#000 62%)}
+.now .vinyl{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c1) 60%,var(--c2)),0 0 26px -6px var(--c1),0 0 30px -8px var(--c2);
+  background:repeating-radial-gradient(circle,transparent 0 3px,rgba(255,255,255,.035) 3px 4px),
+    conic-gradient(from 200deg,transparent 0 8%,color-mix(in srgb,var(--c1) 16%,transparent) 14%,transparent 22% 58%,color-mix(in srgb,var(--c2) 13%,transparent) 66%,transparent 74%),
+    radial-gradient(circle at 30% 25%,color-mix(in srgb,var(--c1) 14%,#100c1c),#08060f 62%)}
+.now .big{box-shadow:0 0 28px -6px var(--c1)}
+.stage{position:relative}
+#ring{position:absolute;left:-14%;top:-14%;width:128%;height:128%;pointer-events:none}
+.nowact{display:flex;align-items:center}
+.lyrbtn{position:relative;color:var(--mist)}
+.lyrbtn svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lyrbtn.has{color:var(--ink)}
+.lyrbtn.has::after{content:"";position:absolute;right:8px;top:9px;width:7px;height:7px;border-radius:50%;background:var(--c2);box-shadow:0 0 8px var(--c2)}
+.lyrbtn[aria-pressed="true"]{color:var(--c2)}
+.stage.lyrics .vinyl,.stage.lyrics .vinyl *{visibility:hidden!important}
+.lyr{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:34% 2px 46%;
+  -webkit-mask-image:linear-gradient(transparent,#000 16%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 16%,#000 78%,transparent)}
+.lyr::-webkit-scrollbar{display:none}
+.lyr p{margin:0 0 16px;font-size:24px;font-weight:600;line-height:1.3;color:rgba(242,238,255,.3);cursor:pointer;transition:color .3s ease}
+.lyr p.past{color:rgba(242,238,255,.5)}
+.lyr p.on{color:#fff}
+.lyr.plain p{font-size:20px;font-weight:500;color:rgba(242,238,255,.82);cursor:default;margin-bottom:10px}
+.lyr .gap{letter-spacing:.3em}
+.lmsg{position:absolute;inset:0;display:grid;place-content:center;text-align:center;color:var(--ink);font-size:18px;padding:0 24px}
+.lmsg small{display:block;color:var(--mist);font-size:14px;margin-top:8px}
+.lnote{color:var(--mist);font-size:13px;margin-top:18px}
+.chip:disabled{opacity:.4}
+.mnote{color:var(--mist);font-size:14px;margin:0 0 14px}
+@media (prefers-reduced-motion:reduce){.lyr p{transition:none}.now{transition:none}}
+</style>
+</head>
+<body>
+
+<main id="home" class="home">
+  <header class="hero">
+    <svg class="disc0" viewBox="0 0 100 100" aria-hidden="true">
+      <defs><linearGradient id="g0" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#CF49FF"/><stop offset="1" stop-color="#0FEBFF"/></linearGradient></defs>
+      <circle cx="50" cy="50" r="47" fill="#0B0912" stroke="url(#g0)" stroke-width="1.5"/>
+      <circle cx="50" cy="50" r="39" fill="none" stroke="#221C35" stroke-width="1"/>
+      <circle cx="50" cy="50" r="33" fill="none" stroke="#221C35" stroke-width="1"/>
+      <circle cx="50" cy="50" r="27" fill="none" stroke="#221C35" stroke-width="1"/>
+      <circle cx="50" cy="50" r="17" fill="url(#g0)"/>
+      <circle cx="50" cy="50" r="3" fill="#000"/>
+    </svg>
+    <h1 class="mark">MY MUSIC</h1>
+    <p class="tag">Curated sound. Endless mood.</p>
+  </header>
+  <div class="rule"></div>
+  <ul id="pls" class="pls"></ul>
+  <div id="dls" aria-live="polite"></div>
+  <div class="homefoot">
+    <button id="addBtn" class="pill main">Add songs</button>
+    <button id="scan" class="ghost">Update library</button>
+    <button id="folderBtn" class="ghost">Music folder</button>
+    <button id="hiddenBtn" class="ghost hidden">Hidden songs</button>
+    <span id="made"></span>
+  </div>
+</main>
+
+<section id="list" class="list hidden">
+  <header class="lhead">
+    <div class="lrow">
+      <button class="back" id="back" aria-label="Back to playlists"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.4 6.4 14 5l-7 7 7 7 1.4-1.4L9.8 12z"/></svg></button>
+      <h2 id="lname"></h2>
+      <span class="count" id="lcount"></span>
+    </div>
+    <input id="q" class="search" type="search" placeholder="Search songs or artists" autocomplete="off">
+    <div class="tools">
+      <button class="pill main" id="playall">Play</button>
+      <button class="pill alt" id="shuffleall">Shuffle</button>
+      <button class="sortbtn" id="sortBtn" aria-haspopup="dialog" aria-label="Sort songs">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span id="sortLbl">Artist</span>
+      </button>
+    </div>
+  </header>
+  <div id="pend"></div>
+  <ul id="songs" class="songs"></ul>
+</section>
+
+<section id="hid" class="list hidden">
+  <header class="lhead">
+    <div class="lrow">
+      <button class="back" id="hback" aria-label="Back to playlists"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.4 6.4 14 5l-7 7 7 7 1.4-1.4L9.8 12z"/></svg></button>
+      <h2>Hidden songs</h2>
+      <span class="count" id="hcount"></span>
+    </div>
+  </header>
+  <ul id="hsongs" class="songs"></ul>
+</section>
+
+<div id="sheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+  <div class="sheetcard">
+    <b id="shTitle"></b><span id="shArtist"></span>
+    <button id="shAdd" class="srow">Add to another playlist<small>Copies the song into the playlists you pick.</small></button>
+    <button id="shShare" class="srow">Share song<small>Sends the song file - Messages, Drive, Bluetooth, anything.</small></button>
+    <button id="shHide" class="srow">Hide from MY MUSIC<small>The file stays on the phone. Bring it back from Hidden songs.</small></button>
+    <button id="shDel" class="srow danger">Delete from phone<small>Gone for good. Android asks you to confirm first.</small></button>
+    <button id="shCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
+<div id="asheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="aTitle">
+  <div class="sheetcard">
+    <b id="aTitle">Add songs</b><span>Into which playlist?</span>
+    <div class="chips" id="aChips"></div>
+    <input id="aNew" class="search hidden" type="text" placeholder="New playlist name" autocomplete="off">
+    <input id="aLink" class="search" type="url" placeholder="Paste a YouTube or YouTube Music link" autocomplete="off">
+    <button id="aGo" class="pill main wide">Download this link</button>
+    <button id="aPhone" class="srow">Pick songs on this phone<small>Copies MP3s you already have into the playlist.</small></button>
+    <button id="aCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
+<div id="tsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="tTitle">
+  <div class="sheetcard">
+    <b id="tTitle">Add to playlist</b><span id="tSong"></span>
+    <div class="chips" id="tChips"></div>
+    <input id="tNew" class="search hidden" type="text" placeholder="New playlist name" autocomplete="off">
+    <button id="tGo" class="pill main wide">Add</button>
+    <button id="tCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
+<div id="msheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="sheetcard">
+    <b id="mTitle">Moving ring</b>
+    <span>The ring around the disc moves with the music, in each song's own colours.</span>
+    <p class="mnote">Android calls this "Record audio". MY MUSIC only reads its own sound - it never turns on the microphone.</p>
+    <button id="mGo" class="pill main wide">Turn on the ring</button>
+    <button id="mNo" class="srow">Not now</button>
+  </div>
+</div>
+
+<div id="srtsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="srtTitle">
+  <div class="sheetcard">
+    <b id="srtTitle">Sort by</b><span>Tap one to sort the playlist.</span>
+    <div id="srtList" role="radiogroup">
+      <button class="srow sortrow" data-sort="recent" role="radio">Recently played</button>
+      <button class="srow sortrow" data-sort="plays" role="radio">Most played</button>
+      <button class="srow sortrow" data-sort="new" role="radio">Recently added</button>
+      <button class="srow sortrow" data-sort="title" role="radio">Title</button>
+      <button class="srow sortrow" data-sort="artist" role="radio">Artist</button>
+    </div>
+    <span class="order-label">Order</span>
+    <div class="order" id="srtOrder">
+      <button data-rev="0" aria-pressed="true"></button><button data-rev="1" aria-pressed="false"></button>
+    </div>
+    <button id="srtDone" class="srow">Done</button>
+  </div>
+</div>
+
+<div id="ssheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+  <div class="sheetcard">
+    <b id="sTitle">Add this song to</b><span>Tap the playlist it belongs in.</span>
+    <div id="sList" class="slist"></div>
+    <div id="sNewRow" class="hidden">
+      <input id="sNew" class="search" type="text" placeholder="New playlist name" autocomplete="off">
+      <button id="sNewGo" class="pill main wide">Add to the new playlist</button>
+    </div>
+    <button id="sCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
+<div id="bsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="bTitle">
+  <div class="sheetcard">
+    <b id="bTitle">This link is a song in a playlist</b><span>What should come in?</span>
+    <button id="bAll" class="srow">The whole playlist<small>Adds the playlist to MY MUSIC with all its songs.</small></button>
+    <button id="bOne" class="srow">Just this song<small id="bOneTo"></small></button>
+    <button id="bCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
+<div id="psheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="psTitle">
+  <div class="sheetcard">
+    <b id="psTitle"></b><span>Playlist picture</span>
+    <button id="psPick" class="srow">Change picture<small>Pick any picture on your phone.</small></button>
+    <button id="psReset" class="srow">Use the original picture</button>
+    <button id="psCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
+<footer id="mini" class="mini hidden">
+  <div class="prog" id="mprog"></div>
+  <button class="open" id="mopen" aria-label="Open player">
+    <div class="th"><img id="mart" alt=""></div>
+    <div style="min-width:0"><b id="mtitle"></b><span id="martist"></span></div>
+  </button>
+  <button class="ib" id="mplay" aria-label="Play"></button>
+  <button class="ib" id="mnext" aria-label="Next song"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg></button>
+</footer>
+
+<section id="now" class="now" aria-label="Now playing" aria-hidden="true">
+  <div class="nowtop">
+    <button class="ib" id="nclose" aria-label="Close player"><svg viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg></button>
+    <span class="pname" id="npl"></span>
+    <div class="nowact">
+      <button class="ib lyrbtn" id="nlyr" aria-label="Lyrics" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v9.5A1.5 1.5 0 0 1 19 17H9.5L5 20.5V17H5a1.5 1.5 0 0 1-1.5-1.5V6A1.5 1.5 0 0 1 5 4.5z"/><path d="M7.5 9h9M7.5 12.5h6"/></svg></button>
+      <button class="ib" id="nmore" aria-label="More for this song"><svg viewBox="0 0 24 24"><path d="M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
+    </div>
+  </div>
+  <div class="stage" id="stage">
+    <div class="vinyl" id="disc"><canvas id="ring" aria-hidden="true"></canvas><div class="label spin"><img id="nart" alt=""></div></div>
+    <div class="lyr hidden" id="lyr" aria-label="Lyrics"></div>
+  </div>
+  <div class="meta"><h3 id="ntitle"></h3><p id="nartist"></p></div>
+  <div class="wave" id="wave" role="slider" aria-label="Song position" tabindex="0"></div>
+  <div class="times"><span id="tcur">0:00</span><span id="tdur">0:00</span></div>
+  <div class="ctrl">
+    <button class="ib tog" id="shuf" aria-label="Shuffle" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M10.6 9.2 5.4 4 4 5.4l5.2 5.2 1.4-1.4zM14.5 4l2 2L4 18.6 5.4 20 18 7.5l2 2V4h-5.5zm.3 9.4-1.4 1.4 3.1 3.1-2 2H20v-5.5l-2 2-3.2-3z"/></svg></button>
+    <button class="ib" id="prev" aria-label="Previous song"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+    <button class="big" id="nplay" aria-label="Play"></button>
+    <button class="ib" id="next" aria-label="Next song"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg></button>
+    <button class="ib tog" id="rep" aria-label="Repeat: off" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg><span class="one hidden" id="rep1">1</span></button>
+  </div>
+</section>
+
+<div id="toast" class="toast hidden" role="status"></div>
+
+<script>
+"use strict";
+/* MY MUSIC app page. The playing happens in the app itself
+   (window.Native); this page shows it and sends taps. */
+const N = window.Native || null;
+const $ = s => document.querySelector(s);
+const enc = encodeURIComponent;
+const PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mmss = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+const hours = s => { const h = Math.round(s / 3600); return h === 1 ? "1 hour" : h + " hours"; };
+const nSongs = n => (n || 0).toLocaleString() + (n === 1 ? " song" : " songs");
+/* "12 songs + 328 coming", "340 songs coming", "1 song" */
+const countLine = (n, w) => n ? nSongs(n) + (w ? " + " + w.toLocaleString() + " coming" : "") : w ? nSongs(w) + " coming" : nSongs(0);
+const clock = ms => new Date(ms).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
+const artUrl = (p, f, big) => "/art?p=" + enc(p) + "&f=" + enc(f) + (big ? "&s=big" : "");
+const keyOf = s => s.p + "/" + s.file;
+function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+
+let LIB = {playlists: []}, KEYS = new Map(), PL = null, shown = [], sortBy = load("mm_sort") || "artist", sortRev = load("mm_rev") === true;
+let ST = {}, stAt = 0, cur = null;     /* what the player last said, when, and its song */
+
+/* ---------- library ---------- */
+async function getLib() {
+  const r = await fetch("/api/library", {cache: "no-store"});
+  LIB = await r.json();
+  KEYS = new Map();
+  LIB.playlists.forEach(p => p.songs.forEach(s => {
+    s.p = p.name; s.k = (s.title + " " + s.artist + " " + s.file).toLowerCase(); KEYS.set(keyOf(s), s);
+  }));
+  sortCache = new Map(); PL = null;
+  cur = ST.key ? KEYS.get(ST.key) || null : null;      /* the same song, from the fresh list (player stays open) */
+  loadPending(); mergePending(); loadPlays();
+}
+/* songs on their way into playlists (a shared playlist lists all its songs at once) */
+let PENDING = {};
+function loadPending() { try { PENDING = (N && JSON.parse(N.pending())) || {}; } catch (e) { PENDING = {}; } }
+function pendOf(name) {
+  if (!name) return null;
+  const k = Object.keys(PENDING).find(x => x.toLowerCase() === name.toLowerCase());
+  const e = k && PENDING[k];
+  return e && Array.isArray(e.items) && e.items.length ? e : null;
+}
+const waiting = e => e ? e.items.filter(x => x.s !== "x").length : 0;
+function mergePending() {
+  /* a playlist that so far exists only as songs on their way still shows */
+  Object.keys(PENDING).forEach(name => {
+    if (name.startsWith("?") || !pendOf(name)) return;
+    if (!LIB.playlists.some(p => p.name.toLowerCase() === name.toLowerCase())) LIB.playlists.push({name, cover: "", custom: false, songs: [], soon: true});
+  });
+  LIB.playlists = LIB.playlists.filter(p => !p.soon || pendOf(p.name));
+  LIB.playlists.sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: "base", numeric: true}));
+}
+function renderHome() {
+  const ul = $("#pls");
+  $(".homefoot").classList.toggle("hidden", !!N && !N.hasPermission());
+  if (N && !N.hasPermission()) {
+    ul.innerHTML = '<li class="empty">MY MUSIC needs your permission to read the songs on your phone.<br><br>' +
+      '<button class="pill main" id="allow">Allow</button></li>';
+    $("#allow").onclick = () => N.askPermission();
+  } else if (!LIB.playlists.length) {
+    ul.innerHTML = '<li class="empty">No music yet.<br><br>Tap <b>Add songs</b> to bring in a YouTube playlist or song, ' +
+      'or <b>Music folder</b> to use a folder of songs you already have (each folder inside it is a playlist).</li>';
+  } else {
+    ul.innerHTML = LIB.playlists.map((p, i) => {
+      const secs = p.songs.reduce((a, s) => a + (s.duration || 0), 0);
+      const n = p.songs.length;
+      const first = p.songs[0];
+      const pic = p.cover ? '<div class="plart"><img src="/cover?p=' + enc(p.name) + '&v=' + enc(p.cover) + '" alt=""></div>'
+        : '<div class="vinyl"><div class="label">' + (first ? '<img loading="lazy" src="' + artUrl(p.name, first.file) +
+          '" alt="" onerror="this.remove()">' : '') + '</div></div>';
+      const w = waiting(pendOf(p.name));
+      let sub = n ? nSongs(n) + ", " + (secs < 3600 ? Math.round(secs / 60) + " min" : hours(secs)) : "";
+      if (w) sub = n ? sub + " - " + w.toLocaleString() + " on the way" : nSongs(w) + " on the way";
+      return '<li><button class="pl" data-i="' + i + '">' + pic + '<div><h2>' + esc(p.name) + '</h2><p>' + sub + '</p></div></button></li>';
+    }).join("");
+  }
+  let fold = ""; try { fold = N ? N.folder() : ""; } catch (e) {}
+  $("#made").textContent = (fold ? fold + " - " : "") + (LIB.made ? "updated " + LIB.made.slice(5).replace("-", "/") : "");
+  const nh = (LIB.hidden || []).length, hb = $("#hiddenBtn");
+  hb.classList.toggle("hidden", !nh); hb.textContent = "Hidden songs (" + nh + ")";
+}
+$("#hiddenBtn").onclick = () => go("#/hidden");
+$("#folderBtn").onclick = () => N && N.chooseFolder();
+$("#hback").onclick = () => goBack("#/");
+function renderHidden() {
+  const hs = LIB.hidden || [];
+  $("#hcount").textContent = hs.length + (hs.length === 1 ? " song" : " songs");
+  $("#hsongs").innerHTML = hs.length ? hs.map((s, i) => '<li class="song"><div class="tx"><b>' + esc(s.title) + '</b><span>' +
+    esc(s.artist || "Unknown artist") + '</span></div><button class="pill alt" data-i="' + i + '">Show again</button></li>').join("")
+    : '<li class="empty">No hidden songs.</li>';
+}
+$("#hsongs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-i]"); if (!b || !N) return;
+  const s = LIB.hidden[+b.dataset.i]; b.disabled = true; b.textContent = "...";
+  N.unhide(s.p + "/" + s.file);
+});
+window.onNoPermission = () => {
+  $("#pls").innerHTML = '<li class="empty">Permission was turned down. In Settings, open Permissions, then Music and audio, and choose Allow.<br><br>' +
+    '<button class="pill main" id="settings">Open settings</button></li>';
+  $("#settings").onclick = () => N.openSettings();
+};
+let plDone = false, plT = null, plX = 0, plY = 0, sheetPl = null;
+$("#pls").addEventListener("pointerdown", e => {
+  const b = e.target.closest(".pl"); if (!b) return;
+  plDone = false; plX = e.clientX; plY = e.clientY; clearTimeout(plT);
+  plT = setTimeout(() => {
+    plDone = true; sheetPl = LIB.playlists[+b.dataset.i]; if (!sheetPl || !N) return;
+    $("#psTitle").textContent = sheetPl.name; $("#psReset").classList.toggle("hidden", !sheetPl.custom);
+    $("#psheet").classList.remove("hidden");
+  }, 550);
+});
+$("#pls").addEventListener("pointermove", e => { if (Math.abs(e.clientX - plX) + Math.abs(e.clientY - plY) > 12) clearTimeout(plT); });
+["pointerup", "pointercancel", "pointerleave"].forEach(ev => $("#pls").addEventListener(ev, () => clearTimeout(plT)));
+$("#pls").addEventListener("contextmenu", e => e.preventDefault());
+const closePs = () => { $("#psheet").classList.add("hidden"); };
+$("#psCancel").onclick = closePs;
+$("#psheet").addEventListener("click", e => { if (e.target.id === "psheet") closePs(); });
+$("#psPick").onclick = () => { closePs(); if (sheetPl) N.pickCover(sheetPl.name); };
+$("#psReset").onclick = () => { closePs(); if (sheetPl) N.resetCover(sheetPl.name); };
+$("#pls").addEventListener("click", e => {
+  if (plDone) { plDone = false; return; }
+  const b = e.target.closest(".pl"); if (!b) return;
+  go("#/p/" + enc(LIB.playlists[+b.dataset.i].name));
+});
+
+/* ---------- playlist view ---------- */
+const COLL = new Intl.Collator(undefined, {sensitivity: "base", numeric: true});
+let sortCache = new Map();          /* sorting 2,500 songs once per order, not on every key press */
+/* how often and when each song was played: {"playlist/file": [times, last ms]} */
+let PLAYS = {};
+function loadPlays() {
+  try { PLAYS = (N && JSON.parse(N.plays())) || {}; } catch (e) { PLAYS = {}; }
+  for (const k of [...sortCache.keys()]) if (/\|(plays|recent)\|/.test(k)) sortCache.delete(k);
+}
+const playsOf = s => PLAYS[keyOf(s)] || [0, 0];
+const SORTS = {
+  recent: ["Recently played", "Newest first", "Oldest first"],
+  plays: ["Most played", "Most first", "Least first"],
+  new: ["Recently added", "Newest first", "Oldest first"],
+  title: ["Title", "A to Z", "Z to A"],
+  artist: ["Artist", "A to Z", "Z to A"]};
+if (!SORTS[sortBy]) sortBy = "artist";
+function sorted(songs) {
+  const c = COLL.compare;
+  const a = songs.map(s => ({s, p: playsOf(s)}));
+  const byTitle = (x, y) => c(x.s.title, y.s.title) || c(x.s.artist || "~", y.s.artist || "~");
+  if (sortBy === "title") a.sort(byTitle);
+  else if (sortBy === "new") a.sort((x, y) => (y.s.mtime || 0) - (x.s.mtime || 0) || byTitle(x, y));
+  else if (sortBy === "plays") a.sort((x, y) => y.p[0] - x.p[0] || y.p[1] - x.p[1] || byTitle(x, y));
+  else if (sortBy === "recent") a.sort((x, y) => y.p[1] - x.p[1] || byTitle(x, y));
+  else a.sort((x, y) => c(x.s.artist || "~", y.s.artist || "~") || byTitle(x, y));
+  if (sortRev) a.reverse();
+  return a.map(x => x.s);
+}
+/* "5 min ago", "Yesterday", "Oct 3" */
+function ago(ms) {
+  const m = Math.floor((Date.now() - ms) / 60000);
+  if (m < 1) return "Just now";
+  if (m < 60) return m + " min ago";
+  if (m < 1440) return Math.floor(m / 60) + " h ago";
+  if (m < 2880) return "Yesterday";
+  if (m < 10080) return Math.floor(m / 1440) + " days ago";
+  return new Date(ms).toLocaleDateString([], {month: "short", day: "numeric"});
+}
+/* the right-hand side of a song row: its length, or its plays / when it was last played */
+function side(s) {
+  const p = playsOf(s);
+  if (sortBy === "plays") return p[0] ? (p[0] === 1 ? "1 play" : p[0].toLocaleString() + " plays") : "";
+  if (sortBy === "recent") return p[1] ? ago(p[1]) : "";
+  return mmss(s.duration);
+}
+function showSort() {
+  $("#sortLbl").textContent = SORTS[sortBy][0];
+  $("#sortBtn").classList.toggle("rev", sortRev);
+  $("#sortBtn").setAttribute("aria-label", "Sort songs: " + SORTS[sortBy][0] + ", " + SORTS[sortBy][sortRev ? 2 : 1]);
+  document.querySelectorAll("#srtList .sortrow").forEach(b => b.setAttribute("aria-checked", b.dataset.sort === sortBy));
+  document.querySelectorAll("#srtOrder button").forEach(b => {
+    b.textContent = SORTS[sortBy][+b.dataset.rev + 1]; b.setAttribute("aria-pressed", (b.dataset.rev === "1") === sortRev);
+  });
+}
+let renderTok = 0;
+function renderList() {
+  if (!PL) return;
+  const q = $("#q").value.trim().toLowerCase();
+  const key = PL.name + "|" + sortBy + "|" + sortRev;
+  if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
+  const words = q.split(/\s+/);
+  shown = q ? sortCache.get(key).filter(s => words.every(w => s.k.includes(w))) : sortCache.get(key);
+  $("#lname").textContent = PL.name;
+  const w = waiting(pendOf(PL.name));
+  $("#lcount").textContent = q ? shown.length.toLocaleString() + " found" : countLine(PL.songs.length, w);
+  renderPend();
+  const ul = $("#songs"), list = shown, tok = ++renderTok;
+  const row = (s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '"><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
+    '" onerror="this.remove()"></div><div class="tx"><b>' + esc(s.title) + '</b><span>' + esc(s.artist || "Unknown artist") +
+    '</span></div><time>' + side(s) + '</time></li>';
+  if (!list.length) { ul.innerHTML = q ? '<li class="empty">Nothing matches that search.</li>' : pendOf(PL.name) ? '' : '<li class="empty">No songs here yet.</li>'; }
+  else {
+    /* first screen now, the rest in small batches so the tap feels instant */
+    ul.innerHTML = list.slice(0, 40).map(row).join("");
+    let n = 40;
+    const more = () => {
+      if (tok !== renderTok || n >= list.length) return;
+      ul.insertAdjacentHTML("beforeend", list.slice(n, n + 250).map((s, k) => row(s, n + k)).join(""));
+      n += 250; setTimeout(more, 16);
+    };
+    setTimeout(more, 16);
+  }
+  showSort();
+}
+const pendOpen = {};
+function renderPend() {
+  const box = $("#pend"), e = PL && pendOf(PL.name);
+  if (!e || $("#q").value.trim()) { box.innerHTML = ""; return; }
+  const w = waiting(e), bad = e.items.length - w;
+  const open = pendOpen[PL.name] ?? (PL.songs.length < 30);
+  const now = DLS.some(d => d.folder.toLowerCase() === PL.name.toLowerCase());
+  const status = e.retry > Date.now() ? "YouTube paused downloads - MY MUSIC tries again at " + clock(e.retry)
+    : now ? "Downloading now - each song shows up here when it's in" : "Starting...";
+  const row = x => '<li class="song soon' + (x.s === "x" ? " bad" : "") + '"><div class="th"></div><div class="tx"><b>' + esc(x.t || "Song") +
+    '</b><span>' + esc(x.s === "x" ? "Can't download: " + (x.e || "not available") : (x.a || "On the way")) + '</span></div><time>' + (x.d ? mmss(x.d) : "") + '</time></li>';
+  const list = e.items.slice().sort((a, b) => (a.s === "x") - (b.s === "x"));
+  box.innerHTML = '<div class="pendhead"><div><b>' + (w ? nSongs(w) + " on the way" : "Almost done") + '</b><span>' + esc(status) +
+    (bad ? " - " + bad + " can't be downloaded" : "") + '</span></div><button class="ghost" id="pendTog">' + (open ? "Hide" : "Show") + '</button></div>' +
+    (open ? '<ul class="songs">' + list.slice(0, 300).map(row).join("") +
+      (list.length > 300 ? '<li class="empty">and ' + (list.length - 300).toLocaleString() + ' more</li>' : '') + '</ul>' : '');
+}
+$("#pend").addEventListener("click", e => {
+  if (e.target.id === "pendTog") { pendOpen[PL.name] = e.target.textContent === "Show"; renderPend(); return; }
+  if (e.target.closest(".song.soon")) toast(e.target.closest(".bad") ? "YouTube won't give this one out" : "On its way - it plays once it's in");
+});
+window.onPending = () => {
+  loadPending(); mergePending();
+  if (!$("#home").classList.contains("hidden")) renderHome();
+  else if (PL && !$("#list").classList.contains("hidden")) {
+    PL = LIB.playlists.find(x => x.name === PL.name) || PL;
+    const w = waiting(pendOf(PL.name));
+    if (!$("#q").value.trim()) $("#lcount").textContent = countLine(PL.songs.length, w);
+    renderPend();
+  }
+  renderDls();
+};
+/* new songs are in: read the library again without a message, staying where you are */
+window.onSongs = async () => {
+  const name = PL && PL.name, y = scrollY, qv = $("#q").value, inList = !$("#list").classList.contains("hidden");
+  try { await getLib(); } catch (e) { return; }
+  if (inList && name) {
+    PL = LIB.playlists.find(x => x.name === name) || null;
+    if (!PL) { route(); return; }
+    if (DLS.some(d => d.folder.toLowerCase() === name.toLowerCase())) {     /* the one filling up: show its new songs */
+      $("#q").value = qv; renderList(); setTimeout(() => scrollTo(0, y), 250);
+    }
+  } else if (!$("#home").classList.contains("hidden")) renderHome();
+};
+let qt; $("#q").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(renderList, 160); });
+/* "Sort by": pick one (it sorts and closes); the order switch flips it in place */
+const closeSort = () => $("#srtsheet").classList.add("hidden");
+$("#sortBtn").onclick = () => { loadPlays(); showSort(); $("#srtsheet").classList.remove("hidden"); };
+$("#srtList").addEventListener("click", e => {
+  const b = e.target.closest(".sortrow"); if (!b) return;
+  if (b.dataset.sort !== sortBy) { sortBy = b.dataset.sort; sortRev = false; }
+  store("mm_sort", sortBy); store("mm_rev", sortRev); closeSort(); renderList(); scrollTo(0, 0);
+});
+$("#srtOrder").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  sortRev = b.dataset.rev === "1"; store("mm_rev", sortRev); showSort(); renderList();
+});
+$("#srtDone").onclick = closeSort;
+$("#srtsheet").addEventListener("click", e => { if (e.target.id === "srtsheet") closeSort(); });
+function playList(list, i, shuffle) {
+  if (!N || !list.length) return;
+  N.play(JSON.stringify(list.map(keyOf)), i, shuffle);
+}
+$("#songs").addEventListener("click", e => {
+  if (lpDone) { lpDone = false; return; }
+  const li = e.target.closest(".song"); if (!li) return;
+  playList(shown, +li.dataset.i, !!ST.shuffle);
+});
+$("#playall").onclick = () => playList(shown, 0, false);
+$("#shuffleall").onclick = () => playList(shown, Math.floor(Math.random() * shown.length), true);
+$("#back").onclick = () => goBack("#/");
+
+/* ---------- the player says what is going on ---------- */
+window.onNative = st => { if (!dragging) apply(st); };
+function apply(st) {
+  ST = st || {}; stAt = performance.now();
+  const s = ST.key ? KEYS.get(ST.key) || null : null;
+  if (s !== cur) { cur = s; if (s) showSong(s); markOn(); loadPlays(); }
+  $("#mini").classList.toggle("hidden", !cur);
+  syncPlay(); tick();
+  if (ST.note) toast(ST.note);
+}
+function ask() { if (N && !dragging) { try { apply(JSON.parse(N.state())); } catch (e) {} } }
+const pos = () => Math.min(dur(), (ST.pos || 0) + (ST.playing ? performance.now() - stAt : 0));   /* ms */
+const dur = () => ST.dur || (cur ? cur.duration * 1000 : 0);
+setInterval(() => { if (!document.hidden) ask(); }, 2000);                    /* stay in step */
+setInterval(() => { if (!document.hidden && ST.playing) tick(); }, 250);     /* smooth bars */
+document.addEventListener("visibilitychange", () => { if (!document.hidden) ask(); });
+function markOn() {
+  document.querySelectorAll(".song.on").forEach(e => e.classList.remove("on"));
+  if (cur && PL && PL.name === cur.p) { const li = document.querySelector('.song[data-i="' + shown.indexOf(cur) + '"]'); if (li) li.classList.add("on"); }
+}
+$("#mplay").onclick = () => N && N.toggle(); $("#nplay").onclick = () => N && N.toggle();
+$("#mnext").onclick = () => N && N.next(); $("#next").onclick = () => N && N.next(); $("#prev").onclick = () => N && N.prev();
+$("#shuf").onclick = () => N && N.setShuffle(!ST.shuffle);
+$("#rep").onclick = () => N && N.setRepeat(ST.repeat === "all" ? "one" : ST.repeat === "one" ? "off" : "all");
+
+/* ---------- now playing ---------- */
+const BARS = 48;
+/* played bars run orchid -> violet -> cyan, like the art */
+const BAR_COLORS = Array.from({length: BARS}, (_, i) => {
+  const t = i / (BARS - 1), A = [207, 73, 255], B = [121, 118, 255], C = [15, 235, 255];
+  const [x, y, k] = t < .55 ? [A, B, t / .55] : [B, C, (t - .55) / .45];
+  return "rgb(" + x.map((v, j) => Math.round(v + (y[j] - v) * k)).join(",") + ")";
+});
+function waveFor(s) {
+  let h = 2166136261; for (const c of s.file) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  const out = []; for (let i = 0; i < BARS; i++) { h ^= h << 13; h ^= h >>> 17; h ^= h << 5;
+    const r = ((h >>> 0) % 1000) / 1000, env = Math.sin(Math.PI * (i + .5) / BARS);
+    out.push(Math.round(18 + 82 * (0.35 * env + 0.65 * r))); }
+  return out;
+}
+function showSong(s) {
+  $("#mtitle").textContent = $("#ntitle").textContent = s.title;
+  $("#martist").textContent = $("#nartist").textContent = s.artist || "Unknown artist";
+  $("#npl").textContent = s.p;
+  for (const [id, big] of [["#mart", false], ["#nart", true]]) { const im = $(id); im.style.visibility = "visible"; im.onerror = () => im.style.visibility = "hidden"; im.src = artUrl(s.p, s.file, big); }
+  $("#wave").innerHTML = waveFor(s).map((h, i) => '<i style="height:' + h + '%;--c:' + waveColor(i) + '"></i>').join("");
+  trackColors(s);
+  if ($("#now").classList.contains("show") || LYR.open) wantLyrics(s);
+  else { LYR.data = null; $("#nlyr").classList.remove("has"); }
+}
+function syncPlay() {
+  const p = !!ST.playing;
+  $("#mplay").innerHTML = $("#nplay").innerHTML = p ? PAUSE : PLAY;
+  $("#mplay").setAttribute("aria-label", p ? "Pause" : "Play"); $("#nplay").setAttribute("aria-label", p ? "Pause" : "Play");
+  $("#disc").classList.toggle("go", p);
+  document.body.classList.toggle("playing", p);           /* the bars on the playing song move only while it plays */
+  ringWake();
+  const r = ST.repeat || "off", b = $("#rep");
+  $("#shuf").setAttribute("aria-pressed", !!ST.shuffle);
+  b.setAttribute("aria-pressed", r !== "off"); b.setAttribute("aria-label", "Repeat: " + r);
+  $("#rep1").classList.toggle("hidden", r !== "one");
+}
+function tick() {
+  const d = dur() / 1000, t = pos() / 1000, pct = d ? Math.min(1, t / d) : 0;
+  $("#mprog").style.width = (pct * 100) + "%";
+  $("#tcur").textContent = mmss(t); $("#tdur").textContent = mmss(d);
+  const on = Math.round(pct * BARS);
+  $("#wave").querySelectorAll("i").forEach((b, i) => b.classList.toggle("on", i < on));
+  $("#wave").setAttribute("aria-valuetext", mmss(t) + " of " + mmss(d));
+  lyricsTick();
+}
+function seekTo(ms) {
+  if (!N || !cur) return;
+  ms = Math.max(0, Math.min(dur(), ms));
+  ST.pos = ms; stAt = performance.now(); tick();
+  N.seek(Math.round(ms));
+}
+/* dragging only moves the bars; the jump happens once, when the finger lifts */
+let dragging = false, dragMs = 0;
+function dragTo(e) {
+  const r = $("#wave").getBoundingClientRect(), x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+  dragMs = Math.max(0, Math.min(1, x / r.width)) * dur();
+  ST.pos = dragMs; stAt = performance.now(); tick();
+}
+$("#wave").addEventListener("pointerdown", e => { if (!cur) return; dragging = true; dragTo(e); });
+addEventListener("pointermove", e => { if (dragging) dragTo(e); });
+addEventListener("pointerup", () => { if (dragging) { dragging = false; seekTo(dragMs); } });
+addEventListener("pointercancel", () => { if (dragging) { dragging = false; ask(); } });
+$("#wave").addEventListener("keydown", e => { if (e.key === "ArrowRight") seekTo(pos() + 5000); if (e.key === "ArrowLeft") seekTo(pos() - 5000); });
+
+/* ---------- add songs: paste a link, Share from YouTube, or from this phone ---------- */
+let addTo = "";
+const AUTO = "\u0001own";            /* "Its own playlist": named after the YouTube playlist */
+/* a whole playlist, a song that is also in a playlist, or just a song */
+function linkKind(link) {
+  link = link || "";
+  const m = /[?&]list=([A-Za-z0-9_-]+)/.exec(link), video = /watch\?v=|youtu\.be\/|\/shorts\//.test(link);
+  if (m && !video) return {kind: "playlist", id: m[1]};
+  if (m && video && !/^(RD|UL|LL|WL)/.test(m[1])) return {kind: "both", id: m[1]};
+  return {kind: "song"};
+}
+const wholeList = id => "https://www.youtube.com/playlist?list=" + id;
+let addChose = false;                  /* picked a chip by hand: typing the link does not undo it */
+function addChips() {
+  const names = LIB.playlists.filter(p => !p.soon).map(p => p.name), list = linkKind($("#aLink").value.trim()).kind !== "song";
+  if (!addChose) addTo = list ? AUTO : "";          /* a song: you pick where it belongs */
+  if (addTo === AUTO && !list) addTo = "";
+  const newOn = (addChose && addTo === "") || (!names.length && !list);
+  $("#aChips").innerHTML = (list ? '<button class="chip" data-auto="1" aria-pressed="' + (addTo === AUTO) + '">Its own playlist</button>' : '') +
+    names.map(n => '<button class="chip" data-n="' + esc(n) + '" aria-pressed="' + (n === addTo) + '">' + esc(n) + '</button>').join("") +
+    '<button class="chip" data-new="1" aria-pressed="' + newOn + '">New playlist</button>';
+  $("#aNew").classList.toggle("hidden", !newOn);
+  $("#aGo").textContent = list && addTo === AUTO ? "Add this playlist" : "Download this link";
+}
+function openAdd(link) {
+  if (!N) return;
+  addChose = false;
+  let clip = ""; try { clip = link ? "" : N.clipboardLink(); } catch (e) {}
+  $("#aLink").value = link || clip || ""; $("#aNew").value = "";
+  addChips();
+  $("#asheet").classList.remove("hidden");
+}
+$("#aChips").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  addChose = true;
+  document.querySelectorAll("#aChips .chip").forEach(c => c.setAttribute("aria-pressed", c === b));
+  if (b.dataset.new) { addTo = ""; $("#aNew").classList.remove("hidden"); $("#aNew").focus(); }
+  else { addTo = b.dataset.auto ? AUTO : b.dataset.n; $("#aNew").classList.add("hidden"); }
+  $("#aGo").textContent = addTo === AUTO ? "Add this playlist" : "Download this link";
+});
+const addTarget = () => $("#aNew").classList.contains("hidden") ? (addTo === AUTO ? "" : addTo) : $("#aNew").value.trim().replace(/[\/\\:*?"<>|]/g, "").replace(/^\.+/, "").trim();
+const closeAdd = () => $("#asheet").classList.add("hidden");
+$("#aCancel").onclick = closeAdd;
+$("#asheet").addEventListener("click", e => { if (e.target.id === "asheet") closeAdd(); });
+$("#aLink").addEventListener("input", addChips);
+/* MY MUSIC fetches it itself. to = "" : a playlist of its own */
+function startDownload(link, to) {
+  let built = true; try { built = N.builtIn(); } catch (e) {}
+  if (!built) { toast("The downloader is missing from this install - get the APK from the Releases page"); return; }
+  const r = N.download(link, to); if (r) toast(r);
+}
+$("#aGo").onclick = () => {
+  let link = $("#aLink").value.trim(); const k = linkKind(link);
+  if (!/^https?:\/\//.test(link)) { toast("Paste a link first"); return; }
+  if (addTo === AUTO && k.kind !== "song" && $("#aNew").classList.contains("hidden")) {
+    closeAdd(); startDownload(k.kind === "both" ? wholeList(k.id) : link, ""); return;
+  }
+  const to = addTarget();
+  if (!to) { toast("Pick a playlist or name a new one"); return; }
+  closeAdd(); startDownload(link, to);
+};
+$("#aPhone").onclick = () => {
+  const to = addTarget(); if (!to) { toast("Pick one of your playlists (or New playlist) for songs from this phone"); return; }
+  closeAdd(); N.importSongs(to);
+};
+$("#addBtn").onclick = () => openAdd("");
+/* Share > MY MUSIC, straight in, no questions:
+   - a playlist becomes a playlist in MY MUSIC (named after it - or, if one here already has its songs,
+     that one fills up); every song is listed at once and fills in as it downloads
+   - a song goes into the playlist used last
+   - a song played from a playlist: asks once - the whole playlist, or just the song */
+/* a shared song: you tap the playlist it belongs in (one tap starts it) */
+let songLink = "";
+function shareSong(link) {
+  songLink = link;
+  $("#sList").innerHTML = LIB.playlists.map((p, i) => '<button class="srow" data-i="' + i + '">' + esc(p.name) +
+    '<small>' + countLine(p.songs.length, waiting(pendOf(p.name))) + '</small></button>').join("") +
+    '<button class="srow" id="sNewBtn">New playlist<small>Starts a new playlist with this song.</small></button>';
+  $("#sNewRow").classList.add("hidden"); $("#sNew").value = "";
+  $("#ssheet").classList.remove("hidden");
+}
+const closeSong = () => $("#ssheet").classList.add("hidden");
+$("#sList").addEventListener("click", e => {
+  if (e.target.closest("#sNewBtn")) { $("#sNewRow").classList.remove("hidden"); $("#sNew").focus(); return; }
+  const b = e.target.closest("[data-i]"); if (!b) return;
+  const p = LIB.playlists[+b.dataset.i]; if (!p) return;
+  closeSong(); startDownload(songLink, p.name);
+});
+$("#sNewGo").onclick = () => {
+  const n = $("#sNew").value.trim().replace(/[\/\\:*?"<>|]/g, "").replace(/^\.+/, "").trim();
+  if (!n) { toast("Type a name for the new playlist"); return; }
+  closeSong(); startDownload(songLink, n);
+};
+$("#sCancel").onclick = closeSong;
+$("#ssheet").addEventListener("click", e => { if (e.target.id === "ssheet") closeSong(); });
+let bothLink = "", bothId = "";
+window.onShared = link => {
+  if (!N) return;
+  const k = linkKind(link);
+  if (k.kind === "playlist") startDownload(link, "");
+  else if (k.kind === "both") {
+    bothLink = link; bothId = k.id;
+    $("#bOneTo").textContent = "You pick the playlist it belongs in.";
+    $("#bsheet").classList.remove("hidden");
+  } else shareSong(link);
+};
+const closeBoth = () => $("#bsheet").classList.add("hidden");
+$("#bAll").onclick = () => { closeBoth(); startDownload(wholeList(bothId), ""); };
+$("#bOne").onclick = () => { closeBoth(); shareSong(bothLink); };
+$("#bCancel").onclick = closeBoth;
+$("#bsheet").addEventListener("click", e => { if (e.target.id === "bsheet") closeBoth(); });
+
+/* downloads running in the background: a card per playlist with its bar */
+let DLS = [];
+window.onProgress = list => { DLS = list || []; renderDls(); };
+function renderDls() {
+  const now = Date.now();
+  const runs = DLS.map(d => {
+    const busy = d.phase === "reading" || !d.total, pct = d.total ? Math.min(100, d.done * 100 / d.total) : 0;
+    const what = d.folder === "New playlist" ? "Adding a playlist to MY MUSIC" : "Downloading into " + esc(d.folder);
+    return '<div class="dl"><b>' + what + '</b>' +
+      '<div class="bar' + (busy ? ' busy' : '') + '"><i style="width:' + (busy ? '' : pct.toFixed(1) + '%') + '"></i></div>' +
+      '<div class="row"><span>' + (busy ? esc(d.text || 'Reading the playlist...') : d.done.toLocaleString() + ' of ' + nSongs(d.total)) +
+      '</span><button class="ghost dlstop">Stop</button></div>' +
+      (d.text && !busy ? '<div class="warn">' + esc(d.text) + '</div>' : '') + '</div>';
+  });
+  /* waiting out YouTube's pause: it carries on by itself */
+  const waits = Object.keys(PENDING).filter(k => (PENDING[k].retry || 0) > now && !DLS.some(d => d.folder.toLowerCase() === k.toLowerCase())).map(k => {
+    const e = PENDING[k], w = waiting(e);
+    return '<div class="dl"><b>' + (k.startsWith("?") ? "A playlist for MY MUSIC" : esc(k)) + '</b>' +
+      '<div class="row"><span>' + (w ? nSongs(w) + " still to come" : "Waiting") + '</span><button class="ghost dlstop">Stop</button></div>' +
+      '<div class="note">' + esc(e.note || "YouTube paused downloads") + ' - MY MUSIC tries again at ' + clock(e.retry) + ' by itself.</div></div>';
+  });
+  $("#dls").innerHTML = runs.concat(waits).join("");
+}
+$("#dls").addEventListener("click", e => { if (e.target.closest(".dlstop") && N) { N.stopFetch(); toast("Stopping..."); } });
+const askProgress = () => { try { onProgress(JSON.parse(N.progress())); } catch (e) {} };
+document.addEventListener("visibilitychange", () => { if (!document.hidden && N) askProgress(); });
+window.onBusy = m => toast(m);
+
+/* ---------- hide / delete (long-press a song, or ... in the player) ---------- */
+let sheetSong = null;
+function openSheet(s) {
+  if (!s || !N) return;
+  sheetSong = s; $("#shTitle").textContent = s.title; $("#shArtist").textContent = s.artist || "Unknown artist";
+  $("#sheet").classList.remove("hidden");
+}
+function closeSheet() { $("#sheet").classList.add("hidden"); sheetSong = null; }
+$("#shCancel").onclick = closeSheet;
+$("#sheet").addEventListener("click", e => { if (e.target.id === "sheet") closeSheet(); });
+$("#shHide").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.hide(keyOf(s)); };
+$("#shDel").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.deleteSong(keyOf(s)); };
+$("#shAdd").onclick = () => { const s = sheetSong; closeSheet(); if (s) openAddTo(s); };
+$("#shShare").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.shareSong(keyOf(s)); };
+$("#nmore").onclick = () => openSheet(cur);
+let lpT = null, lpDone = false, lpX = 0, lpY = 0;
+$("#songs").addEventListener("pointerdown", e => {
+  const li = e.target.closest(".song"); if (!li || li.dataset.i === undefined) return;
+  lpDone = false; lpX = e.clientX; lpY = e.clientY; clearTimeout(lpT);
+  lpT = setTimeout(() => { lpDone = true; openSheet(shown[+li.dataset.i]); }, 550);
+});
+$("#songs").addEventListener("pointermove", e => { if (Math.abs(e.clientX - lpX) + Math.abs(e.clientY - lpY) > 12) clearTimeout(lpT); });
+["pointerup", "pointercancel", "pointerleave"].forEach(ev => $("#songs").addEventListener(ev, () => clearTimeout(lpT)));
+$("#songs").addEventListener("contextmenu", e => e.preventDefault());
+
+/* ---------- views (the phone's Back button steps back through them) ---------- */
+let lastView = "#/";
+function go(h) { const d = ((history.state && history.state.d) || 0) + 1; history.pushState({d}, "", h); route(); }
+function goBack(fallback) { if (history.state && history.state.d > 0) history.back(); else { history.replaceState({d: 0}, "", fallback); route(); } }
+$("#mopen").onclick = () => go("#/now");
+$("#nclose").onclick = () => goBack(lastView);
+function route() {
+  const h = location.hash || "#/";
+  const now = $("#now");
+  if (h === "#/now") { if (!cur) { history.replaceState({d: 0}, "", lastView); return route(); } now.classList.add("show"); now.setAttribute("aria-hidden", "false"); nowShown(); return; }
+  now.classList.remove("show"); now.setAttribute("aria-hidden", "true"); ringStop();
+  lastView = h;
+  $("#hid").classList.add("hidden");
+  if (h === "#/hidden") {
+    $("#home").classList.add("hidden"); $("#list").classList.add("hidden"); $("#hid").classList.remove("hidden");
+    renderHidden(); scrollTo(0, 0); return;
+  }
+  if (h.startsWith("#/p/")) {
+    const name = decodeURIComponent(h.slice(4));
+    const p = LIB.playlists.find(x => x.name === name);
+    if (p) {
+      if (PL === p && !$("#list").classList.contains("hidden")) return;   /* closing the player: keep the list where it was */
+      PL = p; $("#q").value = ""; $("#home").classList.add("hidden"); $("#list").classList.remove("hidden"); renderList(); scrollTo(0, 0); return;
+    }
+  }
+  $("#list").classList.add("hidden"); $("#home").classList.remove("hidden"); renderHome();
+}
+addEventListener("popstate", route);
+
+/* ---------- update library ---------- */
+$("#scan").onclick = () => {
+  if (!N) return;
+  const b = $("#scan"); b.disabled = true; b.textContent = "Updating...";
+  N.rescan();
+};
+window.onLibrary = async msg => {
+  const b = $("#scan"), y = scrollY, qv = $("#q").value;
+  try {
+    await getLib(); PL = null; route();
+    if (qv && PL) { $("#q").value = qv; renderList(); }
+    setTimeout(() => scrollTo(0, y), 250);           /* stay where you were in the list */
+    ask(); toast(msg || "Library updated");
+  }
+  catch (e) { toast("Could not read the library"); }
+  b.disabled = false; b.textContent = "Update library";
+};
+let tt; function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.remove("hidden"); clearTimeout(tt); tt = setTimeout(() => t.classList.add("hidden"), 3200); }
+
+
+/* =====================================================================
+   each song's own colours, the moving ring, lyrics,
+   add to another playlist
+   ===================================================================== */
+const BRAND = [[207, 73, 255], [15, 235, 255]];
+const rgb = c => "rgb(" + c.map(Math.round).join(",") + ")";
+const mix = (a, b, k) => a.map((v, j) => v + (b[j] - v) * k);
+let COL = [BRAND[0].slice(), BRAND[1].slice()], colFrom = null, colTo = null, colAt = 0;
+const waveColor = i => rgb(mix(COL[0], COL[1], i / (BARS - 1)));
+
+/* two lively colours from the song's picture (falls back to MY MUSIC's own) */
+function hsl2rgb(h, s, l) {
+  const k = n => (n + h * 12) % 12, a = s * Math.min(l, 1 - l);
+  return [0, 8, 4].map(n => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1))));
+}
+function vivid(c) {
+  const [r, g, b] = c.map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) h = (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6;
+  if (h < 0) h += 1;
+  const l = (mx + mn) / 2, s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+  return hsl2rgb(h, Math.max(s, .68), Math.min(.7, Math.max(.58, l)));
+}
+function palette(px) {
+  const B = 24, w = new Float64Array(B), sum = Array.from({length: B}, () => [0, 0, 0]);
+  for (let i = 0; i < px.length; i += 4) {
+    const r = px[i] / 255, g = px[i + 1] / 255, b = px[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+    const s = mx ? d / mx : 0;
+    if (mx < .2 || s < .22) continue;                          /* too dark or too grey to be a colour */
+    let h = (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6; if (h < 0) h += 1;
+    const k = Math.floor(h * B) % B, wt = s * s * mx;
+    w[k] += wt; sum[k][0] += wt * px[i]; sum[k][1] += wt * px[i + 1]; sum[k][2] += wt * px[i + 2];
+  }
+  const score = i => w[i] + .5 * (w[(i + B - 1) % B] + w[(i + 1) % B]);
+  const colourOf = i => { const z = [(i + B - 1) % B, i, (i + 1) % B], W = z.reduce((a, j) => a + w[j], 0);
+    return vivid([0, 1, 2].map(c => z.reduce((a, j) => a + sum[j][c], 0) / W)); };
+  let first = -1, second = -1;
+  for (let i = 0; i < B; i++) if (w[i] && (first < 0 || score(i) > score(first))) first = i;
+  if (first < 0 || score(first) < 1.5) return BRAND.map(c => c.slice());
+  for (let i = 0; i < B; i++) {
+    const dist = Math.min(Math.abs(i - first), B - Math.abs(i - first));
+    /* a second colour: well apart in hue, and the further apart the better */
+    if (dist >= 3 && w[i] && score(i) >= .1 * score(first) && (second < 0 || score(i) * (.5 + dist / 12) > score(second) * (.5 + Math.min(Math.abs(second - first), B - Math.abs(second - first)) / 12))) second = i;
+  }
+  const a = colourOf(first);
+  if (second >= 0) return [a, colourOf(second)];
+  return [a, vivid(mix(a, [255, 255, 255], .35).map((v, j) => j === 2 ? Math.min(255, v + 40) : v))];   /* one-colour art: a lighter partner */
+}
+let colTok = 0;
+function trackColors(s) {
+  const tok = ++colTok, im = new Image();
+  im.onload = () => {
+    if (tok !== colTok) return;
+    try {
+      const c = document.createElement("canvas"); c.width = c.height = 32;
+      const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(im, 0, 0, 32, 32);
+      setColors(palette(x.getImageData(0, 0, 32, 32).data));
+    } catch (e) { setColors(BRAND); }
+  };
+  im.onerror = () => { if (tok === colTok) setColors(BRAND); };
+  im.src = artUrl(s.p, s.file);
+}
+let colSeq = 0;
+function setColors(pair) {
+  const seq = ++colSeq;
+  colFrom = [COL[0].slice(), COL[1].slice()]; colTo = pair.map(c => c.slice()); colAt = performance.now();
+  const now = $("#now"); now.style.setProperty("--c1", rgb(pair[0])); now.style.setProperty("--c2", rgb(pair[1]));
+  document.documentElement.style.setProperty("--pc1", rgb(pair[0])); document.documentElement.style.setProperty("--pc2", rgb(pair[1]));
+  const target = colTo;
+  const done = () => { if (seq !== colSeq) return; COL = target.map(c => c.slice()); colTo = null;
+    $("#wave").querySelectorAll("i").forEach((b, i) => b.style.setProperty("--c", waveColor(i))); };
+  if (RING.on) setTimeout(done, 900); else { done(); drawRing(); }
+}
+function stepColors(t) {
+  if (!colTo) return;
+  const k = Math.min(1, (t - colAt) / 900), e = k * k * (3 - 2 * k);
+  COL = [mix(colFrom[0], colTo[0], e), mix(colFrom[1], colTo[1], e)];
+  if (k >= 1) colTo = null;
+}
+
+/* ---------- the moving ring: the dark band around the song's picture ---------- */
+const NB = 64, RING = {on: false, raf: 0, polled: 0, still: 0, top: 55, bars: new Float32Array(NB), aim: new Float32Array(NB),
+  peak: new Float32Array(NB), fall: new Float32Array(NB), off: false};
+const calm = matchMedia("(prefers-reduced-motion: reduce)");
+let vizOK = false;
+const ringVisible = () => $("#now").classList.contains("show") && !LYR.open && !document.hidden;
+function ringStart() {
+  vizOK = !!N && N.micAllowed(); sizeRing();
+  /* only animate when there is something to move: the music, a colour change, bars still falling */
+  const need = (vizOK && ST.playing && !RING.off) || !!colTo || RING.bars.some(v => v > .004) || RING.peak.some(v => v > .004);
+  if (!RING.on && need && ringVisible() && !calm.matches) { RING.on = true; RING.still = 0; RING.raf = requestAnimationFrame(ringFrame); } else if (!RING.on) drawRing();
+}
+function ringStop() { if (RING.on) { RING.on = false; cancelAnimationFrame(RING.raf); } try { N && N.vizStop(); } catch (e) {} }
+function ringWake() { if (ringVisible()) ringStart(); }
+function ringFrame(t) {
+  if (!RING.on) return;
+  RING.raf = requestAnimationFrame(ringFrame);
+  const live = vizOK && ST.playing && !RING.off;
+  if (live && t - RING.polled > 24) {                          /* about 40 readings a second */
+    RING.polled = t;
+    let s = ""; try { s = N.viz(); } catch (e) {}
+    if (s === "x") { RING.off = true; setTimeout(() => { RING.off = false; }, 5000); }
+    else if (s) {
+      const v = s.split(","), m = Math.max(...v.map(Number));
+      RING.top = Math.max(m, RING.top - .06, 50);              /* follows how loud the song is right now */
+      const lo = RING.top - 40;
+      for (let i = 0; i < NB; i++) RING.aim[i] = Math.pow(Math.max(0, Math.min(1, (+v[i] - lo) / 40)), 1.5);
+    }
+  } else if (!live) RING.aim.fill(0);
+  let moving = false;
+  for (let i = 0; i < NB; i++) {
+    const b = RING.bars[i], a = RING.aim[i];
+    RING.bars[i] = b + (a - b) * (a > b ? .55 : .13);
+    if (RING.bars[i] >= RING.peak[i]) { RING.peak[i] = RING.bars[i]; RING.fall[i] = 0; }
+    else { RING.fall[i] += .0007; RING.peak[i] = Math.max(0, RING.peak[i] - RING.fall[i]); }
+    if (RING.bars[i] > .004 || RING.peak[i] > .004) moving = true;
+  }
+  stepColors(t);
+  drawRing();
+  /* paused and settled: stop drawing until something changes */
+  RING.still = !live && !moving && !colTo ? RING.still + 1 : 0;
+  if (RING.still > 20) { RING.on = false; cancelAnimationFrame(RING.raf); try { N.vizStop(); } catch (e) {} }
+}
+let ringPx = 0;
+function sizeRing() {
+  const c = $("#ring"), css = $("#disc").offsetWidth * 1.28, dpr = Math.min(2, devicePixelRatio || 1), px = Math.round(css * dpr);
+  if (px && px !== ringPx) { c.width = c.height = ringPx = px; }
+}
+function drawRing() {
+  const c = $("#ring"); if (!ringPx) sizeRing(); if (!ringPx) return;
+  const x = c.getContext("2d"), Z = ringPx, cx = Z / 2, S = Z / 1.28;      /* S = the disc, in canvas pixels */
+  const r0 = S * .305, room = S * (.5 - .305) * 1.12, base = S * .012;
+  const w = Math.max(1.5, 2 * Math.PI * r0 / (NB * 2) * .6);
+  x.clearRect(0, 0, Z, Z);
+  const g = x.createLinearGradient(0, cx - S * .56, 0, cx + S * .56);
+  g.addColorStop(0, rgb(COL[0])); g.addColorStop(1, rgb(COL[1]));
+  const bars = new Path2D(), caps = new Path2D();
+  for (let i = 0; i < NB; i++) {
+    const off = (i + .5) / NB * Math.PI;                        /* bass at the top, both sides mirrored */
+    const len = base + RING.bars[i] * room, pk = r0 + base + RING.peak[i] * room + w * 1.6;
+    for (const a of [-Math.PI / 2 - off, -Math.PI / 2 + off]) {
+      const cs = Math.cos(a), sn = Math.sin(a);
+      bars.moveTo(cx + cs * r0, cx + sn * r0); bars.lineTo(cx + cs * (r0 + len), cx + sn * (r0 + len));
+      if (RING.peak[i] > .03) { caps.moveTo(cx + cs * pk, cx + sn * pk); caps.lineTo(cx + cs * (pk + w * .5), cx + sn * (pk + w * .5)); }
+    }
+  }
+  x.lineCap = "round"; x.strokeStyle = g;
+  x.globalAlpha = .22; x.lineWidth = w * 2.8; x.stroke(bars);   /* soft glow */
+  x.globalAlpha = .95; x.lineWidth = w; x.stroke(bars);
+  x.globalAlpha = .6; x.stroke(caps);
+  let bass = 0; for (let i = 0; i < 6; i++) bass += RING.bars[i] / 6;
+  x.globalAlpha = .3 + .55 * bass; x.lineWidth = Math.max(1.5, S * .004);  /* the rim brightens on the beat */
+  x.beginPath(); x.arc(cx, cx, S * .5 - x.lineWidth, 0, 2 * Math.PI); x.stroke();
+  if (bass > .05) { x.globalAlpha = .16 * bass; x.lineWidth = S * .03; x.stroke(); }
+  x.globalAlpha = 1;
+}
+if (window.ResizeObserver) new ResizeObserver(() => { ringPx = 0; sizeRing(); drawRing(); }).observe($("#disc"));
+document.addEventListener("visibilitychange", () => { if (document.hidden) ringStop(); else ringWake(); });
+
+/* the ring needs Android's "record audio" permission: asked once, with the reason */
+function nowShown() {
+  if (cur && (!LYR.data || LYR.data.key !== keyOf(cur))) wantLyrics(cur);
+  else if (LYR.open) showLyrics();
+  ringStart();
+  if (N && !N.micAllowed() && !load("mm_ring_asked")) setTimeout(() => { if ($("#now").classList.contains("show")) $("#msheet").classList.remove("hidden"); }, 500);
+}
+let micAskedAt = 0;
+$("#mGo").onclick = () => { store("mm_ring_asked", true); $("#msheet").classList.add("hidden"); micAskedAt = performance.now(); N.askMic(); };
+$("#mNo").onclick = () => { store("mm_ring_asked", true); $("#msheet").classList.add("hidden"); };
+$("#msheet").addEventListener("click", e => { if (e.target.id === "msheet") { store("mm_ring_asked", true); $("#msheet").classList.add("hidden"); } });
+$("#disc").addEventListener("click", () => { if (N && !N.micAllowed()) $("#msheet").classList.remove("hidden"); });
+window.onMic = (ok, forever) => {
+  if (ok) { RING.off = false; ringStart(); toast("The ring is on"); return; }
+  if (forever && performance.now() - micAskedAt < 1200) {                  /* Android did not even ask: it was turned down before */
+    toast("Allow Microphone for MY MUSIC in Settings - it is only used for the ring"); N.openSettings();
+  } else toast("The ring stays still - tap the disc to turn it on later");
+};
+
+/* ---------- lyrics (LRCLIB): timed lines follow the song; tap a line to jump there ---------- */
+const LYR = {open: load("mm_lyr") === true, data: null, lines: null, idx: -1, cache: new Map(), handsOn: 0};
+function wantLyrics(s) {
+  if (!N || !s) return;
+  const k = keyOf(s), have = LYR.cache.get(k);
+  if (have) { useLyrics(have); return; }
+  useLyrics({key: k, status: "loading"});
+  N.lyrics(k);
+}
+window.onLyrics = d => {
+  if (!d || !d.key) return;
+  if (d.status !== "offline" && d.status !== "busy") LYR.cache.set(d.key, d);
+  if (cur && keyOf(cur) === d.key) useLyrics(d);
+};
+function parseLrc(text) {
+  const out = [];
+  for (const raw of String(text).split(/\r?\n/)) {
+    const stamps = [...raw.matchAll(/\[(\d+):(\d{1,2})(?:[.:](\d{1,3}))?\]/g)];
+    if (!stamps.length) continue;
+    const words = raw.replace(/\[[^\]]*\]/g, "").replace(/<\d+:\d{1,2}(?:[.:]\d{1,3})?>/g, "").replace(/\s{2,}/g, " ").trim();
+    for (const m of stamps) {
+      const frac = m[3] ? +(m[3] + "00").slice(0, 3) : 0;
+      out.push({t: (+m[1] * 60 + +m[2]) * 1000 + frac, text: words});
+    }
+  }
+  return out.sort((a, b) => a.t - b.t);
+}
+function useLyrics(d) {
+  LYR.data = d; LYR.lines = d.status === "ok" && d.synced ? parseLrc(d.synced) : null; LYR.idx = -1;
+  if (LYR.lines && !LYR.lines.length) LYR.lines = null;
+  const b = $("#nlyr");
+  b.classList.toggle("has", d.status === "ok");
+  b.setAttribute("aria-label", d.status === "ok" ? "Lyrics" : d.status === "loading" ? "Lyrics (looking)" : "Lyrics (none found)");
+  if (LYR.open) showLyrics();
+}
+function showLyrics() {
+  const L = $("#lyr"), d = LYR.data || {status: "loading"};
+  L.classList.remove("plain"); L.scrollTop = 0;
+  const msg = (a, b) => '<div class="lmsg">' + a + (b ? '<small>' + b + '</small>' : '') + '</div>';
+  if (d.status === "loading") L.innerHTML = msg("Looking for lyrics...");
+  else if (d.status === "instrumental") L.innerHTML = msg("Instrumental", "No words in this one.");
+  else if (d.status === "offline") L.innerHTML = msg("Could not reach the lyrics library", "Check the internet, then close and open Lyrics again.");
+  else if (d.status === "busy") L.innerHTML = msg("The lyrics library is busy right now", "Try again in a minute: close and open Lyrics.");
+  else if (d.status !== "ok") L.innerHTML = msg("No lyrics found for this song", "Lyrics come from LRCLIB, a free lyrics library.");
+  else if (LYR.lines) L.innerHTML = LYR.lines.map((l, i) => '<p data-i="' + i + '"' + (l.text ? '>' + esc(l.text) : ' class="gap">&#9834; &#9834;') + '</p>').join("");
+  else { L.classList.add("plain"); L.innerHTML = String(d.plain || "").split(/\r?\n/).map(x => '<p>' + (esc(x) || "&nbsp;") + '</p>').join("") + '<div class="lnote">These lyrics are not timed.</div>'; }
+  LYR.idx = -1; lyricsTick(true);
+}
+function lyricsTick(jump) {
+  if (!LYR.open || !LYR.lines || !$("#now").classList.contains("show")) return;
+  const t = pos() + 200; let i = -1;
+  for (let k = 0; k < LYR.lines.length && LYR.lines[k].t <= t; k++) i = k;
+  if (i === LYR.idx && !jump) return;
+  LYR.idx = i;
+  const L = $("#lyr");
+  L.querySelectorAll("p").forEach((p, k) => { p.classList.toggle("on", k === i); p.classList.toggle("past", k < i); });
+  const p = L.querySelector('p[data-i="' + Math.max(0, i) + '"]');
+  if (p && performance.now() > LYR.handsOn) L.scrollTo({top: p.offsetTop - L.clientHeight * .36, behavior: jump || calm.matches ? "auto" : "smooth"});
+}
+["touchstart", "wheel"].forEach(ev => $("#lyr").addEventListener(ev, () => { LYR.handsOn = performance.now() + 3500; }, {passive: true}));
+$("#lyr").addEventListener("click", e => {
+  const p = e.target.closest("p[data-i]"); if (!p || !LYR.lines) return;
+  LYR.handsOn = 0; seekTo(LYR.lines[+p.dataset.i].t); if (!ST.playing && N) N.toggle();
+});
+function setLyricsOpen(on) {
+  LYR.open = on; store("mm_lyr", on);
+  $("#nlyr").setAttribute("aria-pressed", on);
+  $("#stage").classList.toggle("lyrics", on); $("#lyr").classList.toggle("hidden", !on);
+  if (on) {
+    ringStop();
+    if (cur && (!LYR.data || LYR.data.key !== keyOf(cur) || LYR.data.status === "offline" || LYR.data.status === "busy")) wantLyrics(cur);
+    else showLyrics();
+  }
+  else ringStart();
+}
+$("#nlyr").onclick = () => setLyricsOpen(!LYR.open);
+setLyricsOpen(LYR.open);
+
+/* ---------- add to another playlist (copies the song) ---------- */
+let addSong = null;
+function openAddTo(s) {
+  if (!N) return;
+  addSong = s;
+  $("#tSong").textContent = s.title + " - " + (s.artist || "Unknown artist");
+  $("#tChips").innerHTML = LIB.playlists.map(p => p.name === s.p
+      ? '<button class="chip" disabled aria-pressed="false">' + esc(p.name) + ' (here)</button>'
+      : '<button class="chip" data-n="' + esc(p.name) + '" aria-pressed="false">' + esc(p.name) + '</button>').join("") +
+    '<button class="chip" data-new="1" aria-pressed="false">New playlist</button>';
+  $("#tNew").classList.add("hidden"); $("#tNew").value = "";
+  $("#tsheet").classList.remove("hidden");
+}
+const closeAddTo = () => { $("#tsheet").classList.add("hidden"); };
+$("#tChips").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b || b.disabled) return;
+  const on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", on);
+  if (b.dataset.new) { $("#tNew").classList.toggle("hidden", !on); if (on) $("#tNew").focus(); }
+});
+$("#tGo").onclick = () => {
+  if (!addSong) return;
+  const names = [...document.querySelectorAll('#tChips .chip[data-n][aria-pressed="true"]')].map(b => b.dataset.n);
+  const fresh = $("#tNew").classList.contains("hidden") ? "" : $("#tNew").value.trim().replace(/[\/\\:*?"<>|]/g, "").replace(/^\.+/, "").trim();
+  if (fresh) names.push(fresh);
+  if (!names.length) { toast("Pick a playlist or name a new one"); return; }
+  closeAddTo();
+  const r = N.addTo(keyOf(addSong), JSON.stringify(names)); if (r) toast(r);
+};
+$("#tCancel").onclick = closeAddTo;
+$("#tsheet").addEventListener("click", e => { if (e.target.id === "tsheet") closeAddTo(); });
+
+(async () => {
+  syncPlay();
+  if (!N) { $("#pls").innerHTML = '<li class="empty">Open MY MUSIC from its app icon.</li>'; return; }
+  try { await getLib(); } catch (e) { $("#pls").innerHTML = '<li class="empty">Could not read the library. Close MY MUSIC and open it again.</li>'; return; }
+  history.replaceState({d: 0}, "", location.hash === "#/now" ? "#/" : (location.hash || "#/"));
+  route();
+  ask();
+  try { const s = N.takeShared(); if (s) onShared(s); } catch (e) {}
+  askProgress();
+})();
+</script>
+</body>
+</html>

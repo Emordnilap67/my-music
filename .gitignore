@@ -1,0 +1,9 @@
+# made by the build
+build/
+out/
+assets/fonts/
+assets/yt-dlp
+# never in the repository
+*.keystore
+*.jks
+*.p12
