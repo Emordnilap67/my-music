@@ -82,8 +82,10 @@ final class Progress {
         try {
             NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
             nm.createNotificationChannel(new NotificationChannel("downloads", "Downloads", NotificationManager.IMPORTANCE_DEFAULT));
+            // the playlist as the title, and the whole message when pulled down
+            String title = folder == null || folder.isEmpty() || folder.equals(DownloadService.READING) ? "MY MUSIC" : folder;
             Notification n = new Notification.Builder(c, "downloads").setSmallIcon(small(c, android.R.drawable.stat_sys_download_done))
-                    .setContentTitle("MY MUSIC").setContentText(msg)
+                    .setContentTitle(title).setContentText(msg)
                     .setStyle(new Notification.BigTextStyle().bigText(msg))
                     .setContentIntent(open(c)).setAutoCancel(true).build();
             nm.notify(folder == null ? 199 : noteId(folder), n);

@@ -3,7 +3,9 @@
 A music player for Android for the songs on your own phone. Your playlists
 are plain folders, there's no account and no ads, and nothing streams. Add
 music by sharing a YouTube or YouTube Music link to the app, or copy in MP3s
-you already have.I made MY MUSIC, a free Android music player for the songs on your own phone
+you already have.
+
+I made MY MUSIC, a free Android music player for the songs on your own phone
 
 I wanted a player with no playlist limits, no ads and no account, that keeps my music on my phone. So I built one.
 
@@ -61,9 +63,29 @@ which covers almost every phone made since 2017.
   through. When it pauses the downloads, MY MUSIC waits and carries on by
   itself.
 - **Songs already on your phone:** Add songs, then Pick songs on this phone.
-- **Lyrics:** tap the speech bubble in the player. Timed lyrics follow the
-  song, and you can tap a line to jump there. They come from
-  [LRCLIB](https://lrclib.net).
+- **Songs gone from YouTube:** when a song in a shared playlist has been
+  removed from YouTube, the playlist says so. **Find another copy** searches
+  YouTube for other uploads of it (blue means about the same length), or you
+  can let it go.
+- **Lyrics:** tap the speech bubble in the player. Timed lyrics light up word
+  by word as they're sung, and you can tap a line to jump there. **Sooner**
+  and **Later** nudge the timing for that song. They come from
+  [LRCLIB](https://lrclib.net); if it has nothing, MY MUSIC looks in the song
+  file, the video's description and the video's captions. **Search by name**
+  fixes a wrong match.
+- **Backup and new phone:** tap **Backup** on the home screen. MY MUSIC keeps
+  a backup inside your music folder (`MY MUSIC backup`): play counts, hidden
+  songs, playlist pictures, which YouTube playlist goes where, lyrics fixes,
+  your sort order and a list of every song, plus a copy of the app. It
+  updates by itself when you close the app. On a new phone, copy the music
+  folder over, install, tap **Music folder** and pick it, then
+  **Backup > Restore**. **Get songs back** downloads any songs that didn't
+  come along.
+- **Wrong audio check:** playlist menu (the three dots) > **Check for wrong
+  audio** finds songs that play a different song than the name says (a common
+  problem with files saved by title from other downloaders) and downloads the
+  right ones. Playlists shared from YouTube are checked by themselves once a
+  week.
 - **Moving ring:** the bars around the record move with the music, in colours
   taken from each song's picture.
 - **The song playing now glows** in the playlist, with moving bars on its
@@ -72,9 +94,11 @@ which covers almost every phone made since 2017.
   added, Title or Artist, each with its order flipped (A to Z or Z to A,
   newest or oldest first). A song counts as played after 30 seconds.
 - **Also:**
-  - shuffle and repeat;
-  - a home-screen widget, plus controls in the notification and on the lock
-    screen;
+  - shuffle and repeat; Play and Shuffle use the whole playlist even while
+    you're searching it;
+  - a neon home-screen widget in each song's own colours, with a progress
+    bar, from a one-row strip up to a big card; plus controls in the
+    notification and on the lock screen;
   - share a song's file, or add it to another playlist;
   - hide or delete songs;
   - pick your own picture for a playlist.

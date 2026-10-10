@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the song's place on the bar - only the white glowing knob (the bar itself is
+     w_track behind it). The knob rides at the end of a scale drawable: its left edge
+     sits at progress x (bar width - knob), so 0:00 = left end, the end = right end,
+     with no widget size needed. The knob is 15dp. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background" android:drawable="@android:color/transparent" />
+    <item android:id="@android:id/progress">
+        <inset android:insetRight="15dp">
+            <scale android:scaleWidth="100%" android:scaleGravity="left|center_vertical">
+                <layer-list>
+                    <item android:right="-15dp" android:gravity="right|center_vertical" android:width="15dp" android:height="15dp"
+                        android:drawable="@drawable/widget_knob_glow" />
+                </layer-list>
+            </scale>
+        </inset>
+    </item>
+</layer-list>

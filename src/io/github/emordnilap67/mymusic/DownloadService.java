@@ -33,11 +33,11 @@ import java.util.regex.Pattern;
 
 /**
  * Downloads inside MY MUSIC: reads the link with yt-dlp, skips what the
- * folder's download history (.playlist_archive.txt) already has, fetches
- * each song (MP3 192k, square picture, tags) into the app's cache, names it
- * "Artist - Song.mp3" and copies it into the playlist's folder.
+ * folder's download history already has, fetches each song (MP3 192k,
+ * square picture, tags) into the app's cache, names it "Artist - Song.mp3"
+ * and copies it into the music folder.
  *
- * A shared YouTube playlist becomes a playlist of its own
+ * a shared YouTube playlist becomes a playlist of its own
  * (named after it), or fills the playlist on the phone that already has
  * its songs; every song is listed at once (Pending) and each one shows up
  * in the app as soon as it is in; when YouTube pauses the downloads it
@@ -302,6 +302,15 @@ public class DownloadService extends Service {
         return name.isEmpty() ? "From YouTube" : name;
     }
 
+    /** YouTube holding this phone back (bot check, too many requests) - not the song's fault */
+    static boolean held(String line) {
+        if (line.contains("confirm your age")) return false;          // age-restricted: the song's own problem
+        return line.contains("not a bot") || line.contains("Sign in to confirm you") || line.contains("429")
+                || line.contains("Too Many Requests") || line.contains("try again later") || line.contains("rate-limit")
+                || line.contains("rate limit") || line.contains("content isn't available") || line.contains("content isn\u2019t available")
+                || line.contains("content is not available");
+    }
+
     private static String why(String err) {
         String e = err.toLowerCase(Locale.ROOT);
         if (e.contains("private")) return "Private video";
@@ -323,7 +332,8 @@ public class DownloadService extends Service {
         if (tree == null) return "MY MUSIC needs a music folder first - tap Music folder on the home screen";
 
         link = link.trim().replace("music.youtube.com", "www.youtube.com");
-        String listId = listId(link);
+        boolean restore = link.startsWith(Backup.IDS);           // "Get the songs back" after a new phone
+        String listId = restore ? null : listId(link);
         boolean playlist = listId != null;
 
         // 1. every song in the link: id, title, length, artist (+ the playlist's own title)
@@ -343,9 +353,20 @@ public class DownloadService extends Service {
         String pkey = !wanted.isEmpty() ? wanted : "?" + (listId != null ? listId : Integer.toHexString(link.hashCode()));
         String plTitle = "", lastErr = "", lastLine = "";
         if (stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
-        Process p = proc = Ytdl.start(this, a);
-        BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
+        Map<String, String> restoreNames = new LinkedHashMap<>();   // id -> the file name it had
+        Process p = null;
+        BufferedReader r = null;
         String line;
+        if (restore) {
+            for (String[] it : Backup.restoreItems(this, wanted)) {
+                meta.put(it[0], new String[]{it[1], it[2], it[3]});
+                restoreNames.put(it[0], it[4].toLowerCase(Locale.ROOT));
+            }
+            plTitle = wanted;
+            if (meta.isEmpty()) return "Nothing to get back for " + wanted;
+        } else {
+        p = proc = Ytdl.start(this, a);
+        r = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
         try {
             while ((line = r.readLine()) != null) {
                 if (line.startsWith("MMID\t")) {
@@ -369,11 +390,11 @@ public class DownloadService extends Service {
         if (stopping) p.destroy();
         p.waitFor();
         proc = null;
+        }
         if (lastErr.isEmpty()) lastErr = lastLine;
         if (stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
         if (meta.isEmpty()) {
-            if (lastErr.contains("not a bot") || lastErr.contains("Sign in to confirm")
-                    || lastErr.contains("429") || lastErr.contains("Too Many Requests")) {
+            if (held(lastErr)) {
                 // YouTube is pausing this phone right now: keep the link and try again by itself
                 if (playlist || !wanted.isEmpty()) {
                     long at = System.currentTimeMillis() + WAIT_MS;
@@ -397,17 +418,59 @@ public class DownloadService extends Service {
         if (fid == null) return "Could not open the folder " + folder;
         Set<String> archive = Importer.readArchive(this, tree, fid);
         Map<String, String> have = Importer.names(this, tree, fid);
+        Set<String> idsHere = new java.util.HashSet<>();
+        if (restore) {
+            // a song fetched again may come back under another name: its video id says it is there
+            Library lib = Library.get(this);
+            for (Library.Pl pl : lib.playlists) {
+                if (!pl.name.equalsIgnoreCase(folder)) continue;
+                for (Library.Song s : pl.songs) if (!s.file.startsWith(Mismatch.KEPT)) idsHere.add(Ids.of(this, s.path));
+            }
+            for (Library.Song s : lib.hiddenSongs)
+                if (folder.equalsIgnoreCase(s.pl) && !s.file.startsWith(Mismatch.KEPT)) idsHere.add(Ids.of(this, s.path));
+            Ids.save(this, null);
+        }
 
         List<String> todo = new ArrayList<>();
         List<String[]> items = new ArrayList<>();
+        List<String[]> deadOnes = new ArrayList<>();         // gone before: listed under "Find another copy", not asked for
+        int gone = 0, local = 0;
+        java.util.Set<String> goneIds = new java.util.HashSet<>();       // gone for good (a fetch job drops them)
+        // local first: a song already in the folder (any upload of it) is not fetched again
+        LocalMatch here = LocalMatch.of(this, folder, false);
+        List<String> alreadyHere = new ArrayList<>();
+        long now0 = System.currentTimeMillis();
+        Dead.tidy(this, now0);
         for (Map.Entry<String, String[]> e : meta.entrySet()) {
-            if (archive.contains(e.getKey())) continue;
-            todo.add(e.getKey());
-            items.add(new String[]{e.getKey(), e.getValue()[0], e.getValue()[1], e.getValue()[2]});
+            String id = e.getKey();
+            String[] v = e.getValue();
+            if (restore ? have.containsKey(restoreNames.get(id)) || idsHere.contains(id) : archive.contains(id)) continue;
+            if (!restore && here.has(id, v[0], v[1], false)) {
+                local++;
+                alreadyHere.add(id);
+                continue;
+            }
+            if (Dead.placeholder(v[0])) {                    // "[Private video]": nothing to ask YouTube for
+                gone++;
+                goneIds.add(id);
+                continue;
+            }
+            if (Dead.skip(this, id, now0)) {
+                gone++;
+                goneIds.add(id);
+                if (!here.has(id, v[0], v[1], true)) deadOnes.add(new String[]{id, v[0], v[1], v[2], "Gone from YouTube"});
+                continue;
+            }
+            todo.add(id);
+            items.add(new String[]{id, v[0], v[1], v[2]});
         }
+        if (!deadOnes.isEmpty()) Missing.add(this, folder, deadOnes);
+        if (!alreadyHere.isEmpty()) Importer.appendArchive(this, tree, fid, alreadyHere);    // checked once, not again
         int total = todo.size();
         if (total == 0) {
             Pending.finish(this, folder);
+            if (restore) Backup.restoreDone(this, folder);
+            if (gone > 0) return finishText(folder, 0, local, 0, gone, 0, false, null, 0, 0);
             return "Nothing new for " + folder + " - all " + meta.size() + " already there";
         }
         // the whole list shows in the app at once; each song fills in as it arrives
@@ -438,7 +501,7 @@ public class DownloadService extends Service {
                 "--no-simulate", "--print", "after_move:MMDONE\t%(id)s\t%(filepath)s",
                 "-o", work.getAbsolutePath() + "/%(title)s [%(id)s].%(ext)s",
                 "-a", batch.getAbsolutePath()));
-        int done = 0, added = 0, dupes = 0, blocked = 0, failed = 0, notSaved = 0, inARow = 0;
+        int done = 0, added = 0, dupes = 0, blocked = 0, failed = 0, goneNow = 0, notSaved = 0, inARow = 0;
         boolean paused = false;
         List<String> newIds = new ArrayList<>();
         final AtomicInteger scanning = new AtomicInteger();
@@ -466,6 +529,7 @@ public class DownloadService extends Service {
                     } else {
                         String path = Importer.put(this, tree, fid, mp3, name);
                         if (path != null) {
+                            Ids.put(this, path, f[1], mp3.length());
                             have.put(name.toLowerCase(Locale.ROOT), "");
                             added++;
                             inFolder = true;
@@ -503,8 +567,7 @@ public class DownloadService extends Service {
                     }
                 } else if (line.startsWith("ERROR")) {
                     Matcher m = ERR.matcher(line.trim());
-                    boolean bot = line.contains("not a bot") || line.contains("Sign in to confirm you")
-                            || line.contains("429") || line.contains("Too Many Requests");
+                    boolean bot = held(line);
                     if (bot) {
                         blocked++;
                         inARow++;
@@ -515,9 +578,22 @@ public class DownloadService extends Service {
                             break;
                         }
                     } else {
-                        failed++;
                         done++;
-                        if (m.matches()) Pending.failed(this, folder, m.group(1), why(m.group(2)));
+                        String fid1 = m.matches() ? m.group(1) : null, whyNot = m.matches() ? why(m.group(2)) : "";
+                        if (fid1 != null && Dead.gone(whyNot)) {
+                            goneNow++;
+                            goneIds.add(fid1);
+                            Dead.fail(this, fid1, whyNot, System.currentTimeMillis());
+                            String[] v = meta.get(fid1);
+                            if (v != null && !here.has(fid1, v[0], v[1], true)) {
+                                List<String[]> one = new ArrayList<>();
+                                one.add(new String[]{fid1, v[0], v[1], v[2], whyNot});
+                                Missing.add(this, folder, one);     // in the playlist under "Find another copy" now
+                            }
+                        } else {
+                            failed++;
+                        }
+                        if (fid1 != null) Pending.failed(this, folder, fid1, whyNot);
                         progress(folder, "downloading", done, total, "");
                     }
                 }
@@ -538,24 +614,60 @@ public class DownloadService extends Service {
         Library.load(this);
 
         int left = Math.max(0, total - done);
-        String msg = "Added " + added + (added == 1 ? " song to " : " songs to ") + folder;
-        if (dupes > 0) msg += ", " + dupes + " already there";
-        if (notSaved > 0) msg += ", " + notSaved + " could not be saved to the folder (phone full?)";
-        if (failed > 0) msg += ", " + failed + (failed == 1 ? " is" : " are") + " not on YouTube any more (removed or private)";
+        gone += goneNow;
         if (stopping && limitNote == null) {
             Pending.finish(this, folder);              // Stop: forget the rest
-            return "Stopped. " + msg;
+            return finishText(folder, added, dupes + local, notSaved, gone, failed, true, null, 0, 0);
         }
         if (paused || limitNote != null || (blocked > 0 && left > 0)) {
             // YouTube (or Android's daily limit) paused it: the rest waits and MY MUSIC tries again by itself
             long at = System.currentTimeMillis() + (limitNote != null ? 12 * WAIT_MS : WAIT_MS);
             Pending.waitFor(this, folder, at, limitNote != null ? limitNote : "YouTube paused downloads");
             Retry.schedule(this, at);
-            return msg + ". " + (limitNote != null ? limitNote : "YouTube paused downloads") + " - the other "
-                    + left + " come in after " + clock(at) + ", by itself";
+            return finishText(folder, added, dupes + local, notSaved, gone, failed, false,
+                    limitNote != null ? limitNote : "YouTube paused downloads", left, at);
         }
+        // songs gone from YouTube stay listed in the playlist, with "Find another copy"
+        List<String[]> goneItems = new ArrayList<>();
+        for (String[] it : Pending.failedItems(this, folder)) if (Dead.gone(it[4]) && !here.has(it[0], it[1], it[2], true)) goneItems.add(it);
+        Missing.add(this, folder, goneItems);
         Pending.finish(this, folder);
-        return msg;
+        if (restore) {
+            // what did not come in stays on the list and is tried again by itself (3 tries at most)
+            java.util.Set<String> drop = new java.util.HashSet<>(newIds);
+            drop.addAll(goneIds);
+            int[] rest = Backup.restoreKeep(this, folder, drop, new java.util.HashSet<>(todo));
+            if (rest[0] > 0) {
+                long at = System.currentTimeMillis() + (rest[1] > 0 ? 60000 : WAIT_MS);
+                Pending.keep(this, folder, link, wanted);
+                Pending.waitFor(this, folder, at, "Trying the rest again");
+                Retry.schedule(this, at);
+            }
+        }
+        return finishText(folder, added, dupes + local, notSaved, gone, failed, false, null, 0, 0);
+    }
+
+    /**
+     * what a finished (or paused) download says, most important first - the
+     * notification shows the start of it, the rest when pulled down. Never
+     * "Added 0 songs".
+     */
+    static String finishText(String folder, int added, int dupes, int notSaved, int gone, int failed,
+                             boolean stopped, String pausedWhy, int left, long at) {
+        StringBuilder b = new StringBuilder();
+        if (stopped) b.append("Stopped. ");
+        if (added > 0) b.append("Added ").append(added).append(added == 1 ? " song to " : " songs to ").append(folder);
+        else if (pausedWhy != null) b.append("Nothing new in ").append(folder).append(" yet");
+        else b.append("Nothing new for ").append(folder);
+        if (dupes > 0) b.append(", ").append(dupes).append(" already there");
+        b.append('.');
+        if (pausedWhy != null) b.append(' ').append(pausedWhy).append(" - the other ").append(left)
+                .append(left == 1 ? " comes in after " : " come in after ").append(clock(at)).append(", by itself.");
+        if (gone > 0) b.append(' ').append(gone).append(gone == 1 ? " song is" : " songs are")
+                .append(" gone from YouTube (removed or private) - open the playlist to find other copies.");
+        if (failed > 0) b.append(' ').append(failed).append(failed == 1 ? " song" : " songs").append(" could not be downloaded - tried again next time.");
+        if (notSaved > 0) b.append(' ').append(notSaved).append(notSaved == 1 ? " song" : " songs").append(" could not be saved to the folder (phone full?).");
+        return b.toString();
     }
 
     private static void waitScans(AtomicInteger scanning, long ms) {

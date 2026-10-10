@@ -176,6 +176,22 @@ final class Pending {
         save(c);
     }
 
+    /** the songs of this playlist that YouTube would not give out: {id, title, artist, seconds, why} */
+    static synchronized List<String[]> failedItems(Context c, String folder) {
+        List<String[]> out = new ArrayList<>();
+        JSONObject e = all(c).optJSONObject(folder);
+        JSONArray a = e == null ? null : e.optJSONArray("items");
+        if (a == null) return out;
+        for (int i = 0; i < a.length(); i++) {
+            JSONObject o = a.optJSONObject(i);
+            if (o == null || !"x".equals(o.optString("s"))) continue;
+            String why = o.optString("e");
+            if (why.startsWith("Could not save")) continue;      // a phone problem, not YouTube's
+            out.add(new String[]{o.optString("id"), o.optString("t"), o.optString("a"), String.valueOf(o.optLong("d")), why});
+        }
+        return out;
+    }
+
     /** finished (or given up): the playlist shows only its real songs again */
     static synchronized void finish(Context c, String folder) {
         if (folder == null || all(c).remove(folder) == null) return;

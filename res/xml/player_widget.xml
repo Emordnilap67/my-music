@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- the neon card - fills any size by itself; one row = a strip -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="300dp"
-    android:minHeight="60dp"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
     android:minResizeWidth="250dp"
     android:minResizeHeight="60dp"
+    android:targetCellWidth="5"
+    android:targetCellHeight="3"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget"
     android:previewImage="@drawable/widget_preview"

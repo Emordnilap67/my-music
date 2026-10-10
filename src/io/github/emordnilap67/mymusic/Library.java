@@ -278,6 +278,22 @@ final class Library {
         return out;
     }
 
+    /** hide these songs (keys "playlist/file"), one write, then read the library again */
+    static synchronized void hideAll(Context c, java.util.Collection<String> keys) {
+        Set<String> h = hidden(c);
+        h.addAll(keys);
+        try {
+            Writer w = new OutputStreamWriter(new FileOutputStream(hiddenFile(c)), "UTF-8");
+            try {
+                for (String k : h) w.write(k + "\n");
+            } finally {
+                w.close();
+            }
+        } catch (Exception ignored) {
+        }
+        load(c);
+    }
+
     /** hide (true) or show again (false); then read the library again */
     static synchronized void setHidden(Context c, String key, boolean hide) {
         Set<String> h = hidden(c);

@@ -58,7 +58,7 @@ img{display:block}
 
 /* ---------- playlist ---------- */
 .list{max-width:640px;margin:0 auto}
-.lhead{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.lhead{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.94);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
 .lrow{display:flex;align-items:center;gap:12px}
 .back{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;margin-left:-8px}
 .lhead h2{font-family:var(--display);font-weight:500;font-size:21px;letter-spacing:.04em;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -113,7 +113,7 @@ body.playing .song.on .th::after{animation-play-state:running}
 
 /* ---------- mini player ---------- */
 .mini{position:fixed;left:0;right:0;bottom:0;z-index:10;height:calc(var(--bar) + env(safe-area-inset-bottom));padding:0 12px env(safe-area-inset-bottom);
-  display:flex;align-items:center;gap:12px;background:rgba(9,7,16,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+  display:flex;align-items:center;gap:12px;background:rgba(9,7,16,.98);border-top:1px solid var(--line)}
 .mini .prog{position:absolute;left:0;top:-1px;height:2px;background:var(--grad);width:0}
 .mini .open{display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left;height:100%}
 .mini .th{width:46px;height:46px;border-radius:8px;overflow:hidden;background:var(--raise);flex:none}
@@ -189,6 +189,18 @@ body.playing .song.on .th::after{animation-play-state:running}
 .pendhead span{display:block;color:var(--mist);font-size:13px;margin-top:2px}
 .pendhead .ghost{flex:none}
 .song.soon{opacity:.55}
+/* songs gone from YouTube: find another copy */
+#miss .pendhead{border-style:dashed}
+.song.gone .tx span{color:#FF6B8B}
+.song.gone .find{flex:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--ink)}
+.song.gone .drop{flex:none;width:32px;height:32px;border-radius:50%;color:var(--mist);font-size:20px;line-height:1}
+.copy{display:flex;align-items:center;gap:12px;width:100%;padding:10px 4px;border-bottom:1px solid var(--line);text-align:left}
+.copy img{flex:none;width:72px;height:40px;object-fit:cover;border-radius:6px;background:var(--raise)}
+.copy div{flex:1;min-width:0}
+.copy b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.copy span{display:block;color:var(--mist);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.copy.close span{color:var(--pc2,var(--cyan))}
+.clist{max-height:52vh;overflow-y:auto}
 .song.soon .th{display:grid;place-items:center}
 .song.soon .th::after{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--mist);border-top-color:transparent}
 .song.soon.bad{opacity:.75}
@@ -231,6 +243,40 @@ body.playing .song.on .th::after{animation-play-state:running}
 .chip:disabled{opacity:.4}
 .mnote{color:var(--mist);font-size:14px;margin:0 0 14px}
 @media (prefers-reduced-motion:reduce){.lyr p{transition:none}.now{transition:none}}
+
+/* ---------- smoother - instant tap feedback, views and sheets ease in ---------- */
+.song:active,.pl:active{background:rgba(255,255,255,.045)}
+.pill:active,.ghost:active,.chip:active,.sortbtn:active,.srow:active,.copy:active{opacity:.72}
+.ib:active,.back:active{background:rgba(255,255,255,.07)}
+button,a,input,.song,.pl{touch-action:manipulation}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes sheetUp{from{transform:translateY(28px)}to{transform:none}}
+.enter{animation:viewIn .18s ease-out}
+.sheet:not(.hidden){animation:fadeIn .16s ease-out}
+.sheet:not(.hidden) .sheetcard{animation:sheetUp .2s cubic-bezier(.2,.8,.3,1)}
+.toast:not(.hidden){animation:fadeIn .15s ease-out}
+.song.new{animation:fadeIn .5s ease-out}
+@media (prefers-reduced-motion:reduce){.enter,.sheet:not(.hidden),.sheet:not(.hidden) .sheetcard,.toast:not(.hidden),.song.new{animation:none}}
+/* lyrics: where they came from, and "Search by name" */
+.lfoot{margin:22px 0 0;color:var(--mist);font-size:13px;line-height:1.5}
+.lfix{display:inline-block;margin-top:10px;border:1px solid var(--line);border-radius:999px;padding:8px 14px;color:var(--ink);font-size:14px}
+.lmsg .lfix{margin:16px auto 0}
+/* karaoke lyrics: each word lights up as it is sung */
+.lyr p span{transition:none}
+.lyr p.on{color:rgba(242,238,255,.42);transition:none}
+.lyr p.on span.done{color:#fff}
+.lyr p.on span.cur{background:linear-gradient(90deg,#fff var(--k,0%),rgba(242,238,255,.42) var(--k,0%));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ltime{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--mist);font-size:13px;flex-wrap:wrap}
+.ltime button{border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--ink);font-size:13px}
+/* wrong audio */
+.wrow{padding:10px 2px;border-top:1px solid var(--line);font-size:14px}
+.wrow b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow span{display:block;color:var(--mist);font-size:13px}
+#wrong .pendhead b{color:#FF9DB8}
+/* backup */
+.kstat{color:var(--mist);font-size:14px;margin:0 0 12px;line-height:1.45}
+.kstat b{color:var(--ink);font-weight:600}
 </style>
 </head>
 <body>
@@ -257,6 +303,7 @@ body.playing .song.on .th::after{animation-play-state:running}
     <button id="scan" class="ghost">Update library</button>
     <button id="folderBtn" class="ghost">Music folder</button>
     <button id="hiddenBtn" class="ghost hidden">Hidden songs</button>
+    <button id="kBtn" class="ghost">Backup</button>
     <span id="made"></span>
   </div>
 </main>
@@ -267,6 +314,7 @@ body.playing .song.on .th::after{animation-play-state:running}
       <button class="back" id="back" aria-label="Back to playlists"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.4 6.4 14 5l-7 7 7 7 1.4-1.4L9.8 12z"/></svg></button>
       <h2 id="lname"></h2>
       <span class="count" id="lcount"></span>
+      <button class="back" id="lmore" aria-label="Playlist options"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
     </div>
     <input id="q" class="search" type="search" placeholder="Search songs or artists" autocomplete="off">
     <div class="tools">
@@ -277,7 +325,9 @@ body.playing .song.on .th::after{animation-play-state:running}
       </button>
     </div>
   </header>
+  <div id="wrong"></div>
   <div id="pend"></div>
+  <div id="miss"></div>
   <ul id="songs" class="songs"></ul>
 </section>
 
@@ -335,6 +385,53 @@ body.playing .song.on .th::after{animation-play-state:running}
   </div>
 </div>
 
+<div id="ksheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="kTitle">
+  <div class="sheetcard">
+    <b id="kTitle">Backup and new phone</b>
+    <p class="kstat" id="kSub"></p>
+    <button id="kNow" class="pill main wide">Back up now</button>
+    <button id="kRestore" class="srow hidden">Restore<small id="kRestoreSub"></small></button>
+    <button id="kPick" class="srow">Restore from a file<small>Pick a backup.zip anywhere on the phone.</small></button>
+    <button id="kBack" class="srow hidden">Get songs back<small id="kBackSub"></small></button>
+    <button id="kAllow" class="srow hidden">Allow folder and back up<small>Starts this phone's own backups in your music folder / MY MUSIC backup.</small></button>
+    <button id="kAnyway" class="srow hidden">Back up anyway<small>Replaces it - the one there now stays as backup (previous).zip until the next backup.</small></button>
+    <p class="mnote">New phone: copy your whole music folder over, open its MY MUSIC backup folder in Files and tap MY MUSIC.apk to install, tap Music folder and pick the folder you copied, then come here and tap Restore.</p>
+    <button id="kCancel" class="srow">Close</button>
+  </div>
+</div>
+
+<div id="lsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="lTitle">
+  <div class="sheetcard">
+    <b id="lTitle">Search lyrics by name</b><span>Type the song and artist the way a lyrics site would list them.</span>
+    <input id="lTrack" class="search" type="text" placeholder="Song name" autocomplete="off">
+    <input id="lArtist" class="search" type="text" placeholder="Artist" autocomplete="off">
+    <button id="lGo" class="pill main wide">Search</button>
+    <button id="lReset" class="srow">Use the song's own name again</button>
+    <button id="lCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
+<div id="wsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+  <div class="sheetcard">
+    <b id="wTitle">Wrong audio check</b>
+    <p class="kstat" id="wSub"></p>
+    <input id="wLink" class="search hidden" type="url" placeholder="Paste this playlist's YouTube link" autocomplete="off">
+    <button id="wGo" class="pill main wide hidden">Check</button>
+    <button id="wAlt" class="srow hidden">Use a different YouTube link<small>If this playlist came from another YouTube playlist.</small></button>
+    <div id="wList" class="clist"></div>
+    <button id="wFix" class="pill main wide hidden">Fix them</button>
+    <button id="wClose" class="srow">Close</button>
+  </div>
+</div>
+
+<div id="csheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+  <div class="sheetcard">
+    <b id="cTitle">Another copy</b><span id="cSub"></span>
+    <div id="cList" class="clist"></div>
+    <button id="cCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
 <div id="srtsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="srtTitle">
   <div class="sheetcard">
     <b id="srtTitle">Sort by</b><span>Tap one to sort the playlist.</span>
@@ -376,7 +473,8 @@ body.playing .song.on .th::after{animation-play-state:running}
 
 <div id="psheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="psTitle">
   <div class="sheetcard">
-    <b id="psTitle"></b><span>Playlist picture</span>
+    <b id="psTitle"></b><span>Playlist</span>
+    <button id="psCheck" class="srow">Check for wrong audio<small>Finds songs that play a different song than the one shown, and fixes them.</small></button>
     <button id="psPick" class="srow">Change picture<small>Pick any picture on your phone.</small></button>
     <button id="psReset" class="srow">Use the original picture</button>
     <button id="psCancel" class="srow">Cancel</button>
@@ -438,8 +536,13 @@ const countLine = (n, w) => n ? nSongs(n) + (w ? " + " + w.toLocaleString() + " 
 const clock = ms => new Date(ms).toLocaleTimeString([], {hour: "numeric", minute: "2-digit"});
 const artUrl = (p, f, big) => "/art?p=" + enc(p) + "&f=" + enc(f) + (big ? "&s=big" : "");
 const keyOf = s => s.p + "/" + s.file;
-function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} pushPrefs(); }
 function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+/* the page's own settings, kept in the new-phone backup */
+const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff"];
+function pushPrefs() {
+  try { const o = {}; PREFS.forEach(k => { const v = load(k); if (v !== null) o[k] = v; }); window.Native && Native.savePrefs(JSON.stringify(o)); } catch (e) {}
+}
 
 let LIB = {playlists: []}, KEYS = new Map(), PL = null, shown = [], sortBy = load("mm_sort") || "artist", sortRev = load("mm_rev") === true;
 let ST = {}, stAt = 0, cur = null;     /* what the player last said, when, and its song */
@@ -458,7 +561,18 @@ async function getLib() {
 }
 /* songs on their way into playlists (a shared playlist lists all its songs at once) */
 let PENDING = {};
-function loadPending() { try { PENDING = (N && JSON.parse(N.pending())) || {}; } catch (e) { PENDING = {}; } }
+function loadPending() {
+  try { PENDING = (N && JSON.parse(N.pending())) || {}; } catch (e) { PENDING = {}; }
+  try { MISSING = (N && JSON.parse(N.missing())) || {}; } catch (e) { MISSING = {}; }
+  loadWrong();
+}
+/* songs gone from YouTube, per playlist: [{id, t, a, d, e}] */
+let MISSING = {};
+function missOf(name) {
+  if (!name) return [];
+  const k = Object.keys(MISSING).find(x => x.toLowerCase() === name.toLowerCase());
+  return (k && MISSING[k]) || [];
+}
 function pendOf(name) {
   if (!name) return null;
   const k = Object.keys(PENDING).find(x => x.toLowerCase() === name.toLowerCase());
@@ -475,29 +589,40 @@ function mergePending() {
   LIB.playlists = LIB.playlists.filter(p => !p.soon || pendOf(p.name));
   LIB.playlists.sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: "base", numeric: true}));
 }
+let homeSig = "", homeY = 0;
+function plSub(p) {
+  const secs = p.songs.reduce((a, s) => a + (s.duration || 0), 0), n = p.songs.length, w = waiting(pendOf(p.name));
+  let sub = n ? nSongs(n) + ", " + (secs < 3600 ? Math.round(secs / 60) + " min" : hours(secs)) : "";
+  if (w) sub = n ? sub + " - " + w.toLocaleString() + " on the way" : nSongs(w) + " on the way";
+  return sub;
+}
 function renderHome() {
   const ul = $("#pls");
   $(".homefoot").classList.toggle("hidden", !!N && !N.hasPermission());
   if (N && !N.hasPermission()) {
+    homeSig = "";
     ul.innerHTML = '<li class="empty">MY MUSIC needs your permission to read the songs on your phone.<br><br>' +
       '<button class="pill main" id="allow">Allow</button></li>';
     $("#allow").onclick = () => N.askPermission();
   } else if (!LIB.playlists.length) {
+    homeSig = "";
     ul.innerHTML = '<li class="empty">No music yet.<br><br>Tap <b>Add songs</b> to bring in a YouTube playlist or song, ' +
       'or <b>Music folder</b> to use a folder of songs you already have (each folder inside it is a playlist).</li>';
   } else {
-    ul.innerHTML = LIB.playlists.map((p, i) => {
-      const secs = p.songs.reduce((a, s) => a + (s.duration || 0), 0);
-      const n = p.songs.length;
-      const first = p.songs[0];
-      const pic = p.cover ? '<div class="plart"><img src="/cover?p=' + enc(p.name) + '&v=' + enc(p.cover) + '" alt=""></div>'
-        : '<div class="vinyl"><div class="label">' + (first ? '<img loading="lazy" src="' + artUrl(p.name, first.file) +
-          '" alt="" onerror="this.remove()">' : '') + '</div></div>';
-      const w = waiting(pendOf(p.name));
-      let sub = n ? nSongs(n) + ", " + (secs < 3600 ? Math.round(secs / 60) + " min" : hours(secs)) : "";
-      if (w) sub = n ? sub + " - " + w.toLocaleString() + " on the way" : nSongs(w) + " on the way";
-      return '<li><button class="pl" data-i="' + i + '">' + pic + '<div><h2>' + esc(p.name) + '</h2><p>' + sub + '</p></div></button></li>';
-    }).join("");
+    /* same playlists and pictures as on screen: only the counts change (no pictures blinking while songs come in) */
+    const sig = LIB.playlists.map(p => p.name + "|" + p.cover + "|" + (p.songs[0] ? p.songs[0].file : "")).join("\n");
+    if (sig === homeSig && ul.querySelectorAll(".pl").length === LIB.playlists.length) {
+      ul.querySelectorAll(".pl p").forEach((el, i) => { const t = plSub(LIB.playlists[i]); if (el.textContent !== t) el.textContent = t; });
+    } else {
+      homeSig = sig;
+      ul.innerHTML = LIB.playlists.map((p, i) => {
+        const first = p.songs[0];
+        const pic = p.cover ? '<div class="plart"><img src="/cover?p=' + enc(p.name) + '&v=' + enc(p.cover) + '" alt=""></div>'
+          : '<div class="vinyl"><div class="label">' + (first ? '<img loading="lazy" src="' + artUrl(p.name, first.file) +
+            '" alt="" onerror="this.remove()">' : '') + '</div></div>';
+        return '<li><button class="pl" data-i="' + i + '">' + pic + '<div><h2>' + esc(p.name) + '</h2><p>' + esc(plSub(p)) + '</p></div></button></li>';
+      }).join("");
+    }
   }
   let fold = ""; try { fold = N ? N.folder() : ""; } catch (e) {}
   $("#made").textContent = (fold ? fold + " - " : "") + (LIB.made ? "updated " + LIB.made.slice(5).replace("-", "/") : "");
@@ -541,6 +666,12 @@ const closePs = () => { $("#psheet").classList.add("hidden"); };
 $("#psCancel").onclick = closePs;
 $("#psheet").addEventListener("click", e => { if (e.target.id === "psheet") closePs(); });
 $("#psPick").onclick = () => { closePs(); if (sheetPl) N.pickCover(sheetPl.name); };
+$("#lmore").onclick = () => {
+  if (!PL || !N) return; sheetPl = PL;
+  $("#psTitle").textContent = PL.name; $("#psReset").classList.toggle("hidden", !PL.custom);
+  $("#psheet").classList.remove("hidden");
+};
+$("#psCheck").onclick = () => { closePs(); if (sheetPl) checkAudio(sheetPl.name, ""); };
 $("#psReset").onclick = () => { closePs(); if (sheetPl) N.resetCover(sheetPl.name); };
 $("#pls").addEventListener("click", e => {
   if (plDone) { plDone = false; return; }
@@ -603,35 +734,71 @@ function showSort() {
     b.textContent = SORTS[sortBy][+b.dataset.rev + 1]; b.setAttribute("aria-pressed", (b.dataset.rev === "1") === sortRev);
   });
 }
-let renderTok = 0;
+let renderTok = 0, listDone = true, LIST_BASE = null;   /* the whole sorted playlist the screen was drawn from */
+const rowHtml = (s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '" data-k="' + esc(keyOf(s)) + '"><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
+  '" onerror="this.remove()"></div><div class="tx"><b>' + esc(s.title) + '</b><span>' + esc(s.artist || "Unknown artist") +
+  '</span></div><time>' + side(s) + '</time></li>';
 function renderList() {
   if (!PL) return;
   const q = $("#q").value.trim().toLowerCase();
   const key = PL.name + "|" + sortBy + "|" + sortRev;
   if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
   const words = q.split(/\s+/);
+  LIST_BASE = {pl: PL, list: sortCache.get(key)};
   shown = q ? sortCache.get(key).filter(s => words.every(w => s.k.includes(w))) : sortCache.get(key);
   $("#lname").textContent = PL.name;
   const w = waiting(pendOf(PL.name));
   $("#lcount").textContent = q ? shown.length.toLocaleString() + " found" : countLine(PL.songs.length, w);
-  renderPend();
-  const ul = $("#songs"), list = shown, tok = ++renderTok;
-  const row = (s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '"><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
-    '" onerror="this.remove()"></div><div class="tx"><b>' + esc(s.title) + '</b><span>' + esc(s.artist || "Unknown artist") +
-    '</span></div><time>' + side(s) + '</time></li>';
+  renderPend(); renderMiss(); renderWrong();
+  const ul = $("#songs"), list = shown, tok = ++renderTok, row = rowHtml;
+  listDone = true;
   if (!list.length) { ul.innerHTML = q ? '<li class="empty">Nothing matches that search.</li>' : pendOf(PL.name) ? '' : '<li class="empty">No songs here yet.</li>'; }
   else {
     /* first screen now, the rest in small batches so the tap feels instant */
     ul.innerHTML = list.slice(0, 40).map(row).join("");
     let n = 40;
+    listDone = n >= list.length;
     const more = () => {
-      if (tok !== renderTok || n >= list.length) return;
+      if (tok !== renderTok) return;
+      if (n >= list.length) { listDone = true; return; }
       ul.insertAdjacentHTML("beforeend", list.slice(n, n + 250).map((s, k) => row(s, n + k)).join(""));
-      n += 250; setTimeout(more, 16);
+      n += 250; if (n >= list.length) listDone = true; else setTimeout(more, 16);
     };
-    setTimeout(more, 16);
+    if (!listDone) setTimeout(more, 16);
   }
   showSort();
+}
+/*
+ * songs arriving while a playlist is open slot in where they belong -
+ * nothing above you moves, no pictures reload, no jump. Returns false when
+ * the list has to be drawn again instead (searching, sorted differently, a
+ * song gone).
+ */
+function patchList() {
+  if (!PL || !listDone || $("#q").value.trim()) return false;
+  const key = PL.name + "|" + sortBy + "|" + sortRev;
+  if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
+  const list = sortCache.get(key), ul = $("#songs");
+  const old = new Map();
+  for (const li of ul.children) { if (!li.dataset.k) return false; old.set(li.dataset.k, li); }
+  if (!old.size) return false;
+  const pos = new Map(list.map((s, i) => [keyOf(s), i]));
+  let last = -1;
+  for (const k of old.keys()) { const p = pos.get(k); if (p === undefined || p < last) return false; last = p; }
+  const t = document.createElement("template");
+  let next = null;
+  for (let i = list.length - 1; i >= 0; i--) {
+    const li = old.get(keyOf(list[i]));
+    if (li) { next = li; continue; }
+    t.innerHTML = rowHtml(list[i], i);
+    const el = t.content.firstElementChild; el.classList.add("new");
+    ul.insertBefore(el, next); next = el;
+  }
+  let i = 0; for (const li of ul.children) li.dataset.i = i++;
+  shown = list; LIST_BASE = {pl: PL, list};
+  $("#lcount").textContent = countLine(PL.songs.length, waiting(pendOf(PL.name)));
+  renderPend(); renderMiss(); markOn();
+  return true;
 }
 const pendOpen = {};
 function renderPend() {
@@ -650,6 +817,57 @@ function renderPend() {
     (open ? '<ul class="songs">' + list.slice(0, 300).map(row).join("") +
       (list.length > 300 ? '<li class="empty">and ' + (list.length - 300).toLocaleString() + ' more</li>' : '') + '</ul>' : '');
 }
+const missOpen = {};
+function renderMiss() {
+  const box = $("#miss"), list = PL ? missOf(PL.name) : [];
+  if (!list.length || $("#q").value.trim()) { box.innerHTML = ""; return; }
+  const open = !!missOpen[PL.name];
+  box.innerHTML = '<div class="pendhead"><div><b>' + (list.length === 1 ? "1 song is" : list.length + " songs are") + ' gone from YouTube</b>' +
+    '<span>Find another upload of each one, or let it go.</span></div><button class="ghost" id="missTog">' + (open ? "Hide" : "Show") + '</button></div>' +
+    (open ? '<ul class="songs">' + list.map((x, i) => '<li class="song gone" data-m="' + i + '"><div class="tx"><b>' + esc(x.t) + '</b><span>' +
+      esc((x.a ? x.a + " - " : "") + (x.e || "Gone from YouTube")) + '</span></div><button class="find">Find another copy</button>' +
+      '<button class="drop" aria-label="Let it go">&times;</button></li>').join("") +
+      '<li class="empty" style="padding:12px"><button class="ghost" id="missAll">Let them all go</button></li></ul>' : '');
+}
+$("#miss").addEventListener("click", e => {
+  if (!PL || !N) return;
+  if (e.target.id === "missTog") { missOpen[PL.name] = e.target.textContent === "Show"; renderMiss(); return; }
+  if (e.target.id === "missAll") { N.dropMissing(PL.name, "*"); toast("Let go - sharing the playlist again won't try them"); return; }
+  const li = e.target.closest(".song.gone"); if (!li) return;
+  const x = missOf(PL.name)[+li.dataset.m]; if (!x) return;
+  if (e.target.closest(".drop")) { N.dropMissing(PL.name, x.id); return; }
+  if (e.target.closest(".find")) findCopy(PL.name, x);
+});
+/* "Find another copy": YouTube's top matches; tap one and it comes into the playlist */
+let copyFor = null, copyTok = "";
+function findCopy(folder, x) {
+  copyFor = {folder, x}; copyTok = String(Date.now());
+  $("#cTitle").textContent = "Another copy of " + x.t;
+  $("#cSub").textContent = "Searching YouTube...";
+  $("#cList").innerHTML = "";
+  $("#csheet").classList.remove("hidden");
+  N.searchCopies((x.a ? x.a + " " : "") + x.t, copyTok);
+}
+window.onCopies = (tok, res) => {
+  if (tok !== copyTok || !copyFor) return;
+  if (!Array.isArray(res)) { $("#cSub").textContent = (res && res.error) || "Nothing found"; return; }
+  const want = copyFor.x.d || 0;
+  $("#cSub").textContent = "Tap the right one" + (want ? " - the gone one was " + mmss(want) + " long (blue = about the same length)" : "");
+  $("#cList").innerHTML = res.map((c, i) => '<button class="copy' + (want && c.d && Math.abs(c.d - want) <= 6 ? " close" : "") + '" data-c="' + i + '">' +
+    '<img alt="" src="https://i.ytimg.com/vi/' + enc(c.id) + '/mqdefault.jpg" onerror="this.style.visibility=\'hidden\'">' +
+    '<div><b>' + esc(c.t) + '</b><span>' + esc((c.a || "YouTube") + (c.d ? " - " + mmss(c.d) : "")) + '</span></div></button>').join("");
+  window.__copies = res;
+};
+$("#cList").addEventListener("click", e => {
+  const b = e.target.closest(".copy"); if (!b || !copyFor) return;
+  const c = window.__copies[+b.dataset.c];
+  $("#csheet").classList.add("hidden");
+  const r = N.useCopy(copyFor.folder, copyFor.x.id, c.id); if (r) toast(r);
+  copyFor = null;
+});
+const closeCopy = () => { $("#csheet").classList.add("hidden"); copyFor = null; };
+$("#cCancel").onclick = closeCopy;
+$("#csheet").addEventListener("click", e => { if (e.target.id === "csheet") closeCopy(); });
 $("#pend").addEventListener("click", e => {
   if (e.target.id === "pendTog") { pendOpen[PL.name] = e.target.textContent === "Show"; renderPend(); return; }
   if (e.target.closest(".song.soon")) toast(e.target.closest(".bad") ? "YouTube won't give this one out" : "On its way - it plays once it's in");
@@ -661,7 +879,7 @@ window.onPending = () => {
     PL = LIB.playlists.find(x => x.name === PL.name) || PL;
     const w = waiting(pendOf(PL.name));
     if (!$("#q").value.trim()) $("#lcount").textContent = countLine(PL.songs.length, w);
-    renderPend();
+    renderPend(); renderMiss();
   }
   renderDls();
 };
@@ -672,9 +890,10 @@ window.onSongs = async () => {
   if (inList && name) {
     PL = LIB.playlists.find(x => x.name === name) || null;
     if (!PL) { route(); return; }
+    shown = shown.map(s => KEYS.get(keyOf(s)) || s);                /* the same songs, from the fresh list */
     if (DLS.some(d => d.folder.toLowerCase() === name.toLowerCase())) {     /* the one filling up: show its new songs */
-      $("#q").value = qv; renderList(); setTimeout(() => scrollTo(0, y), 250);
-    }
+      if (!patchList()) { $("#q").value = qv; renderList(); requestAnimationFrame(() => scrollTo(0, y)); }
+    } else markOn();
   } else if (!$("#home").classList.contains("hidden")) renderHome();
 };
 let qt; $("#q").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(renderList, 160); });
@@ -696,13 +915,22 @@ function playList(list, i, shuffle) {
   if (!N || !list.length) return;
   N.play(JSON.stringify(list.map(keyOf)), i, shuffle);
 }
+/* the whole playlist in the current order - a search only filters what you see */
+function fullList() {
+  if (!PL) return [];
+  if (LIST_BASE && LIST_BASE.pl === PL) return LIST_BASE.list;        /* exactly the order on screen */
+  const key = PL.name + "|" + sortBy + "|" + sortRev;
+  if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
+  return sortCache.get(key);
+}
 $("#songs").addEventListener("click", e => {
   if (lpDone) { lpDone = false; return; }
   const li = e.target.closest(".song"); if (!li) return;
-  playList(shown, +li.dataset.i, !!ST.shuffle);
+  const s = shown[+li.dataset.i], all = fullList(), i = all.indexOf(s);
+  if (i < 0) playList(shown, +li.dataset.i, !!ST.shuffle); else playList(all, i, !!ST.shuffle);
 });
-$("#playall").onclick = () => playList(shown, 0, false);
-$("#shuffleall").onclick = () => playList(shown, Math.floor(Math.random() * shown.length), true);
+$("#playall").onclick = () => playList(fullList(), 0, false);
+$("#shuffleall").onclick = () => { const all = fullList(); playList(all, Math.floor(Math.random() * all.length), true); };
 $("#back").onclick = () => goBack("#/");
 
 /* ---------- the player says what is going on ---------- */
@@ -774,7 +1002,8 @@ function tick() {
   const on = Math.round(pct * BARS);
   $("#wave").querySelectorAll("i").forEach((b, i) => b.classList.toggle("on", i < on));
   $("#wave").setAttribute("aria-valuetext", mmss(t) + " of " + mmss(d));
-  lyricsTick();
+  if (!LYR.raf) lyricsTick();
+  lyricsWake();
 }
 function seekTo(ms) {
   if (!N || !cur) return;
@@ -966,26 +1195,33 @@ function go(h) { const d = ((history.state && history.state.d) || 0) + 1; histor
 function goBack(fallback) { if (history.state && history.state.d > 0) history.back(); else { history.replaceState({d: 0}, "", fallback); route(); } }
 $("#mopen").onclick = () => go("#/now");
 $("#nclose").onclick = () => goBack(lastView);
+function enter(el) {
+  el.classList.remove("enter"); void el.offsetWidth; el.classList.add("enter");
+  el.addEventListener("animationend", () => el.classList.remove("enter"), {once: true});
+}
 function route() {
   const h = location.hash || "#/";
   const now = $("#now");
+  const wasHome = !$("#home").classList.contains("hidden");
+  if (wasHome && h !== "#/" && h !== "#/now") homeY = scrollY;
   if (h === "#/now") { if (!cur) { history.replaceState({d: 0}, "", lastView); return route(); } now.classList.add("show"); now.setAttribute("aria-hidden", "false"); nowShown(); return; }
   now.classList.remove("show"); now.setAttribute("aria-hidden", "true"); ringStop();
   lastView = h;
   $("#hid").classList.add("hidden");
   if (h === "#/hidden") {
     $("#home").classList.add("hidden"); $("#list").classList.add("hidden"); $("#hid").classList.remove("hidden");
-    renderHidden(); scrollTo(0, 0); return;
+    renderHidden(); scrollTo(0, 0); enter($("#hid")); return;
   }
   if (h.startsWith("#/p/")) {
     const name = decodeURIComponent(h.slice(4));
     const p = LIB.playlists.find(x => x.name === name);
     if (p) {
       if (PL === p && !$("#list").classList.contains("hidden")) return;   /* closing the player: keep the list where it was */
-      PL = p; $("#q").value = ""; $("#home").classList.add("hidden"); $("#list").classList.remove("hidden"); renderList(); scrollTo(0, 0); return;
+      PL = p; $("#q").value = ""; $("#home").classList.add("hidden"); $("#list").classList.remove("hidden"); renderList(); scrollTo(0, 0); enter($("#list")); return;
     }
   }
   $("#list").classList.add("hidden"); $("#home").classList.remove("hidden"); renderHome();
+  if (!wasHome) { scrollTo(0, homeY); enter($("#home")); }      /* back where you were on the home screen */
 }
 addEventListener("popstate", route);
 
@@ -1198,21 +1434,46 @@ function wantLyrics(s) {
 }
 window.onLyrics = d => {
   if (!d || !d.key) return;
-  if (d.status !== "offline" && d.status !== "busy") LYR.cache.set(d.key, d);
+  if (d.status !== "offline" && d.status !== "busy" && d.status !== "loading") LYR.cache.set(d.key, d);
   if (cur && keyOf(cur) === d.key) useLyrics(d);
 };
+const lrcMs = (m, s, f) => (+m * 60 + +s) * 1000 + (f ? +(f + "00").slice(0, 3) : 0);
+/* timed lines; words carry their own times when the lyrics have them (<mm:ss.xx>word, or YouTube's captions) */
 function parseLrc(text) {
   const out = [];
   for (const raw of String(text).split(/\r?\n/)) {
     const stamps = [...raw.matchAll(/\[(\d+):(\d{1,2})(?:[.:](\d{1,3}))?\]/g)];
     if (!stamps.length) continue;
-    const words = raw.replace(/\[[^\]]*\]/g, "").replace(/<\d+:\d{1,2}(?:[.:]\d{1,3})?>/g, "").replace(/\s{2,}/g, " ").trim();
+    const body = raw.replace(/\[[^\]]*\]/g, "");
+    const t0 = lrcMs(stamps[0][1], stamps[0][2], stamps[0][3]), words = [];
+    if (/<\d+:\d{1,2}/.test(body)) {
+      const lead = body.slice(0, body.indexOf("<")).replace(/\s+/g, " ").trim();      /* words before the first word time */
+      if (lead) lead.split(" ").forEach(w => words.push({t: t0, w}));
+      for (const m of body.matchAll(/<(\d+):(\d{1,2})(?:[.:](\d{1,3}))?>([^<]*)/g)) {
+        const t = lrcMs(m[1], m[2], m[3]);
+        m[4].replace(/\s+/g, " ").trim().split(" ").filter(Boolean).forEach(w => words.push({t, w}));
+      }
+    }
+    const text = body.replace(/<\d+:\d{1,2}(?:[.:]\d{1,3})?>/g, "").replace(/\s{2,}/g, " ").trim();
     for (const m of stamps) {
-      const frac = m[3] ? +(m[3] + "00").slice(0, 3) : 0;
-      out.push({t: (+m[1] * 60 + +m[2]) * 1000 + frac, text: words});
+      const t = lrcMs(m[1], m[2], m[3]), shift = t - t0;                 /* the same line sung again later */
+      out.push({t, text, words: words.length ? words.map(w => ({t: w.t + shift, w: w.w})) : null});
     }
   }
-  return out.sort((a, b) => a.t - b.t);
+  out.sort((a, b) => a.t - b.t);
+  /* when each word is sung: its own time, or spread over the line by length (singing pace, not the whole gap to the next line) */
+  out.forEach((l, i) => {
+    const end = i + 1 < out.length ? out[i + 1].t : l.t + 6000;
+    if (l.words) {
+      l.ws = l.words.map((w, k) => ({w: w.w, s: w.t, e: k + 1 < l.words.length ? l.words[k + 1].t : Math.min(end, w.t + Math.max(350, w.w.length * 90))}));
+    } else {
+      const ws = l.text ? l.text.split(" ") : [], chars = ws.reduce((a, w) => a + w.length + 1, 0) || 1;
+      const dur = Math.min(end - l.t, Math.max(1200, chars * 75 + 400));
+      let c = 0;
+      l.ws = ws.map(w => { const s = l.t + dur * c / chars; c += w.length + 1; return {w, s, e: l.t + dur * c / chars}; });
+    }
+  });
+  return out;
 }
 function useLyrics(d) {
   LYR.data = d; LYR.lines = d.status === "ok" && d.synced ? parseLrc(d.synced) : null; LYR.idx = -1;
@@ -1225,29 +1486,61 @@ function useLyrics(d) {
 function showLyrics() {
   const L = $("#lyr"), d = LYR.data || {status: "loading"};
   L.classList.remove("plain"); L.scrollTop = 0;
-  const msg = (a, b) => '<div class="lmsg">' + a + (b ? '<small>' + b + '</small>' : '') + '</div>';
-  if (d.status === "loading") L.innerHTML = msg("Looking for lyrics...");
-  else if (d.status === "instrumental") L.innerHTML = msg("Instrumental", "No words in this one.");
+  const fix = '<button class="lfix">Search by name</button>';
+  const msg = (a, b, more) => '<div class="lmsg">' + a + (b ? '<small>' + b + '</small>' : '') + (more || '') + '</div>';
+  const FROM = {lrclib: "Lyrics from LRCLIB, a free lyrics library.", file: "Lyrics from the song file.",
+    desc: "From the video's description.", cc: "From the video's captions.", auto: "YouTube's automatic captions - some words may be off."};
+  const foot = '<div class="lfoot">' + (FROM[d.src] || "") + (d.synced ? "" : " Not timed.") + '<br><button class="lfix">Wrong? Search by name</button></div>';
+  const timing = () => '<div class="ltime" id="ltime">Words light up: <button data-off="250">Sooner</button><button data-off="-250">Later</button><span>' + offText() + '</span></div>';
+  if (d.status === "loading") L.innerHTML = d.src === "cc" ? msg("Reading the video's captions...", "Asking YouTube - a few seconds.") : msg("Looking for lyrics...");
+  else if (d.status === "instrumental") L.innerHTML = msg("Instrumental", "No words in this one.", fix);
   else if (d.status === "offline") L.innerHTML = msg("Could not reach the lyrics library", "Check the internet, then close and open Lyrics again.");
   else if (d.status === "busy") L.innerHTML = msg("The lyrics library is busy right now", "Try again in a minute: close and open Lyrics.");
-  else if (d.status !== "ok") L.innerHTML = msg("No lyrics found for this song", "Lyrics come from LRCLIB, a free lyrics library.");
-  else if (LYR.lines) L.innerHTML = LYR.lines.map((l, i) => '<p data-i="' + i + '"' + (l.text ? '>' + esc(l.text) : ' class="gap">&#9834; &#9834;') + '</p>').join("");
-  else { L.classList.add("plain"); L.innerHTML = String(d.plain || "").split(/\r?\n/).map(x => '<p>' + (esc(x) || "&nbsp;") + '</p>').join("") + '<div class="lnote">These lyrics are not timed.</div>'; }
-  LYR.idx = -1; lyricsTick(true);
+  else if (d.status !== "ok") L.innerHTML = msg("No lyrics found for this song", "Looked in LRCLIB, the song file, the video's description and its captions." +
+    (d.track ? "<br>Searched for: " + esc(d.track) + (d.artist ? " - " + esc(d.artist) : "") : ""), fix);
+  else if (LYR.lines) L.innerHTML = LYR.lines.map((l, i) => '<p data-i="' + i + '"' + (l.text ? '>' + l.ws.map((w, k) => '<span data-w="' + k + '">' + esc(w.w) + '</span>').join(" ")
+    : ' class="gap">&#9834; &#9834;') + '</p>').join("") + foot + timing();
+  else { L.classList.add("plain"); L.innerHTML = String(d.plain || "").split(/\r?\n/).map(x => '<p>' + (esc(x) || "&nbsp;") + '</p>').join("") + foot; }
+  LYR.idx = -1; lyricsTick(true); lyricsWake();
 }
+/* per-song timing nudge: + = words light up sooner (kept in the backup) */
+const lyrOffs = () => load("mm_lyroff") || {};
+const lyrOff = () => (cur && lyrOffs()[keyOf(cur)]) || 0;
+const offText = () => { const o = lyrOff() / 1000; return o ? (o > 0 ? "+" : "") + o.toFixed(2).replace(/0$/, "") + " s" : "on time"; };
+const LEAD = 150;                                     /* light up as the singer starts, a hair before */
+function lyricsLive() { return LYR.open && LYR.lines && ST.playing && !document.hidden && $("#now").classList.contains("show"); }
+function lyricsWake() { if (!LYR.raf && lyricsLive()) LYR.raf = requestAnimationFrame(lyricsFrame); }
+function lyricsFrame() { LYR.raf = 0; if (!lyricsLive()) return; lyricsTick(false); LYR.raf = requestAnimationFrame(lyricsFrame); }
 function lyricsTick(jump) {
   if (!LYR.open || !LYR.lines || !$("#now").classList.contains("show")) return;
-  const t = pos() + 200; let i = -1;
-  for (let k = 0; k < LYR.lines.length && LYR.lines[k].t <= t; k++) i = k;
-  if (i === LYR.idx && !jump) return;
-  LYR.idx = i;
+  const t = pos() + LEAD + lyrOff(), lines = LYR.lines;
+  let lo = 0, hi = lines.length - 1, i = -1;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (lines[m].t <= t) { i = m; lo = m + 1; } else hi = m - 1; }
   const L = $("#lyr");
-  L.querySelectorAll("p").forEach((p, k) => { p.classList.toggle("on", k === i); p.classList.toggle("past", k < i); });
-  const p = L.querySelector('p[data-i="' + Math.max(0, i) + '"]');
-  if (p && performance.now() > LYR.handsOn) L.scrollTo({top: p.offsetTop - L.clientHeight * .36, behavior: jump || calm.matches ? "auto" : "smooth"});
+  if (i !== LYR.idx || jump) {
+    const ps = L.querySelectorAll("p[data-i]");
+    ps.forEach((p, k) => { p.classList.toggle("on", k === i); p.classList.toggle("past", k < i); });
+    LYR.idx = i; LYR.spans = i >= 0 && ps[i] ? [...ps[i].querySelectorAll("span")] : []; LYR.st = [];
+    const p = ps[Math.max(0, i)];
+    if (p && performance.now() > LYR.handsOn) L.scrollTo({top: p.offsetTop - L.clientHeight * .36, behavior: jump || calm.matches ? "auto" : "smooth"});
+  }
+  if (i < 0 || !lines[i].ws) return;
+  lines[i].ws.forEach((w, k) => {
+    const sp = LYR.spans[k]; if (!sp) return;
+    const st = t >= w.e ? 2 : t >= w.s ? 1 : 0;
+    if (st !== LYR.st[k]) { sp.className = st === 2 ? "done" : st === 1 ? "cur" : ""; LYR.st[k] = st; }
+    if (st === 1) sp.style.setProperty("--k", Math.min(100, Math.round((t - w.s) / Math.max(1, w.e - w.s) * 100)) + "%");
+  });
 }
 ["touchstart", "wheel"].forEach(ev => $("#lyr").addEventListener(ev, () => { LYR.handsOn = performance.now() + 3500; }, {passive: true}));
 $("#lyr").addEventListener("click", e => {
+  if (e.target.closest(".lfix")) { openLyricsFix(); return; }
+  const ob = e.target.closest("#ltime button");
+  if (ob && cur) {
+    const m = lyrOffs(), k = keyOf(cur); m[k] = Math.max(-5000, Math.min(5000, (m[k] || 0) + +ob.dataset.off));
+    if (!m[k]) delete m[k];
+    store("mm_lyroff", m); $("#ltime span").textContent = offText(); LYR.idx = -2; lyricsTick(true); return;
+  }
   const p = e.target.closest("p[data-i]"); if (!p || !LYR.lines) return;
   LYR.handsOn = 0; seekTo(LYR.lines[+p.dataset.i].t); if (!ST.playing && N) N.toggle();
 });
@@ -1263,6 +1556,24 @@ function setLyricsOpen(on) {
   else ringStart();
 }
 $("#nlyr").onclick = () => setLyricsOpen(!LYR.open);
+/* "Search by name": the song and artist to look the lyrics up by (kept for this song) */
+function openLyricsFix() {
+  if (!cur || !N) return;
+  const d = LYR.data || {};
+  $("#lTrack").value = d.track || cur.title || ""; $("#lArtist").value = d.artist || cur.artist || "";
+  $("#lsheet").classList.remove("hidden");
+}
+const closeLfix = () => $("#lsheet").classList.add("hidden");
+function lyricsAs(track, artist) {
+  if (!cur || !N) return;
+  const k = keyOf(cur); closeLfix(); LYR.cache.delete(k); useLyrics({key: k, status: "loading"});
+  N.lyricsAs(k, track, artist);
+}
+$("#lGo").onclick = () => { const t = $("#lTrack").value.trim(); if (!t) { $("#lTrack").focus(); return; } lyricsAs(t, $("#lArtist").value.trim()); };
+$("#lReset").onclick = () => lyricsAs("", "");
+$("#lCancel").onclick = closeLfix;
+$("#lsheet").addEventListener("click", e => { if (e.target.id === "lsheet") closeLfix(); });
+["lTrack", "lArtist"].forEach(id => $("#" + id).addEventListener("keydown", e => { if (e.key === "Enter") $("#lGo").click(); }));
 setLyricsOpen(LYR.open);
 
 /* ---------- add to another playlist (copies the song) ---------- */
@@ -1296,6 +1607,116 @@ $("#tGo").onclick = () => {
 $("#tCancel").onclick = closeAddTo;
 $("#tsheet").addEventListener("click", e => { if (e.target.id === "tsheet") closeAddTo(); });
 
+/* ---------- wrong audio (songs that play a different song than the one shown) ---------- */
+let WRONG = {}, wFor = "";
+function loadWrong() { try { WRONG = (N && N.mismatches && JSON.parse(N.mismatches())) || {}; } catch (e) { WRONG = {}; } }
+function wrongOf(name) { const k = Object.keys(WRONG).find(x => x.toLowerCase() === (name || "").toLowerCase()); return (k && WRONG[k] && WRONG[k].bad) || []; }
+function renderWrong() {
+  const box = $("#wrong"), list = PL ? wrongOf(PL.name) : [];
+  if (!list.length || $("#q").value.trim()) { box.innerHTML = ""; return; }
+  box.innerHTML = '<div class="pendhead"><div><b>' + (list.length === 1 ? "1 song plays" : list.length + " songs play") + ' the wrong audio</b>' +
+    '<span>The name is right, the sound is another song.</span></div><button class="ghost" id="wrongFix">Fix</button></div>';
+}
+$("#wrong").addEventListener("click", e => { if (e.target.id === "wrongFix" && PL) showWrong(PL.name, {folder: PL.name, bad: wrongOf(PL.name), checked: 0, old: true}); });
+function checkAudio(folder, link) {
+  wFor = folder;
+  $("#wTitle").textContent = "Wrong audio - " + folder;
+  $("#wSub").textContent = "Reading the YouTube playlist and checking every song's length - about a minute.";
+  ["#wLink", "#wGo", "#wFix"].forEach(x => $(x).classList.add("hidden")); $("#wList").innerHTML = "";
+  $("#wsheet").classList.remove("hidden");
+  N.checkAudio(folder, link || "");
+}
+function showWrong(folder, r) {
+  wFor = folder; $("#wsheet").classList.remove("hidden");
+  $("#wTitle").textContent = "Wrong audio - " + folder;
+  $("#wLink").classList.toggle("hidden", !r.needLink); $("#wGo").classList.toggle("hidden", !r.needLink);
+  const bad = r.bad || [];
+  $("#wFix").classList.toggle("hidden", !bad.length);
+  $("#wAlt").classList.toggle("hidden", !!r.needLink || !!r.old);
+  if (r.needLink) $("#wSub").textContent = (r.error ? r.error + ". " : "") + "MY MUSIC doesn't know this playlist's YouTube link yet. Paste it once (Share in YouTube, Copy link).";
+  else if (r.error) $("#wSub").textContent = r.error;
+  else if (!bad.length) $("#wSub").textContent = "All good - " + nSongs(r.checked) + " checked, each one plays the song it shows." +
+    (r.songs > r.checked ? " (" + (r.songs - r.checked).toLocaleString() + " could not be checked: not in the YouTube playlist.)" : "");
+  else $("#wSub").textContent = (bad.length === 1 ? "1 song plays" : bad.length + " songs play") + " a different song than the one shown" +
+    (r.checked ? " (out of " + r.checked.toLocaleString() + " checked)" : "") + ". Fix downloads each song again with its own audio and moves the wrong files to .mismatched in your music folder - a file whose real song is unknown stays, under Hidden songs. Nothing is deleted.";
+  $("#wList").innerHTML = bad.map(b => '<div class="wrow"><b>' + esc(b.shown) + '</b><span>' +
+    esc(b.real ? "actually plays: " + b.real : "actually plays a different song (" + mmss(b.actual) + " long, should be " + mmss(b.expected) + ")") + '</span></div>').join("");
+}
+window.onAudioCheck = r => { loadWrong(); if (PL) renderWrong(); if (r && r.folder === wFor) showWrong(r.folder, r); };
+window.onAudioFixed = msg => { loadWrong(); if (PL) renderWrong(); toast(msg); };
+$("#wAlt").onclick = () => { ["#wLink", "#wGo"].forEach(x => $(x).classList.remove("hidden")); $("#wAlt").classList.add("hidden"); $("#wLink").focus(); };
+$("#wGo").onclick = () => { const l = $("#wLink").value.trim(); if (!l) { $("#wLink").focus(); return; } checkAudio(wFor, l); };
+$("#wFix").onclick = () => { $("#wsheet").classList.add("hidden"); toast("Fixing..."); N.fixAudio(wFor); };
+$("#wClose").onclick = () => $("#wsheet").classList.add("hidden");
+$("#wsheet").addEventListener("click", e => { if (e.target.id === "wsheet") $("#wsheet").classList.add("hidden"); });
+
+/* ---------- backup and new phone ---------- */
+let KIT = null;
+const when = ms => {
+  const d = new Date(ms), t = new Date(), y = new Date(Date.now() - 864e5);
+  const day = d.toDateString() === t.toDateString() ? "Today" : d.toDateString() === y.toDateString() ? "Yesterday"
+    : d.toLocaleDateString([], {month: "short", day: "numeric"});
+  return day + ", " + clock(ms);
+};
+/* what the big button does: restore first on a new phone (or with another phone's backup there), otherwise back up */
+let kitMain = "backup";
+function renderKit(k) {
+  KIT = k || KIT; if (!KIT) return;
+  const sub = $("#kSub"), fresh = !KIT.tree && !KIT.last && !KIT.restored;
+  kitMain = KIT.hold === "foreign" ? "found" : fresh ? "pick" : "backup";
+  if (KIT.running) sub.innerHTML = "<b>Backing up...</b>";
+  else if (KIT.hold === "foreign") sub.innerHTML = "<b>There's a backup from another phone here</b>, made " + esc(when(KIT.found)) +
+    (KIT.foundSongs ? " with " + nSongs(KIT.foundSongs) : "") + ". Restore it first - MY MUSIC won't replace it until you do.";
+  else if (KIT.hold === "fewer") sub.innerHTML = "<b>The backup has " + nSongs(KIT.foundSongs) + "</b> - far more than this phone has now, so MY MUSIC isn't replacing it. Get songs back first.";
+  else if (fresh) sub.innerHTML = "New phone? Restore your backup first. Backups live in your music folder / MY MUSIC backup, so they travel with your songs.";
+  else if (!KIT.tree) sub.innerHTML = "Backups go in your music folder / MY MUSIC backup. Allow the folder once and they keep themselves up to date.";
+  else if (KIT.last) sub.innerHTML = "<b>Last backup: " + esc(when(KIT.last)) + "</b> - " + nSongs(KIT.songs) + " in " + KIT.playlists +
+    (KIT.playlists === 1 ? " playlist" : " playlists") + ", play counts and settings. It updates by itself when you close MY MUSIC.";
+  else sub.innerHTML = "No backup yet. Tap Back up now - after that it updates by itself when you close MY MUSIC.";
+  $("#kNow").textContent = kitMain === "found" ? "Restore it" : kitMain === "pick" ? "Restore from a backup" : KIT.tree ? "Back up now" : "Allow folder and back up";
+  $("#kAllow").classList.toggle("hidden", kitMain !== "pick");
+  $("#kAnyway").classList.toggle("hidden", !KIT.hold || !KIT.tree);
+  $("#kRestore").classList.toggle("hidden", !KIT.found || kitMain === "found");
+  $("#kRestoreSub").textContent = KIT.found ? "The backup in your music folder / MY MUSIC backup, from " + when(KIT.found) + "." : "";
+  const b = KIT.back;
+  $("#kBack").classList.toggle("hidden", !b || !b.songs);
+  if (b && b.songs) $("#kBackSub").textContent = nSongs(b.songs) + " in " + b.playlists + (b.playlists === 1 ? " playlist aren't" : " playlists aren't") +
+    " on this phone - downloads them again from YouTube" + (b.noId ? " (" + b.noId + " not from YouTube can't be)" : "") + ".";
+}
+function openKit() {
+  if (!N) return;
+  try { renderKit(JSON.parse(N.backupInfo())); } catch (e) {}
+  $("#ksheet").classList.remove("hidden");
+}
+const closeKit = () => $("#ksheet").classList.add("hidden");
+$("#kBtn").onclick = openKit;
+$("#kCancel").onclick = closeKit;
+$("#ksheet").addEventListener("click", e => { if (e.target.id === "ksheet") closeKit(); });
+const backupNow = replace => { if (KIT) { KIT.running = true; renderKit(); } N.backupNow(!!replace); };
+$("#kNow").onclick = () => {
+  if (kitMain === "found") { closeKit(); N.restoreBackup(true); }
+  else if (kitMain === "pick") { closeKit(); N.restoreBackup(false); }
+  else backupNow(false);
+};
+$("#kAllow").onclick = () => backupNow(false);
+$("#kAnyway").onclick = () => backupNow(true);
+$("#kRestore").onclick = () => { closeKit(); N.restoreBackup(true); };
+$("#kPick").onclick = () => { closeKit(); N.restoreBackup(false); };
+$("#kBack").onclick = () => { closeKit(); const r = N.getSongsBack(); if (r) toast(r); };
+window.onBackup = (msg, info) => { if (info) { info.running = false; renderKit(info); } else if (KIT) { KIT.running = false; renderKit(); } toast(msg); };
+window.onRestored = async (res, info) => {
+  if (info) renderKit(info);
+  if (!res || !res.ok) { toast((res && res.msg) || "Could not restore"); return; }
+  const pg = res.page || {};
+  PREFS.forEach(k => { if (k in pg) { try { localStorage.setItem(k, JSON.stringify(pg[k])); } catch (e) {} } });
+  pushPrefs();
+  sortBy = load("mm_sort") || sortBy; if (!SORTS[sortBy]) sortBy = "artist"; sortRev = load("mm_rev") === true;
+  LYR.cache.clear();
+  try { await getLib(); PL = null; route(); } catch (e) {}
+  toast(res.msg);
+  if (info && info.back && info.back.songs) setTimeout(openKit, 3400);
+};
+
 (async () => {
   syncPlay();
   if (!N) { $("#pls").innerHTML = '<li class="empty">Open MY MUSIC from its app icon.</li>'; return; }
@@ -1305,6 +1726,7 @@ $("#tsheet").addEventListener("click", e => { if (e.target.id === "tsheet") clos
   ask();
   try { const s = N.takeShared(); if (s) onShared(s); } catch (e) {}
   askProgress();
+  pushPrefs();
 })();
 </script>
 </body>

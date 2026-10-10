@@ -149,7 +149,8 @@ final class Importer {
         try {
             String rootId = DocumentsContract.getTreeDocumentId(tree);
             for (String[] ch : children(c.getContentResolver(), tree, rootId)) {
-                if (ch[1] != null && !ch[1].startsWith(".") && DocumentsContract.Document.MIME_TYPE_DIR.equals(ch[2]))
+                if (ch[1] != null && !ch[1].startsWith(".") && !ch[1].equalsIgnoreCase(Backup.DIR)
+                        && DocumentsContract.Document.MIME_TYPE_DIR.equals(ch[2]))
                     out.add(new String[]{ch[0], ch[1]});
             }
         } catch (Exception ignored) {
@@ -287,7 +288,7 @@ final class Importer {
     }
 
     /** let Android (and so the library) see new files, waiting up to a minute */
-    private static void scan(Context c, List<String> paths) {
+    static void scan(Context c, List<String> paths) {
         if (paths.isEmpty()) return;
         final CountDownLatch done = new CountDownLatch(paths.size());
         MediaScannerConnection.scanFile(c.getApplicationContext(), paths.toArray(new String[0]), null,

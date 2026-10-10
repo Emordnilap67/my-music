@@ -12,18 +12,16 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 
 /**
- * How often and when each song was played (for "Most played" and "Recently
- * played"). A song counts once it has played 30 seconds (half of it, for
- * songs under a minute), like Spotify. Kept in plays.json as
- * { "playlist/file.mp3": [times played, when last played (ms)] }.
+ * "Search by name" in Lyrics: the song name and artist to look the
+ * lyrics up by, kept per song. lyrics_fix.json: {"playlist/file": ["Song", "Artist"]}
  */
-final class Plays {
+final class LyricsFix {
     private static JSONObject all;
 
-    private Plays() {}
+    private LyricsFix() {}
 
-    private static File file(Context c) {
-        return new File(c.getApplicationContext().getFilesDir(), "plays.json");
+    static File file(Context c) {
+        return new File(c.getApplicationContext().getFilesDir(), "lyrics_fix.json");
     }
 
     private static JSONObject all(Context c) {
@@ -35,7 +33,7 @@ final class Plays {
                     InputStream in = new FileInputStream(f);
                     ByteArrayOutputStream b = new ByteArrayOutputStream();
                     try {
-                        byte[] buf = new byte[65536];
+                        byte[] buf = new byte[16384];
                         int n;
                         while ((n = in.read(buf)) > 0) b.write(buf, 0, n);
                     } finally {
@@ -50,16 +48,19 @@ final class Plays {
         return all;
     }
 
-    /** one more play of this song, now */
-    static synchronized void count(Context c, String key) {
-        if (key == null || key.isEmpty()) return;
+    /** {song, artist} to search by, or null */
+    static synchronized String[] get(Context c, String key) {
+        JSONArray a = all(c).optJSONArray(key);
+        if (a == null || a.length() < 2) return null;
+        return new String[]{a.optString(0), a.optString(1)};
+    }
+
+    /** blank song and artist: back to the song's own name */
+    static synchronized void put(Context c, String key, String track, String artist) {
         try {
-            JSONArray a = all(c).optJSONArray(key);
-            long n = a == null ? 0 : a.optLong(0, 0);
-            JSONArray v = new JSONArray();
-            v.put(n + 1);
-            v.put(System.currentTimeMillis());
-            all(c).put(key, v);
+            String t = track == null ? "" : track.trim(), a = artist == null ? "" : artist.trim();
+            if (t.isEmpty() && a.isEmpty()) all(c).remove(key);
+            else all(c).put(key, new JSONArray().put(t).put(a));
             File f = file(c), tmp = new File(f.getPath() + ".tmp");
             FileOutputStream o = new FileOutputStream(tmp);
             try {
@@ -72,13 +73,8 @@ final class Plays {
         }
     }
 
-    /** everything, for the page */
     /** read again from the file (after a restore) */
     static synchronized void reload() {
         all = null;
-    }
-
-    static synchronized String json(Context c) {
-        return all(c).toString();
     }
 }

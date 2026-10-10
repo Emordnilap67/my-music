@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the play / pause button: rounded square, neon edge with a glow -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape android:shape="rectangle"><corners android:radius="20dp" />
+        <gradient android:angle="0" android:startColor="#66E040FB" android:endColor="#663B9BFF" /></shape></item>
+    <item android:left="3dp" android:top="3dp" android:right="3dp" android:bottom="3dp"><shape android:shape="rectangle"><corners android:radius="17dp" />
+        <gradient android:angle="0" android:startColor="#FFE040FB" android:centerColor="#FF8B5CF6" android:endColor="#FF3B9BFF" /></shape></item>
+    <item android:left="5dp" android:top="5dp" android:right="5dp" android:bottom="5dp"><shape android:shape="rectangle"><corners android:radius="15dp" />
+        <solid android:color="#FF0C0817" /></shape></item>
+</layer-list>

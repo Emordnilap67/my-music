@@ -58,12 +58,23 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     private boolean granted;
     private Library.Song pendingDelete;
     private String pendingCover;
-    static final int REQ_DELETE = 7, REQ_COVER = 8, REQ_TREE = 9, REQ_SONGS = 10, REQ_MIC = 11;
+    static final int REQ_DELETE = 7, REQ_COVER = 8, REQ_TREE = 9, REQ_SONGS = 10, REQ_MIC = 11, REQ_RESTORE = 12;
     static final String MIC = "android.permission.RECORD_AUDIO";      // Android's name for "see your own sound"
     private String addKey;                  // "Add to playlist" waiting for the music folder
     private List<String> addFolders;
     private static volatile MainActivity current;
     private String sharedLink, importFolder, dlLink, dlFolder;
+    /** what to do once the music folder is allowed ("backup" / "getback") */
+    private String afterTree;
+    private boolean anyway;
+    /** one of our own pickers is open: the app is not really closed, no backup now */
+    private boolean picking;
+
+    @Override
+    public void startActivityForResult(Intent i, int code) {
+        picking = true;
+        super.startActivityForResult(i, code);
+    }
 
     /** downloads moved on: the page redraws its progress card */
     static void progress() {
@@ -196,6 +207,12 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        if (!picking) Backup.auto(this);      // the new-phone backup, refreshed when something changed
+    }
+
+    @Override
     protected void onPause() {
         Viz.release();                        // the ring only runs while it can be seen
         if (web != null) web.onPause();      // the page rests while the app is not on screen
@@ -213,6 +230,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         if (p != null) onState(p.stateJson());
         else startPlayer();
         Retry.check(this);                    // songs that were waiting for YouTube carry on
+        Mismatch.auto(this);                  // wrong-audio songs found and fixed by themselves
     }
 
     /** "Tap to keep downloading" (when Android would not let the retry start by itself) */
@@ -357,6 +375,84 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
     // ---------------------------------------------------------------- hide / delete
 
+    // ---------------------------------------------------------------- the new-phone kit
+
+    private void askTree(String then) {
+        afterTree = then;
+        js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like MY MUSIC inside Music), then Use this folder, then Allow") + ")");
+        try {
+            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(this));
+            startActivityForResult(i, REQ_TREE);
+        } catch (Exception e) {
+            afterTree = null;
+        }
+    }
+
+    private void backupNow() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final String msg = Backup.make(MainActivity.this, true, anyway);
+                anyway = false;
+                final String info = Backup.info(MainActivity.this);
+                h.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        js("window.onBackup&&onBackup(" + Library.q(msg) + "," + info + ")");
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void getBackNow() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int[] n = Backup.getBack(MainActivity.this, true);
+                final String msg = n == null ? "Restore a backup first" : n[0] == 0 ? "Every song in the backup is already here"
+                        : "Getting " + n[0] + (n[0] == 1 ? " song" : " songs") + " back into " + n[1]
+                        + (n[1] == 1 ? " playlist" : " playlists") + " - they show up as they come in"
+                        + (n[2] > 0 ? " (" + n[2] + " not from YouTube can't be fetched)" : "");
+                final String info = Backup.info(MainActivity.this);
+                h.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        js("window.onBackup&&onBackup(" + Library.q(msg) + "," + info + ")");
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void restoreFrom(final Uri u) {
+        js("window.onBusy&&onBusy(" + Library.q("Restoring...") + ")");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String out;
+                try {
+                    java.io.InputStream in = getContentResolver().openInputStream(u);
+                    try {
+                        out = Backup.restore(MainActivity.this, in);
+                    } finally {
+                        if (in != null) in.close();
+                    }
+                } catch (Exception e) {
+                    out = "{\"ok\":false,\"msg\":" + Library.q("Could not open that file") + "}";
+                }
+                PlayerService.run(MainActivity.this, LIBRARY_CHANGED);
+                final String res = out, info = Backup.info(MainActivity.this);
+                h.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        js("window.onRestored&&onRestored(" + res + "," + info + ")");
+                    }
+                });
+            }
+        }).start();
+    }
+
     /** read the library again, tell the player and the page */
     private void reread(final String msg, final boolean load) {
         new Thread(new Runnable() {
@@ -386,6 +482,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             PendingIntent pi = MediaStore.createDeleteRequest(getContentResolver(), Collections.singletonList(u));
             pendingDelete = s;
             // Android shows its own "Allow MY MUSIC to delete this?" box
+            picking = true;
             startIntentSenderForResult(pi.getIntentSender(), REQ_DELETE, null, 0, 0, 0);
         } catch (Exception e) {
             pendingDelete = null;
@@ -435,11 +532,13 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     @Override
     protected void onActivityResult(int req, int result, Intent data) {
         super.onActivityResult(req, result, data);
+        picking = false;
         if (req == REQ_TREE) {
             if (result != RESULT_OK || data == null || data.getData() == null) {
                 importFolder = null;
                 dlLink = null;
                 addKey = null;
+                afterTree = null;
                 return;
             }
             Uri t = data.getData();
@@ -452,12 +551,20 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 importFolder = null;
                 dlLink = null;
                 addKey = null;
+                afterTree = null;
                 js("window.onLibrary&&onLibrary(" + Library.q("Pick (or make) a folder for your music - not the whole phone") + ")");
                 return;
             }
             if (addKey != null) {                      // the folder was allowed for "Add to playlist"
                 addNow(addKey, addFolders);
                 addKey = null;
+                return;
+            }
+            if (afterTree != null) {                   // the folder was allowed for the backup
+                final String what = afterTree;
+                afterTree = null;
+                if ("getback".equals(what)) getBackNow();
+                else backupNow();
                 return;
             }
             if (dlLink != null) {                      // the folder was allowed for a download
@@ -482,6 +589,11 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                     tell("Music folder: " + name + " - " + m);
                 }
             }).start();
+            return;
+        }
+        if (req == REQ_RESTORE) {
+            if (result != RESULT_OK || data == null || data.getData() == null) return;
+            restoreFrom(data.getData());
             return;
         }
         if (req == REQ_SONGS) {
@@ -911,6 +1023,115 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
+        /** "Search by name": look the lyrics up by this song name and artist from now on */
+        @JavascriptInterface
+        public void lyricsAs(final String key, final String track, final String artist) {
+            LyricsFix.put(MainActivity.this, key, track, artist);
+            Lyrics.get(MainActivity.this, key, true, new Lyrics.Done() {
+                @Override
+                public void got(final String json) {
+                    h.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            js("window.onLyrics&&onLyrics(" + json + ")");
+                        }
+                    });
+                }
+            });
+        }
+
+        // ------------------------------------------------ wrong audio
+
+        @JavascriptInterface
+        public String mismatches() {
+            return Mismatch.json(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void checkAudio(final String folder, final String link) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final String r = Mismatch.check(MainActivity.this, folder, link);
+                    h.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            js("window.onAudioCheck&&onAudioCheck(" + r + ")");
+                        }
+                    });
+                }
+            }).start();
+        }
+
+        @JavascriptInterface
+        public void fixAudio(final String folder) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final String msg = Mismatch.fix(MainActivity.this, folder);
+                    PlayerService.run(MainActivity.this, LIBRARY_CHANGED);
+                    h.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            js("window.onAudioFixed&&onAudioFixed(" + Library.q(msg) + ")");
+                            js("window.onSongs&&onSongs()");
+                        }
+                    });
+                }
+            }).start();
+        }
+
+        // ------------------------------------------------ backup / new phone
+
+        @JavascriptInterface
+        public String backupInfo() {
+            return Backup.info(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void savePrefs(final String json) {
+            Backup.pagePrefs(MainActivity.this, json);
+        }
+
+        @JavascriptInterface
+        public void backupNow(final boolean replace) {
+            h.post(new Runnable() {
+                @Override
+                public void run() {
+                    anyway = replace;
+                    if (Importer.tree(MainActivity.this) == null) askTree("backup");
+                    else MainActivity.this.backupNow();
+                }
+            });
+        }
+
+        /** found = the backup in the music folder / MY MUSIC backup; otherwise pick a file */
+        @JavascriptInterface
+        public void restoreBackup(final boolean found) {
+            h.post(new Runnable() {
+                @Override
+                public void run() {
+                    Uri t = Importer.tree(MainActivity.this);
+                    String[] z = found && t != null ? Backup.find(MainActivity.this, t) : null;
+                    if (z != null) {
+                        restoreFrom(Uri.parse(z[0]));
+                        return;
+                    }
+                    try {
+                        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
+                                .putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/zip", "application/x-zip-compressed",
+                                        "application/octet-stream"})
+                                .putExtra(DocumentsContract.EXTRA_INITIAL_URI, DocumentsContract.buildDocumentUri(Importer.AUTH,
+                                        Importer.rootDoc(MainActivity.this).isEmpty() ? "primary:Music"
+                                                : Importer.rootDoc(MainActivity.this) + "/" + Backup.DIR));
+                        startActivityForResult(i, REQ_RESTORE);
+                    } catch (Exception e) {
+                        js("window.onLibrary&&onLibrary(" + Library.q("No file picker found") + ")");
+                    }
+                }
+            });
+        }
+
         /** "Music folder": pick (or make) the folder MY MUSIC reads and fills */
         @JavascriptInterface
         public void chooseFolder() {
@@ -934,6 +1155,20 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         }
 
         @JavascriptInterface
+        public String getSongsBack() {
+            if (!Ytdl.available(MainActivity.this))
+                return "The downloader is missing from this install - get the APK from the Releases page";
+            h.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (Importer.tree(MainActivity.this) == null) askTree("getback");
+                    else getBackNow();
+                }
+            });
+            return "";
+        }
+
+        @JavascriptInterface
         public void shareSong(final String key) {
             h.post(new Runnable() {
                 @Override
@@ -947,6 +1182,60 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public String plays() {
             return Plays.json(MainActivity.this);
+        }
+
+        // ------------------------------------------------ songs gone from YouTube: find another copy
+
+        @JavascriptInterface
+        public String missing() {
+            Missing.pruneLater(MainActivity.this);
+            return Missing.json(MainActivity.this);
+        }
+
+        /** search YouTube for other uploads; the answer comes back to onCopies(tok, list) */
+        @JavascriptInterface
+        public void searchCopies(final String query, final String tok) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final String res = Copies.search(MainActivity.this, query);
+                    h.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            js("window.onCopies&&onCopies(" + Library.q(tok) + "," + res + ")");
+                        }
+                    });
+                }
+            }).start();
+        }
+
+        /** use this upload instead of the gone one: download it into the playlist */
+        @JavascriptInterface
+        public String useCopy(final String folder, final String oldId, final String newId) {
+            String r = download("https://www.youtube.com/watch?v=" + newId, folder);
+            forget(folder, oldId);
+            return r;
+        }
+
+        /** let a gone song go ("*" = all of this playlist's): not looked for again */
+        @JavascriptInterface
+        public void dropMissing(final String folder, final String oldId) {
+            forget(folder, oldId);
+        }
+
+        private void forget(final String folder, final String oldId) {
+            final List<String> ids = Missing.ids(MainActivity.this, folder, oldId);
+            Missing.remove(MainActivity.this, folder, oldId);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // in the playlist's download history, so sharing the playlist again skips it
+                    Uri t = Importer.tree(MainActivity.this);
+                    if (t == null || ids.isEmpty()) return;
+                    String fid = Importer.folderId(MainActivity.this, t, folder);
+                    if (fid != null) Importer.appendArchive(MainActivity.this, t, fid, ids);
+                }
+            }).start();
         }
 
         @JavascriptInterface

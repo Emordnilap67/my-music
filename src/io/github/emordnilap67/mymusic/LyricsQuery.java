@@ -13,9 +13,15 @@ import java.util.regex.Pattern;
 final class LyricsQuery {
     final String track, artist;          // tidied: what most lyrics sites call it
     final String simpleTrack, simpleArtist;   // barest form: no brackets, first artist only
+    /** "Tony Z - On Your Own" uploaded by a lyrics channel: both sides, when the artist tag was neither */
+    final String dashLeft, dashRight;
 
     private static final Pattern JUNK = Pattern.compile(
-            "\\s*[(\\[{][^)\\]}]*\\b(official|video|audio|lyrics?|visuali[sz]er|hd|hq|4k|mv|explicit|clean|remaster(ed)?|music|full|color coded|letra|subtitulad[oa]|out now|free download|premiere)\\b[^)\\]}]*[)\\]}]",
+            "\\s*[(\\[{\\u3010\\u300c][^)\\]}\\u3011\\u300d]*\\b(official|video|audio|lyrics?|visuali[sz]er|hd|hq|4k|mv|explicit|clean|remaster(ed)?|music|full|color coded|letra|subtitulad[oa]|out now|free download|premiere|ncs|release|copyright free|no copyright|sped up|slowed|reverb|8d|bass boosted|tiktok|lyric)\\b[^)\\]}\\u3011\\u300d]*[)\\]}\\u3011\\u300d]",
+            Pattern.CASE_INSENSITIVE);
+    /** "| Lyrics", "- Lyrics", "Lyrics" after the song name, without brackets */
+    private static final Pattern BARE_JUNK = Pattern.compile(
+            "\\s+([-|/~\\u2010-\\u2015]\\s*)?(lyrics?|lyric video|lyrics video|official (audio|video|lyric video|music video)|music video|visuali[sz]er|video oficial|letra)\\s*$",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern FEAT_BR = Pattern.compile("\\s*[(\\[]\\s*(feat\\.?|ft\\.?|featuring|with)\\s[^)\\]]*[)\\]]", Pattern.CASE_INSENSITIVE);
     private static final Pattern FEAT = Pattern.compile("\\s+(feat\\.?|ft\\.?|featuring)\\s.*$", Pattern.CASE_INSENSITIVE);
@@ -34,9 +40,12 @@ final class LyricsQuery {
         if (a.equalsIgnoreCase("unknown artist") || a.equals("<unknown>")) a = "";
         t = TAIL.matcher(t).replaceAll("");
         t = JUNK.matcher(t).replaceAll("");
+        t = BARE_JUNK.matcher(t).replaceAll("");
         t = DASH_JUNK.matcher(t).replaceAll("");
         t = FEAT_BR.matcher(t).replaceAll("");
+        t = t.replaceAll("\\s{2,}", " ").trim();
         // "Artist - Song" in the title
+        String l0 = "", r0 = "";
         java.util.regex.Matcher m = DASH.matcher(t);
         if (m.find()) {
             String left = t.substring(0, m.start()).trim(), right = t.substring(m.end()).trim();
@@ -47,8 +56,13 @@ final class LyricsQuery {
                 t = right;
             } else if (same(right, a)) {
                 t = left;
+            } else if (!left.isEmpty() && !right.isEmpty()) {
+                l0 = left;                    // the artist tag is neither side: an uploader's channel, most likely
+                r0 = right;
             }
         }
+        this.dashLeft = l0;
+        this.dashRight = r0;
         t = FEAT.matcher(t).replaceAll("").trim();
         t = t.replaceAll("^[\"'\u201c\u2018]+|[\"'\u201d\u2019]+$", "").trim();
         this.track = t;
@@ -58,6 +72,29 @@ final class LyricsQuery {
         if (d.find()) st = st.substring(0, d.start());      // "Song - Radio Edit" -> "Song"
         this.simpleTrack = st.trim().isEmpty() ? t : st.trim();
         this.simpleArtist = firstArtist(a);
+    }
+
+    /**
+     * what to ask for, best guess first. A lyric channel's upload ("Tony Z -
+     * On Your Own", artist tag = the channel) is read as artist - song, then
+     * song - artist, then as it stands.
+     */
+    java.util.List<LyricsQuery> candidates() {
+        java.util.List<LyricsQuery> out = new java.util.ArrayList<>();
+        if (!dashLeft.isEmpty()) {
+            out.add(new LyricsQuery(dashRight, dashLeft));
+            out.add(new LyricsQuery(dashLeft, dashRight));
+        }
+        out.add(this);
+        LyricsQuery f = flipped();
+        if (f != null && dashLeft.isEmpty()) out.add(f);
+        return out;
+    }
+
+    /** the whole cleaned name as plain words, for a free-text search */
+    String words() {
+        String w = dashLeft.isEmpty() ? simpleTrack + " " + simpleArtist : dashLeft + " " + dashRight;
+        return BRACKETS.matcher(w).replaceAll(" ").replaceAll("\\s+", " ").trim();
     }
 
     /** "Lucky Luke - Somebody" uploaded by a channel: read it as artist Lucky Luke, song Somebody */
@@ -111,13 +148,18 @@ final class LyricsQuery {
      * name; the artist must match too unless strict is off.
      */
     Hit best(List<Hit> hits, double seconds, boolean strict) {
+        return best(hits, seconds, strict, 6);
+    }
+
+    /** the same, with this much difference in length allowed (a lyric video's intro or outro) */
+    Hit best(List<Hit> hits, double seconds, boolean strict, double slack) {
         Hit best = null;
         double bestScore = -1e9;
         String kt = key(track), ks = key(simpleTrack), ka = key(simpleArtist);
         for (Hit h : hits) {
             if (!h.synced && !h.plain && !h.instrumental) continue;
             double diff = seconds > 0 && h.duration > 0 ? Math.abs(h.duration - seconds) : 0;
-            if (diff > 6) continue;
+            if (diff > slack) continue;
             String ht = key(h.track), ha = key(h.artist);
             boolean nameOk = !ht.isEmpty() && (ht.equals(kt) || ht.equals(ks) || ks.length() >= 3 && ht.startsWith(ks));
             if (!nameOk) continue;

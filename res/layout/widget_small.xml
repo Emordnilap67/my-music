@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MY MUSIC widget, one row high -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_neon_bg"
+    android:padding="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="6dp">
+
+        <ImageView
+            android:id="@+id/w_art"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_launcher_fg"
+            android:contentDescription="Open MY MUSIC" />
+
+        <LinearLayout
+            android:id="@+id/w_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/w_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MY MUSIC"
+                android:textColor="#FFFFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/w_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tap play to start"
+                android:textColor="#FFB4AEC8"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <ProgressBar
+                android:id="@+id/w_prog"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:layout_marginTop="4dp"
+                android:max="1000"
+                android:progress="0"
+                android:progressDrawable="@drawable/widget_progress" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/w_shuf"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_wn_shuf_off"
+            android:contentDescription="Shuffle" />
+
+        <ImageButton
+            android:id="@+id/w_prev"
+            android:layout_width="36dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_wn_prev"
+            android:contentDescription="Previous song" />
+
+        <ImageButton
+            android:id="@+id/w_play"
+            android:layout_width="44dp"
+            android:layout_height="42dp"
+            android:background="@drawable/widget_play_neon"
+            android:src="@drawable/ic_wn_play"
+            android:contentDescription="Play or pause" />
+
+        <ImageButton
+            android:id="@+id/w_next"
+            android:layout_width="36dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_wn_next"
+            android:contentDescription="Next song" />
+
+        <ImageButton
+            android:id="@+id/w_rep"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_wn_rep_off"
+            android:contentDescription="Repeat" />
+    </LinearLayout>
+</FrameLayout>

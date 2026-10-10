@@ -112,8 +112,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private AudioFocusRequest focus;
     private AudioAttributes attrs;
     private SharedPreferences prefs;
-    private Bitmap art, widgetArt;
-    private String widgetArtKey;
+    private Bitmap art;
     private String artKey, note = "";
 
     private final BroadcastReceiver noisy = new BroadcastReceiver() {
@@ -246,6 +245,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     @Override
     public void onDestroy() {
+        MAIN.removeCallbacks(widgetTick);
         save();
         instance = null;
         MAIN.removeCallbacks(saver);
@@ -601,20 +601,31 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     void refreshWidget() {
         Library.Song s = Library.get(this).byKey.get(q.current());
         if (s == null) {
-            PlayerWidget.show(this, "MY MUSIC", "Tap play to start", false, null, q.shuffle, q.repeat);
+            PlayerWidget.show(this, "MY MUSIC", "Tap play to start", false, null, q.shuffle, q.repeat, 0, 0);
             return;
         }
         Bitmap small = null;
-        if (art != null && s.key.equals(artKey)) {
-            if (widgetArt == null || !s.key.equals(widgetArtKey)) {
-                widgetArt = Bitmap.createScaledBitmap(art, 160, 160, true);
-                widgetArtKey = s.key;
-            }
-            small = widgetArt;
-        }
+        if (art != null && s.key.equals(artKey)) small = art;   // the widget rounds it and takes its colours
         PlayerWidget.show(this, s.title, s.artist.isEmpty() ? s.pl : s.artist,
-                isPlaying() || (wantPlay && preparing), small, q.shuffle, q.repeat);
+                isPlaying() || (wantPlay && preparing), small, q.shuffle, q.repeat, position(), duration());
+        MAIN.removeCallbacks(widgetTick);
+        if (isPlaying()) MAIN.postDelayed(widgetTick, 1000);
     }
+
+    /** the widget's progress bar and times move along once a second while playing and the screen is on */
+    private final Runnable widgetTick = new Runnable() {
+        @Override
+        public void run() {
+            if (!isPlaying()) return;
+            try {
+                android.os.PowerManager pm = (android.os.PowerManager) getSystemService(POWER_SERVICE);
+                if ((pm == null || pm.isInteractive()) && PlayerWidget.any(PlayerService.this))
+                    PlayerWidget.progress(PlayerService.this, position(), duration());
+            } catch (Exception ignored) {
+            }
+            MAIN.postDelayed(this, 1000);
+        }
+    };
 
     private Notification placeholder() {
         int small = getResources().getIdentifier("ic_stat", "drawable", getPackageName());

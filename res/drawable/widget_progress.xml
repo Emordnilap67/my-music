@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the song's progress: a dim track, filled pink to blue -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background"><shape android:shape="rectangle"><corners android:radius="3dp" />
+        <gradient android:angle="0" android:startColor="#88E040FB" android:centerColor="#888B5CF6" android:endColor="#883B9BFF" /></shape></item>
+    <item android:id="@android:id/progress"><clip><shape android:shape="rectangle"><corners android:radius="3dp" />
+        <gradient android:angle="0" android:startColor="#FFE040FB" android:centerColor="#FF8B5CF6" android:endColor="#FF3B9BFF" /></shape></clip></item>
+</layer-list>

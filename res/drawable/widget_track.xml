@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the bar before the song's colours are drawn in (10dp view, 3.5dp line) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:top="3.25dp" android:bottom="3.25dp"><shape android:shape="rectangle"><corners android:radius="2dp" />
+        <gradient android:angle="0" android:startColor="#FFE040FB" android:centerColor="#FF8D6EFD" android:endColor="#FF3B9BFF" /></shape></item>
+</layer-list>

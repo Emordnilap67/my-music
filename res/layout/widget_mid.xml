@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MY MUSIC widget, the big card: the neon card. Every part is sized by weights from
+<!-- MY MUSIC widget, the smaller card (about 4 x 2): the neon card. Every part is sized by weights from
      the widget's real size (no sizes from the launcher needed), the edge is nine pieces drawn
      in the song's colours (NeonArt.frame: corners keep their shape at any size), texts size
      themselves. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/w_root" android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/w_plain" android:layout_width="match_parent" android:layout_height="match_parent"
-        android:layout_margin="8dp" android:src="@drawable/widget_neon_bg" android:scaleType="fitXY" android:importantForAccessibility="no" />
+        android:layout_margin="4dp" android:src="@drawable/widget_neon_bg" android:scaleType="fitXY" android:importantForAccessibility="no" />
     <LinearLayout android:id="@+id/w_frame" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="37dp" android:orientation="horizontal">
-            <ImageView android:id="@+id/w_f_tl" android:layout_width="37dp" android:layout_height="37dp" android:scaleType="fitXY" android:importantForAccessibility="no" />
-            <ImageView android:id="@+id/w_f_t" android:layout_width="0dp" android:layout_height="37dp" android:layout_weight="1" android:scaleType="fitXY" android:importantForAccessibility="no" />
-            <ImageView android:id="@+id/w_f_tr" android:layout_width="37dp" android:layout_height="37dp" android:scaleType="fitXY" android:importantForAccessibility="no" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="29dp" android:orientation="horizontal">
+            <ImageView android:id="@+id/w_f_tl" android:layout_width="29dp" android:layout_height="29dp" android:scaleType="fitXY" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/w_f_t" android:layout_width="0dp" android:layout_height="29dp" android:layout_weight="1" android:scaleType="fitXY" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/w_f_tr" android:layout_width="29dp" android:layout_height="29dp" android:scaleType="fitXY" android:importantForAccessibility="no" />
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
-            <ImageView android:id="@+id/w_f_l" android:layout_width="37dp" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/w_f_l" android:layout_width="29dp" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
             <FrameLayout android:id="@+id/w_center" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#F407050D" />
-            <ImageView android:id="@+id/w_f_r" android:layout_width="37dp" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/w_f_r" android:layout_width="29dp" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="37dp" android:orientation="horizontal">
-            <ImageView android:id="@+id/w_f_bl" android:layout_width="37dp" android:layout_height="37dp" android:scaleType="fitXY" android:importantForAccessibility="no" />
-            <ImageView android:id="@+id/w_f_b" android:layout_width="0dp" android:layout_height="37dp" android:layout_weight="1" android:scaleType="fitXY" android:importantForAccessibility="no" />
-            <ImageView android:id="@+id/w_f_br" android:layout_width="37dp" android:layout_height="37dp" android:scaleType="fitXY" android:importantForAccessibility="no" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="29dp" android:orientation="horizontal">
+            <ImageView android:id="@+id/w_f_bl" android:layout_width="29dp" android:layout_height="29dp" android:scaleType="fitXY" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/w_f_b" android:layout_width="0dp" android:layout_height="29dp" android:layout_weight="1" android:scaleType="fitXY" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/w_f_br" android:layout_width="29dp" android:layout_height="29dp" android:scaleType="fitXY" android:importantForAccessibility="no" />
         </LinearLayout>
     </LinearLayout>
     <LinearLayout android:id="@+id/w_inner" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
-        android:paddingStart="28dp" android:paddingTop="27dp" android:paddingEnd="33dp" android:paddingBottom="13dp">
+        android:paddingStart="20dp" android:paddingTop="19dp" android:paddingEnd="22dp" android:paddingBottom="9dp">
         <LinearLayout android:id="@+id/w_main" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="419" android:orientation="horizontal" android:baselineAligned="false">
             <ImageView android:id="@+id/w_art" android:layout_width="wrap_content" android:layout_height="match_parent"
-                android:adjustViewBounds="true" android:maxWidth="230dp" android:scaleType="fitCenter" android:src="@mipmap/ic_launcher_fg" android:contentDescription="Open MY MUSIC" />
+                android:adjustViewBounds="true" android:maxWidth="130dp" android:scaleType="fitCenter" android:src="@mipmap/ic_launcher_fg" android:contentDescription="Open MY MUSIC" />
             <LinearLayout android:id="@+id/w_text" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-                android:layout_marginStart="19dp" android:orientation="vertical">
+                android:layout_marginStart="12dp" android:orientation="vertical">
                 <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="26" />
                 <TextView android:id="@+id/w_title" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="79"
                     android:text="MY MUSIC" android:textColor="#FFFFFFFF" android:textSize="24sp" android:textStyle="bold" android:fontFamily="sans-serif"

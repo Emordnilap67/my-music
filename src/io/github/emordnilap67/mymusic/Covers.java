@@ -11,8 +11,7 @@ import java.io.InputStream;
 
 /**
  * Playlist pictures. In order: one picked in the app (kept in the app's
- * files), then the one built in (assets/covers/NAME.jpg - his own art, or
- * the folder's cover.jpg copied in by build.sh), then the first song's.
+ * files), then the one built in (assets/covers/NAME.jpg), then the first song's.
  */
 final class Covers {
     private Covers() {}

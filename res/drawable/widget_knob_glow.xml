@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the white knob with its soft glow (15dp) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape android:shape="oval">
+        <gradient android:type="radial" android:gradientRadius="7.5dp" android:startColor="#88FFFFFF" android:centerColor="#33FFFFFF" android:endColor="#00FFFFFF" />
+        <size android:width="15dp" android:height="15dp" /></shape></item>
+    <item android:left="3dp" android:top="3dp" android:right="3dp" android:bottom="3dp"><shape android:shape="oval">
+        <solid android:color="#FFFFFFFF" /></shape></item>
+</layer-list>
