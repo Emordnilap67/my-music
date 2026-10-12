@@ -34,7 +34,7 @@ import java.util.zip.ZipOutputStream;
 
 /**
  * The new-phone kit. MY MUSIC keeps a backup of everything
- * that is not a song - play counts, hidden songs, playlist pictures, which
+ * that is not a song - play counts, hidden songs, favourites, playlist pictures, which
  * YouTube playlist goes where, songs gone from YouTube, lyrics fixes, the
  * sort order - plus a list of every song and the YouTube video it came
  * from, in your music folder / MY MUSIC backup. It refreshes by itself when the
@@ -51,7 +51,7 @@ final class Backup {
     static final String APK = "MY MUSIC.apk", README = "How to restore.txt";
     private static final int FORMAT = 1;
     private static final long AUTO_GAP_MS = 10L * 60 * 1000;
-    private static final String[] FILES = {"plays.json", "hidden.txt", "missing.json", "dead.json", "lyrics_fix.json"};
+    private static final String[] FILES = {"plays.json", "hidden.txt", "favorites.txt", "missing.json", "dead.json", "lyrics_fix.json"};
     private static final Object LOCK = new Object();
     private static volatile boolean running;
 
@@ -314,9 +314,10 @@ final class Backup {
                 + "MY MUSIC makes this folder and updates it by itself when you close the\n"
                 + "app. It lives inside your music folder so it travels with your songs.\n"
                 + "\n"
-                + "  backup.zip              play counts, hidden songs, playlist pictures,\n"
-                + "                          which YouTube playlist goes where, songs gone\n"
-                + "                          from YouTube, lyrics fixes, sort order - and\n"
+                + "  backup.zip              play counts, favourites, hidden songs,\n"
+                + "                          playlist pictures, which YouTube playlist goes\n"
+                + "                          where, songs gone from YouTube, lyrics fixes,\n"
+                + "                          sort order - and\n"
                 + "                          a list of every song and its YouTube video\n"
                 + "  backup (previous).zip   the one before it, just in case\n"
                 + "  MY MUSIC.apk            the app itself\n"
@@ -490,6 +491,14 @@ final class Backup {
                 n = mergeLines(new File(dir, "hidden.txt"), e.get("hidden.txt"));
             }
             if (n > 0) said.add(n + (n == 1 ? " hidden song" : " hidden songs"));
+            synchronized (Favs.class) {
+                try {
+                    n = mergeLines(new File(dir, "favorites.txt"), e.get("favorites.txt"));
+                } finally {
+                    Favs.reload();
+                }
+            }
+            if (n > 0) said.add(n + (n == 1 ? " favourite" : " favourites"));
             synchronized (Missing.class) {
                 try {
                     mergeLists(new File(dir, "missing.json"), e.get("missing.json"));

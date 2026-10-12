@@ -1,13 +1,14 @@
-**New in 3.0:**
+**New in 4.0:**
 
-- **Find another copy** for songs removed from YouTube
-- **Backup and new phone:** a backup in your music folder that updates itself, Restore, and Get songs back
-- **Lyrics** light up word by word, with Sooner / Later timing, and are also found in the song file, the video's description and its captions; **Search by name** for a wrong match
-- **Wrong audio check** for songs that play a different song than the name says
-- **New neon widget** in each song's colours, any size
-- Smoother lists and screens; Play and Shuffle use the whole playlist while searching
+- **Lyrics saved in the song:** lyrics MY MUSIC finds are written into the MP3 itself, so they go wherever the file goes and work offline and in other players
+- **Queue:** Play next, Add to queue, and Up next always showing in the player
+- **Favourites:** a heart in the player; the heart filter lists your favourites from every playlist
+- **Wrong audio check** now checks every song and finishes in the background; **Plays the wrong song** fixes one song by hand
+- **Quieter lyrics:** no busy message - it keeps looking by itself; YouTube's automatic captions are used too, and replaced when the library gets real lyrics
+- Long "Artist - Song" names are shortened; the record shrinks to fit long artist lists
+- Backups include your favourites
 
-**Install:** tap the `.apk` below on your phone, then **Install**.
+**Install:** tap the `.apk` below on your phone, then **Install** (or **Update**).
 
 - If Android asks, let your browser or Files app install apps.
 - If Play Protect warns, tap **More details**, then **Install anyway**.

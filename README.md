@@ -71,11 +71,23 @@ which covers almost every phone made since 2017.
   by word as they're sung, and you can tap a line to jump there. **Sooner**
   and **Later** nudge the timing for that song. They come from
   [LRCLIB](https://lrclib.net); if it has nothing, MY MUSIC looks in the song
-  file, the video's description and the video's captions. **Search by name**
-  fixes a wrong match.
+  file, the video's description and the video's captions (YouTube's automatic
+  captions too). **Search by name** fixes a wrong match. If the library is
+  slow, the lyrics panel just keeps looking - no error, no countdown.
+- **Lyrics saved in the song:** lyrics MY MUSIC finds are written into the
+  MP3 itself (its own lyrics tag), in the background and never into the song
+  that's playing. They go wherever the file goes - a new phone, a computer,
+  another music player - and never need the internet again. The lyrics panel
+  says **Saved in the song file** once it's done. The sound, picture and
+  other tags stay exactly as they were, and the file keeps its name and its
+  place in Recently added.
+- **Queue:** long-press a song for **Play next** or **Add to queue**. The
+  player always shows what's **Up next**; tap it to see or change the queue.
+- **Favourites:** tap the heart in the player (or long-press a song). The
+  heart filter in any playlist lists your favourites from every playlist.
 - **Backup and new phone:** tap **Backup** on the home screen. MY MUSIC keeps
   a backup inside your music folder (`MY MUSIC backup`): play counts, hidden
-  songs, playlist pictures, which YouTube playlist goes where, lyrics fixes,
+  songs, favourites, playlist pictures, which YouTube playlist goes where, lyrics fixes,
   your sort order and a list of every song, plus a copy of the app. It
   updates by itself when you close the app. On a new phone, copy the music
   folder over, install, tap **Music folder** and pick it, then
@@ -84,8 +96,11 @@ which covers almost every phone made since 2017.
 - **Wrong audio check:** playlist menu (the three dots) > **Check for wrong
   audio** finds songs that play a different song than the name says (a common
   problem with files saved by title from other downloaders) and downloads the
-  right ones. Playlists shared from YouTube are checked by themselves once a
-  week.
+  right ones. It checks every song, including ones that aren't in the YouTube
+  playlist, shows what it's doing as it goes, and finishes the rest in the
+  background by itself. One song playing the wrong thing: long-press it >
+  **Plays the wrong song**, pick the right video, and it replaces the audio
+  (the wrong file is kept, hidden).
 - **Moving ring:** the bars around the record move with the music, in colours
   taken from each song's picture.
 - **The song playing now glows** in the playlist, with moving bars on its
@@ -99,6 +114,7 @@ which covers almost every phone made since 2017.
   - a neon home-screen widget in each song's own colours, with a progress
     bar, from a one-row strip up to a big card; plus controls in the
     notification and on the lock screen;
+  - long "Artist - Song" names show just the song, with the artist below;
   - share a song's file, or add it to another playlist;
   - hide or delete songs;
   - pick your own picture for a playlist.

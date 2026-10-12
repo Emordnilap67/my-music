@@ -70,8 +70,25 @@ img{display:block}
 .pill.main{background:var(--grad);color:#07050d}
 .pill.alt{border:1px solid var(--line)}
 /* the sort button (opens "Sort by") */
+/* favourites: the heart, and each playlist's Favorites filter */
+:root{--heart:#FF4F9A}
+.favbtn{margin-left:auto;display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);
+  font-size:14px;color:var(--mist);white-space:nowrap;flex:none}
+.favbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2}
+.favbtn[aria-pressed="true"]{color:var(--heart);border-color:color-mix(in srgb,var(--heart) 60%,transparent);background:color-mix(in srgb,var(--heart) 12%,transparent)}
+.favbtn[aria-pressed="true"] svg{fill:currentColor}
+.favbtn + .sortbtn{margin-left:0}
+.song .fv{flex:none;width:16px;height:16px;color:var(--heart)}
+.song .fv svg{width:16px;height:16px;fill:currentColor;display:block}
+.song .tx .frm{font-style:normal;opacity:.75}
+.meta{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:6px}
+.meta .heart{color:var(--mist);transition:transform .15s}
+.meta .heart svg{fill:none;stroke:currentColor;stroke-width:1.8}
+.meta .heart[aria-pressed="true"]{color:var(--heart)}
+.meta .heart[aria-pressed="true"] svg{fill:currentColor;filter:drop-shadow(0 0 8px color-mix(in srgb,var(--heart) 70%,transparent))}
+.meta .heart.pop{transform:scale(1.25)}
 .sortbtn{margin-left:auto;display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);
-  font-size:14px;color:var(--ink);white-space:nowrap;max-width:52%}
+  font-size:14px;color:var(--ink);white-space:nowrap;max-width:52%;min-width:0;overflow:hidden}
 .sortbtn span{overflow:hidden;text-overflow:ellipsis}
 .sortbtn svg{flex:none;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;transition:transform .2s}
 .sortbtn.rev svg{transform:scaleY(-1)}
@@ -243,6 +260,13 @@ body.playing .song.on .th::after{animation-play-state:running}
 .chip:disabled{opacity:.4}
 .mnote{color:var(--mist);font-size:14px;margin:0 0 14px}
 @media (prefers-reduced-motion:reduce){.lyr p{transition:none}.now{transition:none}}
+/* a long name or artist list never runs under the ring - the disc shrinks to the room it has, the names sit on top */
+.meta{position:relative;z-index:2}
+.meta p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta p.more{cursor:pointer}
+.meta p.all{-webkit-line-clamp:8}
+@supports (width:1cqh){.stage{container-type:size}.now .vinyl{--s:min(86vw,50vh,420px,74cqh,74cqw)}}
+.lmsg .lretry{display:inline-block;margin:16px auto 0;border:1px solid var(--line);border-radius:999px;padding:8px 14px;color:var(--ink);font-size:14px}
 
 /* ---------- smoother - instant tap feedback, views and sheets ease in ---------- */
 .song:active,.pl:active{background:rgba(255,255,255,.045)}
@@ -274,6 +298,22 @@ button,a,input,.song,.pl{touch-action:manipulation}
 .wrow b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wrow span{display:block;color:var(--mist);font-size:13px}
 #wrong .pendhead b{color:#FF9DB8}
+/* up next (Play next / Add to queue) */
+.upnext{display:flex;align-items:center;gap:10px;width:100%;margin-top:16px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;
+  background:rgba(255,255,255,.03);text-align:left;color:var(--mist);font-size:14px;min-width:0}
+.upnext b{color:var(--ink);font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.upnext span{flex:none}
+.upnext svg{flex:none;width:18px;height:18px;fill:currentColor}
+.qrow{display:flex;align-items:center;gap:12px;padding:8px 2px;border-top:1px solid var(--line)}
+.qrow .th{flex:none;width:40px;height:40px;border-radius:8px;overflow:hidden;background:var(--raise)}
+.qrow .th img{width:100%;height:100%;object-fit:cover}
+.qrow .tx{flex:1;min-width:0}
+.qrow .tx b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qrow .tx span{display:block;color:var(--mist);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qrow .qx{flex:none;width:34px;height:34px;border-radius:50%;color:var(--mist);font-size:21px;line-height:1}
+.qhead{color:var(--mist);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:14px 2px 6px}
+.qhead:first-child{margin-top:4px}
+.upnext.q b{color:var(--pc1,var(--violet))}
 /* backup */
 .kstat{color:var(--mist);font-size:14px;margin:0 0 12px;line-height:1.45}
 .kstat b{color:var(--ink);font-weight:600}
@@ -320,6 +360,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <div class="tools">
       <button class="pill main" id="playall">Play</button>
       <button class="pill alt" id="shuffleall">Shuffle</button>
+      <button class="favbtn" id="favBtn" aria-pressed="false" aria-label="Show favorites from every playlist"><svg viewBox="0 0 24 24"><path d="M12 20.6l-1.3-1.2C5.8 15 3 12.4 3 9.1 3 6.4 5.1 4.3 7.8 4.3c1.5 0 3 .7 4.2 1.9 1.2-1.2 2.7-1.9 4.2-1.9C18.9 4.3 21 6.4 21 9.1c0 3.3-2.8 5.9-7.7 10.3L12 20.6z"/></svg><span id="favN"></span></button>
       <button class="sortbtn" id="sortBtn" aria-haspopup="dialog" aria-label="Sort songs">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span id="sortLbl">Artist</span>
       </button>
@@ -342,11 +383,24 @@ button,a,input,.song,.pl{touch-action:manipulation}
   <ul id="hsongs" class="songs"></ul>
 </section>
 
+<div id="qsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="qTitle">
+  <div class="sheetcard">
+    <b id="qTitle">Up next</b><span id="qSub"></span>
+    <div id="qList" class="clist"></div>
+    <button id="qClear" class="srow danger">Clear the queue</button>
+    <button id="qClose" class="srow">Close</button>
+  </div>
+</div>
+
 <div id="sheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="shTitle">
   <div class="sheetcard">
     <b id="shTitle"></b><span id="shArtist"></span>
+    <button id="shFav" class="srow">Add to favorites<small>Hearts it in this playlist. Tap the heart button in the playlist to see just your favorites.</small></button>
+    <button id="shNext" class="srow">Play next<small>Plays right after the song that's on now.</small></button>
+    <button id="shQueue" class="srow">Add to queue<small>Plays after the songs already queued, then your playlist carries on.</small></button>
     <button id="shAdd" class="srow">Add to another playlist<small>Copies the song into the playlists you pick.</small></button>
     <button id="shShare" class="srow">Share song<small>Sends the song file - Messages, Drive, Bluetooth, anything.</small></button>
+    <button id="shWrong" class="srow">Plays the wrong song<small>Pick the right one on YouTube - its audio goes in this song's place. The wrong file is kept under Hidden songs.</small></button>
     <button id="shHide" class="srow">Hide from MY MUSIC<small>The file stays on the phone. Bring it back from Hidden songs.</small></button>
     <button id="shDel" class="srow danger">Delete from phone<small>Gone for good. Android asks you to confirm first.</small></button>
     <button id="shCancel" class="srow">Cancel</button>
@@ -504,7 +558,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <div class="vinyl" id="disc"><canvas id="ring" aria-hidden="true"></canvas><div class="label spin"><img id="nart" alt=""></div></div>
     <div class="lyr hidden" id="lyr" aria-label="Lyrics"></div>
   </div>
-  <div class="meta"><h3 id="ntitle"></h3><p id="nartist"></p></div>
+  <div class="meta"><span></span><div><h3 id="ntitle"></h3><p id="nartist"></p></div><button class="ib heart" id="nfav" aria-label="Favorite" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 20.6l-1.3-1.2C5.8 15 3 12.4 3 9.1 3 6.4 5.1 4.3 7.8 4.3c1.5 0 3 .7 4.2 1.9 1.2-1.2 2.7-1.9 4.2-1.9C18.9 4.3 21 6.4 21 9.1c0 3.3-2.8 5.9-7.7 10.3L12 20.6z"/></svg></button></div>
   <div class="wave" id="wave" role="slider" aria-label="Song position" tabindex="0"></div>
   <div class="times"><span id="tcur">0:00</span><span id="tdur">0:00</span></div>
   <div class="ctrl">
@@ -514,6 +568,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button class="ib" id="next" aria-label="Next song"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg></button>
     <button class="ib tog" id="rep" aria-label="Repeat: off" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg><span class="one hidden" id="rep1">1</span></button>
   </div>
+  <button class="upnext hidden" id="upnext" aria-label="Up next"><svg viewBox="0 0 24 24"><path d="M3 6h12v2H3zm0 5h12v2H3zm0 5h8v2H3zm14-1v-4h2v4h4v2h-4v4h-2v-4h-4v-2z"/></svg>Up next:<b id="upTitle"></b><span id="upMore"></span></button>
 </section>
 
 <div id="toast" class="toast hidden" role="status"></div>
@@ -527,6 +582,24 @@ const $ = s => document.querySelector(s);
 const enc = encodeURIComponent;
 const PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 const PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+/* "Artist - Song" by Artist shows as "Song" (the artist is on the line below) */
+const nameKey = x => String(x || "").normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+function shownTitle(t, a) {
+  t = String(t || "").trim();
+  if (!a || !String(a).trim()) return t;
+  const m = t.match(/^(.+?)\s[-\u2010-\u2015]\s(.+)$/); if (!m) return t;
+  const l = m[1].trim(), r = m[2].trim(); if (!l || !r) return t;
+  const names = new Set([nameKey(a), ...String(a).trim().split(/\s*(?:,|&|;|\sx\s|\sand\s|\svs\.?\s|\sfeat\.?\s|\sft\.?\s|\sfeaturing\s)\s*/i).map(nameKey)]);
+  names.delete("");
+  return names.has(nameKey(l)) ? r : names.has(nameKey(r)) ? l : t;
+}
+const TT = new WeakMap();
+const showName = s => { if (!s) return ""; let v = TT.get(s); if (v === undefined) TT.set(s, v = shownTitle(s.title, s.artist)); return v; };
+/* a long list of artists: the first two and how many more (tap to see them all) */
+function artistLine(a) {
+  const all = String(a || "").trim() || "Unknown artist", parts = all.split(/\s*,\s*/).filter(Boolean);
+  return parts.length > 3 ? {short: parts.slice(0, 2).join(", ") + " +" + (parts.length - 2), all} : {short: all, all};
+}
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mmss = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 const hours = s => { const h = Math.round(s / 3600); return h === 1 ? "1 hour" : h + " hours"; };
@@ -539,7 +612,7 @@ const keyOf = s => s.p + "/" + s.file;
 function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} pushPrefs(); }
 function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
 /* the page's own settings, kept in the new-phone backup */
-const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff"];
+const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff", "mm_favonly"];
 function pushPrefs() {
   try { const o = {}; PREFS.forEach(k => { const v = load(k); if (v !== null) o[k] = v; }); window.Native && Native.savePrefs(JSON.stringify(o)); } catch (e) {}
 }
@@ -557,7 +630,49 @@ async function getLib() {
   }));
   sortCache = new Map(); PL = null;
   cur = ST.key ? KEYS.get(ST.key) || null : null;      /* the same song, from the fresh list (player stays open) */
-  loadPending(); mergePending(); loadPlays();
+  loadPending(); mergePending(); loadPlays(); loadFavs();
+}
+/* favourites: hearted songs, per playlist ("playlist/file") */
+const HEART = '<svg viewBox="0 0 24 24"><path d="M12 20.6l-1.3-1.2C5.8 15 3 12.4 3 9.1 3 6.4 5.1 4.3 7.8 4.3c1.5 0 3 .7 4.2 1.9 1.2-1.2 2.7-1.9 4.2-1.9C18.9 4.3 21 6.4 21 9.1c0 3.3-2.8 5.9-7.7 10.3L12 20.6z"/></svg>';
+let FAV = new Set();
+function loadFavs() { try { FAV = new Set((N && JSON.parse(N.favs())) || []); } catch (e) { FAV = new Set(); } }
+const isFav = s => !!s && FAV.has(keyOf(s));
+const favOnly = () => !!(PL && (load("mm_favonly") || {})[PL.name]);
+/*
+ * the heart filter shows the favorites of EVERY playlist, in
+ * the playlist's sort order. A song hearted in two playlists shows once -
+ * the open playlist's copy. Songs from another playlist name it in grey.
+ */
+function favAll() {
+  const key = "\u2665|" + sortBy + "|" + sortRev, here = PL ? PL.name : "";
+  if (!sortCache.has(key)) sortCache.set(key, sorted([].concat(...LIB.playlists.map(p => p.songs))));
+  const all = sortCache.get(key), tag = s => (showName(s) + "\u0001" + (s.artist || "")).toLowerCase(), seen = new Set(), out = [];
+  for (const s of all) if (s.p === here && isFav(s)) seen.add(tag(s));
+  for (const s of all) {
+    if (!isFav(s)) continue;
+    if (s.p !== here) { const t = tag(s); if (seen.has(t)) continue; seen.add(t); }
+    out.push(s);
+  }
+  return out;
+}
+function setFav(s, on) {
+  if (!s || !N) return;
+  const k = keyOf(s);
+  N.fav(k, on); if (on) FAV.add(k); else FAV.delete(k);
+  const li = document.querySelector('.song[data-k="' + CSS.escape(k) + '"]');
+  if (li) { const fv = li.querySelector(".fv"); if (on && !fv) li.querySelector("time").insertAdjacentHTML("beforebegin", '<i class="fv" aria-label="Favorite">' + HEART + '</i>'); else if (!on && fv) fv.remove(); }
+  if (PL) { if (favOnly()) { const y = scrollY; renderList(); scrollTo(0, y); } else showFavBtn(); }     /* any playlist's heart counts here */
+  if (s === cur) showHeart();
+}
+function showHeart() {
+  const b = $("#nfav"), on = isFav(cur);
+  b.setAttribute("aria-pressed", on); b.setAttribute("aria-label", on ? "Remove from favorites" : "Add to favorites");
+}
+function showFavBtn() {
+  if (!PL) return;
+  const n = favAll().length, on = favOnly();
+  $("#favBtn").setAttribute("aria-pressed", on);
+  $("#favN").textContent = n ? n.toLocaleString() : "";
 }
 /* songs on their way into playlists (a shared playlist lists all its songs at once) */
 let PENDING = {};
@@ -635,7 +750,7 @@ $("#hback").onclick = () => goBack("#/");
 function renderHidden() {
   const hs = LIB.hidden || [];
   $("#hcount").textContent = hs.length + (hs.length === 1 ? " song" : " songs");
-  $("#hsongs").innerHTML = hs.length ? hs.map((s, i) => '<li class="song"><div class="tx"><b>' + esc(s.title) + '</b><span>' +
+  $("#hsongs").innerHTML = hs.length ? hs.map((s, i) => '<li class="song"><div class="tx"><b>' + esc(showName(s)) + '</b><span>' +
     esc(s.artist || "Unknown artist") + '</span></div><button class="pill alt" data-i="' + i + '">Show again</button></li>').join("")
     : '<li class="empty">No hidden songs.</li>';
 }
@@ -699,7 +814,7 @@ if (!SORTS[sortBy]) sortBy = "artist";
 function sorted(songs) {
   const c = COLL.compare;
   const a = songs.map(s => ({s, p: playsOf(s)}));
-  const byTitle = (x, y) => c(x.s.title, y.s.title) || c(x.s.artist || "~", y.s.artist || "~");
+  const byTitle = (x, y) => c(showName(x.s), showName(y.s)) || c(x.s.artist || "~", y.s.artist || "~");
   if (sortBy === "title") a.sort(byTitle);
   else if (sortBy === "new") a.sort((x, y) => (y.s.mtime || 0) - (x.s.mtime || 0) || byTitle(x, y));
   else if (sortBy === "plays") a.sort((x, y) => y.p[0] - x.p[0] || y.p[1] - x.p[1] || byTitle(x, y));
@@ -736,23 +851,26 @@ function showSort() {
 }
 let renderTok = 0, listDone = true, LIST_BASE = null;   /* the whole sorted playlist the screen was drawn from */
 const rowHtml = (s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '" data-k="' + esc(keyOf(s)) + '"><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
-  '" onerror="this.remove()"></div><div class="tx"><b>' + esc(s.title) + '</b><span>' + esc(s.artist || "Unknown artist") +
-  '</span></div><time>' + side(s) + '</time></li>';
+  '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' + esc(s.artist || "Unknown artist") +
+  (PL && s.p !== PL.name ? ' <em class="frm">&middot; ' + esc(s.p) + '</em>' : '') +
+  '</span></div>' + (FAV.has(keyOf(s)) ? '<i class="fv" aria-label="Favorite">' + HEART + '</i>' : '') + '<time>' + side(s) + '</time></li>';
 function renderList() {
   if (!PL) return;
   const q = $("#q").value.trim().toLowerCase();
   const key = PL.name + "|" + sortBy + "|" + sortRev;
   if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
-  const words = q.split(/\s+/);
-  LIST_BASE = {pl: PL, list: sortCache.get(key)};
-  shown = q ? sortCache.get(key).filter(s => words.every(w => s.k.includes(w))) : sortCache.get(key);
+  const words = q.split(/\s+/), fo = favOnly();
+  const base = fo ? favAll() : sortCache.get(key);
+  LIST_BASE = {pl: PL, list: base};
+  shown = q ? base.filter(s => words.every(w => s.k.includes(w))) : base;
   $("#lname").textContent = PL.name;
   const w = waiting(pendOf(PL.name));
-  $("#lcount").textContent = q ? shown.length.toLocaleString() + " found" : countLine(PL.songs.length, w);
+  $("#lcount").textContent = q ? shown.length.toLocaleString() + " found" : fo ? (base.length === 1 ? "1 favorite" : base.length.toLocaleString() + " favorites") : countLine(PL.songs.length, w);
+  showFavBtn();
   renderPend(); renderMiss(); renderWrong();
   const ul = $("#songs"), list = shown, tok = ++renderTok, row = rowHtml;
   listDone = true;
-  if (!list.length) { ul.innerHTML = q ? '<li class="empty">Nothing matches that search.</li>' : pendOf(PL.name) ? '' : '<li class="empty">No songs here yet.</li>'; }
+  if (!list.length) { ul.innerHTML = q ? '<li class="empty">Nothing matches that search.</li>' : fo ? '<li class="empty">No favorites yet.<br><br>Tap the heart next to a song\'s name in the player, or long-press a song and pick Add to favorites.</li>' : pendOf(PL.name) ? '' : '<li class="empty">No songs here yet.</li>'; }
   else {
     /* first screen now, the rest in small batches so the tap feels instant */
     ul.innerHTML = list.slice(0, 40).map(row).join("");
@@ -775,7 +893,7 @@ function renderList() {
  * song gone).
  */
 function patchList() {
-  if (!PL || !listDone || $("#q").value.trim()) return false;
+  if (!PL || !listDone || $("#q").value.trim() || favOnly()) return false;
   const key = PL.name + "|" + sortBy + "|" + sortRev;
   if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
   const list = sortCache.get(key), ul = $("#songs");
@@ -862,7 +980,8 @@ $("#cList").addEventListener("click", e => {
   const b = e.target.closest(".copy"); if (!b || !copyFor) return;
   const c = window.__copies[+b.dataset.c];
   $("#csheet").classList.add("hidden");
-  const r = N.useCopy(copyFor.folder, copyFor.x.id, c.id); if (r) toast(r);
+  if (copyFor.replace) { const r = N.replaceSong(copyFor.replace, c.id, c.t || "", c.a || "", String(c.d || 0)); toast(r || "Fixing..."); }
+  else { const r = N.useCopy(copyFor.folder, copyFor.x.id, c.id); if (r) toast(r); }
   copyFor = null;
 });
 const closeCopy = () => { $("#csheet").classList.add("hidden"); copyFor = null; };
@@ -921,7 +1040,7 @@ function fullList() {
   if (LIST_BASE && LIST_BASE.pl === PL) return LIST_BASE.list;        /* exactly the order on screen */
   const key = PL.name + "|" + sortBy + "|" + sortRev;
   if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
-  return sortCache.get(key);
+  return favOnly() ? favAll() : sortCache.get(key);
 }
 $("#songs").addEventListener("click", e => {
   if (lpDone) { lpDone = false; return; }
@@ -940,7 +1059,7 @@ function apply(st) {
   const s = ST.key ? KEYS.get(ST.key) || null : null;
   if (s !== cur) { cur = s; if (s) showSong(s); markOn(); loadPlays(); }
   $("#mini").classList.toggle("hidden", !cur);
-  syncPlay(); tick();
+  syncPlay(); tick(); renderUp();
   if (ST.note) toast(ST.note);
 }
 function ask() { if (N && !dragging) { try { apply(JSON.parse(N.state())); } catch (e) {} } }
@@ -951,7 +1070,7 @@ setInterval(() => { if (!document.hidden && ST.playing) tick(); }, 250);     /* 
 document.addEventListener("visibilitychange", () => { if (!document.hidden) ask(); });
 function markOn() {
   document.querySelectorAll(".song.on").forEach(e => e.classList.remove("on"));
-  if (cur && PL && PL.name === cur.p) { const li = document.querySelector('.song[data-i="' + shown.indexOf(cur) + '"]'); if (li) li.classList.add("on"); }
+  if (cur && PL && shown.indexOf(cur) >= 0) { const li = document.querySelector('.song[data-i="' + shown.indexOf(cur) + '"]'); if (li) li.classList.add("on"); }   /* favorites from another playlist too */
 }
 $("#mplay").onclick = () => N && N.toggle(); $("#nplay").onclick = () => N && N.toggle();
 $("#mnext").onclick = () => N && N.next(); $("#next").onclick = () => N && N.next(); $("#prev").onclick = () => N && N.prev();
@@ -974,9 +1093,14 @@ function waveFor(s) {
   return out;
 }
 function showSong(s) {
-  $("#mtitle").textContent = $("#ntitle").textContent = s.title;
-  $("#martist").textContent = $("#nartist").textContent = s.artist || "Unknown artist";
+  $("#mtitle").textContent = $("#ntitle").textContent = showName(s);
+  const al = artistLine(s.artist), na = $("#nartist");
+  $("#martist").textContent = al.all;
+  na.textContent = al.short; na.dataset.short = al.short; na.dataset.all = al.all;
+  na.classList.toggle("more", al.short !== al.all); na.classList.remove("all");
+  na.title = al.short !== al.all ? "Tap to see every artist" : "";
   $("#npl").textContent = s.p;
+  showHeart();
   for (const [id, big] of [["#mart", false], ["#nart", true]]) { const im = $(id); im.style.visibility = "visible"; im.onerror = () => im.style.visibility = "hidden"; im.src = artUrl(s.p, s.file, big); }
   $("#wave").innerHTML = waveFor(s).map((h, i) => '<i style="height:' + h + '%;--c:' + waveColor(i) + '"></i>').join("");
   trackColors(s);
@@ -1168,7 +1292,8 @@ window.onBusy = m => toast(m);
 let sheetSong = null;
 function openSheet(s) {
   if (!s || !N) return;
-  sheetSong = s; $("#shTitle").textContent = s.title; $("#shArtist").textContent = s.artist || "Unknown artist";
+  sheetSong = s; $("#shTitle").textContent = showName(s); $("#shArtist").textContent = s.artist || "Unknown artist";
+  $("#shFav").firstChild.textContent = isFav(s) ? "Remove from favorites" : "Add to favorites";
   $("#sheet").classList.remove("hidden");
 }
 function closeSheet() { $("#sheet").classList.add("hidden"); sheetSong = null; }
@@ -1178,7 +1303,75 @@ $("#shHide").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.hide(
 $("#shDel").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.deleteSong(keyOf(s)); };
 $("#shAdd").onclick = () => { const s = sheetSong; closeSheet(); if (s) openAddTo(s); };
 $("#shShare").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.shareSong(keyOf(s)); };
+$("#shNext").onclick = () => { const s = sheetSong; closeSheet(); if (s) enqueue(s, true); };
+/* "Plays the wrong song": YouTube's matches for the name shown; the one tapped replaces this song's audio */
+$("#shWrong").onclick = () => {
+  const s = sheetSong; closeSheet(); if (!s || !N) return;
+  copyFor = {replace: keyOf(s), x: {t: s.title, a: s.artist, d: 0}}; copyTok = String(Date.now());
+  $("#cTitle").textContent = "The right " + showName(s);
+  $("#cSub").textContent = "Searching YouTube...";
+  $("#cList").innerHTML = "";
+  $("#csheet").classList.remove("hidden");
+  N.searchCopies((s.artist ? s.artist + " " : "") + s.title, copyTok);
+};
+$("#shFav").onclick = () => { const s = sheetSong; closeSheet(); if (!s) return; const on = !isFav(s); setFav(s, on); toast((on ? "Added to favorites: " : "Removed from favorites: ") + showName(s)); };
+$("#nfav").onclick = () => { if (!cur) return; const b = $("#nfav"), on = !isFav(cur); setFav(cur, on); b.classList.add("pop"); setTimeout(() => b.classList.remove("pop"), 160); };
+$("#favBtn").onclick = () => {
+  if (!PL) return;
+  const m = load("mm_favonly") || {}; if (m[PL.name]) delete m[PL.name]; else m[PL.name] = true;
+  store("mm_favonly", m); $("#q").value = ""; renderList(); scrollTo(0, 0);
+};
+$("#shQueue").onclick = () => { const s = sheetSong; closeSheet(); if (s) enqueue(s, false); };
 $("#nmore").onclick = () => openSheet(cur);
+
+/* ---------- Play next / Add to queue ---------- */
+function enqueue(s, first) {
+  if (!N) return;
+  const idle = !ST.key;
+  N.enqueue(keyOf(s), !!first);
+  toast(idle ? "Playing " + showName(s) : (first ? "Plays next: " : "Added to queue: ") + showName(s));
+  setTimeout(ask, 300);
+}
+/* Up next: the song Next brings - the queue first, then the playlist in its real play order (shuffled or not) */
+const upList = () => (ST.up || []).map(k => KEYS.get(k)).filter(Boolean);
+const nxList = () => (ST.nx || []).map(k => KEYS.get(k)).filter(Boolean);
+let upSig = "";
+function renderUp() {
+  const ups = upList(), nxs = nxList(), b = $("#upnext");
+  b.classList.toggle("hidden", !cur);
+  if (!cur) return;
+  const n = nxs[0];
+  b.classList.toggle("q", !!ups.length);
+  $("#upTitle").textContent = n ? showName(n) + (n.artist ? " - " + n.artist : "") : "nothing - last song";
+  $("#upMore").textContent = ups.length > 1 ? ups.length + " queued" : ups.length ? "queued" : "";
+  if (!$("#qsheet").classList.contains("hidden")) {
+    const sig = (ST.up || []).join("\n") + "|" + (ST.nx || []).join("\n");
+    if (sig !== upSig) renderQueue();
+  }
+}
+function renderQueue() {
+  const ups = upList(), nxs = nxList(), rest = nxs.slice(ups.length);
+  upSig = (ST.up || []).join("\n") + "|" + (ST.nx || []).join("\n");
+  const row = (s, i, x) => '<div class="qrow"' + (x ? ' data-q="' + i + '"' : '') + '><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
+    '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' + esc(s.artist || "Unknown artist") +
+    '</span></div>' + (x ? '<button class="qx" aria-label="Take off the queue">&times;</button>' : '') + '</div>';
+  let h = "";
+  if (ups.length) h += '<div class="qhead">Queued</div>' + ups.map((s, i) => row(s, i, true)).join("");
+  const mixed = rest.some(s => s.p !== (rest[0] && rest[0].p));          /* favorites from several playlists */
+  if (rest.length) h += '<div class="qhead">' + (mixed ? "Next" : "Next from " + esc(rest[0].p)) + (ST.shuffle ? " - shuffled" : "") + '</div>' + rest.map(s => row(s, 0, false)).join("");
+  if (!h) h = '<div class="qhead">Nothing after this song</div>';
+  $("#qList").innerHTML = h;
+  $("#qSub").textContent = ups.length ? "Queued songs play first, top first - then your playlist carries on." : "The songs coming up, in the order they'll play.";
+  $("#qClear").classList.toggle("hidden", !ups.length);
+}
+$("#upnext").onclick = () => { renderQueue(); $("#qsheet").classList.remove("hidden"); };
+$("#qList").addEventListener("click", e => {
+  const x = e.target.closest(".qx"); if (!x || !N) return;
+  N.unqueue(+x.closest(".qrow").dataset.q); setTimeout(ask, 200);
+});
+$("#qClear").onclick = () => { if (N) N.unqueue(-1); toast("Queue cleared"); setTimeout(ask, 200); };
+$("#qClose").onclick = () => $("#qsheet").classList.add("hidden");
+$("#qsheet").addEventListener("click", e => { if (e.target.id === "qsheet") $("#qsheet").classList.add("hidden"); });
 let lpT = null, lpDone = false, lpX = 0, lpY = 0;
 $("#songs").addEventListener("pointerdown", e => {
   const li = e.target.closest(".song"); if (!li || li.dataset.i === undefined) return;
@@ -1407,6 +1600,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) ringS
 /* the ring needs Android's "record audio" permission: asked once, with the reason */
 function nowShown() {
   if (cur && (!LYR.data || LYR.data.key !== keyOf(cur))) wantLyrics(cur);
+  else if (cur && (LYR.data.status === "busy" || LYR.data.status === "offline") && !LYR.retry.t) lyrRetryNow(true);
   else if (LYR.open) showLyrics();
   ringStart();
   if (N && !N.micAllowed() && !load("mm_ring_asked")) setTimeout(() => { if ($("#now").classList.contains("show")) $("#msheet").classList.remove("hidden"); }, 500);
@@ -1435,8 +1629,45 @@ function wantLyrics(s) {
 window.onLyrics = d => {
   if (!d || !d.key) return;
   if (d.status !== "offline" && d.status !== "busy" && d.status !== "loading") LYR.cache.set(d.key, d);
+  lyrRetryPlan(d); lyrUpgradePlan(d);
+  const o = LYR.data;           /* the same answer again (an upgrade that found nothing better): leave the screen alone */
+  if (o && o.key === d.key && o.status === d.status && o.synced === d.synced && o.plain === d.plain && o.src === d.src) return;
   if (cur && keyOf(cur) === d.key) useLyrics(d);
 };
+/*
+ * the lyrics library busy or out
+ * of reach shows "Looking for lyrics..." like any search, and is asked again
+ * quietly (15 s, 30 s, 1 min, then every 2 minutes) while this song plays.
+ */
+const LWAIT = [15, 30, 60, 120];
+LYR.retry = {key: null, n: 0, t: 0, at: 0};
+function lyrRetryPlan(d) {
+  const r = LYR.retry;
+  if (d.status === "loading" || !cur || keyOf(cur) !== d.key) return;          /* a late answer for an earlier song */
+  clearTimeout(r.t); r.t = 0;
+  if (d.status !== "busy" && d.status !== "offline") { if (r.key === d.key) { r.key = null; r.n = 0; } return; }
+  if (r.key !== d.key) { r.key = d.key; r.n = 0; }
+  const wait = LWAIT[Math.min(r.n, LWAIT.length - 1)]; r.n++; r.at = Date.now() + wait * 1000;
+  r.t = setTimeout(() => lyrRetryNow(false), wait * 1000);
+}
+function lyrRetryNow(tapped) {
+  const r = LYR.retry; clearTimeout(r.t); r.t = 0;
+  if (!N || !cur || keyOf(cur) !== r.key) return;
+  if (!tapped && !$("#now").classList.contains("show")) { r.at = 0; return; }      /* asked again when the player opens */
+  N.lyrics(r.key);                       /* quietly: the panel keeps saying "Looking for lyrics..." */
+}
+/* lyrics found while the library was busy (captions, the file...): ask it once more in 2 minutes and swap in its timed lyrics */
+LYR.up = {key: null, t: 0, done: new Set()};
+function lyrUpgradePlan(d) {
+  const u = LYR.up;
+  if (!d.recheck || d.status !== "ok" || u.done.has(d.key) || !cur || keyOf(cur) !== d.key) return;
+  clearTimeout(u.t); u.key = d.key;
+  u.t = setTimeout(() => {
+    u.t = 0;
+    if (!N || !cur || keyOf(cur) !== u.key) return;
+    u.done.add(u.key); LYR.cache.delete(u.key); N.lyrics(u.key);
+  }, 130000);
+}
 const lrcMs = (m, s, f) => (+m * 60 + +s) * 1000 + (f ? +(f + "00").slice(0, 3) : 0);
 /* timed lines; words carry their own times when the lyrics have them (<mm:ss.xx>word, or YouTube's captions) */
 function parseLrc(text) {
@@ -1480,7 +1711,7 @@ function useLyrics(d) {
   if (LYR.lines && !LYR.lines.length) LYR.lines = null;
   const b = $("#nlyr");
   b.classList.toggle("has", d.status === "ok");
-  b.setAttribute("aria-label", d.status === "ok" ? "Lyrics" : d.status === "loading" ? "Lyrics (looking)" : "Lyrics (none found)");
+  b.setAttribute("aria-label", d.status === "ok" ? "Lyrics" : d.status === "loading" || d.status === "busy" || d.status === "offline" ? "Lyrics (looking)" : "Lyrics (none found)");
   if (LYR.open) showLyrics();
 }
 function showLyrics() {
@@ -1489,14 +1720,15 @@ function showLyrics() {
   const fix = '<button class="lfix">Search by name</button>';
   const msg = (a, b, more) => '<div class="lmsg">' + a + (b ? '<small>' + b + '</small>' : '') + (more || '') + '</div>';
   const FROM = {lrclib: "Lyrics from LRCLIB, a free lyrics library.", file: "Lyrics from the song file.",
-    desc: "From the video's description.", cc: "From the video's captions.", auto: "YouTube's automatic captions - some words may be off."};
-  const foot = '<div class="lfoot">' + (FROM[d.src] || "") + (d.synced ? "" : " Not timed.") + '<br><button class="lfix">Wrong? Search by name</button></div>';
+    desc: "From the video's description.", cc: "From the video's captions.", auto: "YouTube's automatic captions - some words may be off.",
+    other: "Lyrics of " + esc(d.fromTrack || "another version") + (d.fromArtist ? " by " + esc(d.fromArtist) : "") +
+      " (LRCLIB) - another version of this song, so some words may differ."};
+  const foot = '<div class="lfoot">' + (FROM[d.src] || "") + (d.synced ? "" : " Not timed.") + (d.inFile ? " Saved in the song file." : "") + '<br><button class="lfix">Wrong? Search by name</button></div>';
   const timing = () => '<div class="ltime" id="ltime">Words light up: <button data-off="250">Sooner</button><button data-off="-250">Later</button><span>' + offText() + '</span></div>';
-  if (d.status === "loading") L.innerHTML = d.src === "cc" ? msg("Reading the video's captions...", "Asking YouTube - a few seconds.") : msg("Looking for lyrics...");
+  if (d.status === "loading") L.innerHTML = d.src === "cc" ? msg("Reading the video's captions...", "Asking YouTube - 25 seconds at most.") : msg("Looking for lyrics...");
   else if (d.status === "instrumental") L.innerHTML = msg("Instrumental", "No words in this one.", fix);
-  else if (d.status === "offline") L.innerHTML = msg("Could not reach the lyrics library", "Check the internet, then close and open Lyrics again.");
-  else if (d.status === "busy") L.innerHTML = msg("The lyrics library is busy right now", "Try again in a minute: close and open Lyrics.");
-  else if (d.status !== "ok") L.innerHTML = msg("No lyrics found for this song", "Looked in LRCLIB, the song file, the video's description and its captions." +
+  else if (d.status === "offline" || d.status === "busy") L.innerHTML = msg("Looking for lyrics...", null, fix);     /* asked again quietly */
+  else if (d.status !== "ok") L.innerHTML = msg("No lyrics found for this song", "Looked in LRCLIB (this version and others), the song file, the video's description and its captions." +
     (d.track ? "<br>Searched for: " + esc(d.track) + (d.artist ? " - " + esc(d.artist) : "") : ""), fix);
   else if (LYR.lines) L.innerHTML = LYR.lines.map((l, i) => '<p data-i="' + i + '"' + (l.text ? '>' + l.ws.map((w, k) => '<span data-w="' + k + '">' + esc(w.w) + '</span>').join(" ")
     : ' class="gap">&#9834; &#9834;') + '</p>').join("") + foot + timing();
@@ -1550,12 +1782,17 @@ function setLyricsOpen(on) {
   $("#stage").classList.toggle("lyrics", on); $("#lyr").classList.toggle("hidden", !on);
   if (on) {
     ringStop();
-    if (cur && (!LYR.data || LYR.data.key !== keyOf(cur) || LYR.data.status === "offline" || LYR.data.status === "busy")) wantLyrics(cur);
+    const waiting = LYR.data && (LYR.data.status === "offline" || LYR.data.status === "busy");
+    if (cur && (!LYR.data || LYR.data.key !== keyOf(cur) || waiting && !LYR.retry.t)) wantLyrics(cur);   /* a quiet retry already planned asks by itself */
     else showLyrics();
   }
   else ringStart();
 }
 $("#nlyr").onclick = () => setLyricsOpen(!LYR.open);
+$("#nartist").addEventListener("click", () => {
+  const p = $("#nartist"); if (!p.classList.contains("more")) return;
+  const all = !p.classList.contains("all"); p.classList.toggle("all", all); p.textContent = all ? p.dataset.all : p.dataset.short;
+});
 /* "Search by name": the song and artist to look the lyrics up by (kept for this song) */
 function openLyricsFix() {
   if (!cur || !N) return;
@@ -1581,7 +1818,7 @@ let addSong = null;
 function openAddTo(s) {
   if (!N) return;
   addSong = s;
-  $("#tSong").textContent = s.title + " - " + (s.artist || "Unknown artist");
+  $("#tSong").textContent = showName(s) + " - " + (s.artist || "Unknown artist");
   $("#tChips").innerHTML = LIB.playlists.map(p => p.name === s.p
       ? '<button class="chip" disabled aria-pressed="false">' + esc(p.name) + ' (here)</button>'
       : '<button class="chip" data-n="' + esc(p.name) + '" aria-pressed="false">' + esc(p.name) + '</button>').join("") +
@@ -1621,7 +1858,7 @@ $("#wrong").addEventListener("click", e => { if (e.target.id === "wrongFix" && P
 function checkAudio(folder, link) {
   wFor = folder;
   $("#wTitle").textContent = "Wrong audio - " + folder;
-  $("#wSub").textContent = "Reading the YouTube playlist and checking every song's length - about a minute.";
+  $("#wSub").textContent = "Starting...";
   ["#wLink", "#wGo", "#wFix"].forEach(x => $(x).classList.add("hidden")); $("#wList").innerHTML = "";
   $("#wsheet").classList.remove("hidden");
   N.checkAudio(folder, link || "");
@@ -1633,16 +1870,26 @@ function showWrong(folder, r) {
   const bad = r.bad || [];
   $("#wFix").classList.toggle("hidden", !bad.length);
   $("#wAlt").classList.toggle("hidden", !!r.needLink || !!r.old);
-  if (r.needLink) $("#wSub").textContent = (r.error ? r.error + ". " : "") + "MY MUSIC doesn't know this playlist's YouTube link yet. Paste it once (Share in YouTube, Copy link).";
+  /* what is left is checked by the background check - nothing to try again */
+  const rest = (r.left ? " " + (r.left === 1 ? "1 more song is" : r.left.toLocaleString() + " more songs are") +
+      " checked in the background, a few at a time, and fixed by itself if wrong." : "") +
+    (r.noId ? " " + (r.noId === 1 ? "1 song has no YouTube link in its file, so it can't be checked."
+      : r.noId.toLocaleString() + " songs have no YouTube link in their files, so they can't be checked.") : "") +
+    (r.gone ? " " + (r.gone === 1 ? "1 song's YouTube video was taken down, so there is no length to check it against - the song itself is fine and still plays."
+      : r.gone.toLocaleString() + " songs' YouTube videos were taken down, so there is no length to check them against - the songs themselves are fine and still play.") : "");
+  if (r.needLink && r.many) $("#wSub").textContent = (bad.length ? (bad.length === 1 ? "1 song plays" : bad.length + " songs play") + " the wrong audio so far. " : "") +
+    r.many.toLocaleString() + " songs are new to MY MUSIC - paste this playlist's YouTube link once (Share in YouTube, Copy link) and it reads them all at once.";
+  else if (r.needLink) $("#wSub").textContent = (r.error ? r.error + ". " : "") + "MY MUSIC doesn't know this playlist's YouTube link yet. Paste it once (Share in YouTube, Copy link).";
   else if (r.error) $("#wSub").textContent = r.error;
-  else if (!bad.length) $("#wSub").textContent = "All good - " + nSongs(r.checked) + " checked, each one plays the song it shows." +
-    (r.songs > r.checked ? " (" + (r.songs - r.checked).toLocaleString() + " could not be checked: not in the YouTube playlist.)" : "");
+  else if (!bad.length) $("#wSub").textContent = "All good - " + nSongs(r.checked) + " checked, each one plays the song it shows." + rest;
   else $("#wSub").textContent = (bad.length === 1 ? "1 song plays" : bad.length + " songs play") + " a different song than the one shown" +
-    (r.checked ? " (out of " + r.checked.toLocaleString() + " checked)" : "") + ". Fix downloads each song again with its own audio and moves the wrong files to .mismatched in your music folder - a file whose real song is unknown stays, under Hidden songs. Nothing is deleted.";
+    (r.checked ? " (out of " + r.checked.toLocaleString() + " checked)" : "") + ". Fix downloads each song again with its own audio and moves the wrong files to .mismatched in your music folder - a file whose real song is unknown stays, under Hidden songs. Nothing is deleted." + rest;
   $("#wList").innerHTML = bad.map(b => '<div class="wrow"><b>' + esc(b.shown) + '</b><span>' +
     esc(b.real ? "actually plays: " + b.real : "actually plays a different song (" + mmss(b.actual) + " long, should be " + mmss(b.expected) + ")") + '</span></div>').join("");
 }
 window.onAudioCheck = r => { loadWrong(); if (PL) renderWrong(); if (r && r.folder === wFor) showWrong(r.folder, r); };
+/* what the check is doing, as it goes */
+window.onAudioProgress = (folder, line) => { if (folder === wFor && !$("#wsheet").classList.contains("hidden") && $("#wList").innerHTML === "") $("#wSub").textContent = line + "..."; };
 window.onAudioFixed = msg => { loadWrong(); if (PL) renderWrong(); toast(msg); };
 $("#wAlt").onclick = () => { ["#wLink", "#wGo"].forEach(x => $(x).classList.remove("hidden")); $("#wAlt").classList.add("hidden"); $("#wLink").focus(); };
 $("#wGo").onclick = () => { const l = $("#wLink").value.trim(); if (!l) { $("#wLink").focus(); return; } checkAudio(wFor, l); };

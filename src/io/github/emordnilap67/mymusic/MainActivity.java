@@ -363,6 +363,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             public void run() {
                 Library.load(MainActivity.this);
                 PlayerService.run(MainActivity.this, LIBRARY_CHANGED);
+                Embed.soon(MainActivity.this);      // lyrics into the song files, in the background
                 h.post(new Runnable() {
                     @Override
                     public void run() {
@@ -857,6 +858,28 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
+        /** "Play next" (first = true) or "Add to queue" */
+        @JavascriptInterface
+        public void enqueue(final String key, final boolean first) {
+            PlayerService.run(MainActivity.this, new PlayerService.Job() {
+                @Override
+                public void run(PlayerService p) {
+                    p.enqueue(key, first);
+                }
+            });
+        }
+
+        /** take a song off Up next (n = its place), or clear it (n = -1) */
+        @JavascriptInterface
+        public void unqueue(final int n) {
+            PlayerService.run(MainActivity.this, new PlayerService.Job() {
+                @Override
+                public void run(PlayerService p) {
+                    p.unqueue(n);
+                }
+            });
+        }
+
         @JavascriptInterface
         public void prev() {
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
@@ -1052,7 +1075,23 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final String r = Mismatch.check(MainActivity.this, folder, link);
+                    // what it is doing shows in the sheet as it goes
+                    final String r = Mismatch.check(MainActivity.this, folder, link, new Mismatch.Progress() {
+                        private long last;
+
+                        @Override
+                        public void say(final String line) {
+                            long t = System.currentTimeMillis();
+                            if (t - last < 400) return;
+                            last = t;
+                            h.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    js("window.onAudioProgress&&onAudioProgress(" + Library.q(folder) + "," + Library.q(line) + ")");
+                                }
+                            });
+                        }
+                    }, Mismatch.SINGLE_HAND);
                     h.post(new Runnable() {
                         @Override
                         public void run() {
@@ -1207,6 +1246,35 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                     });
                 }
             }).start();
+        }
+
+        /** the hearted songs: ["playlist/file", ...] */
+        @JavascriptInterface
+        public String favs() {
+            return Favs.json(MainActivity.this);
+        }
+
+        /** heart a song on or off; returns the new state */
+        @JavascriptInterface
+        public boolean fav(final String key, final boolean on) {
+            return Favs.set(MainActivity.this, key, on);
+        }
+
+        /** "Plays the wrong song": this video's audio goes in the song's place; the wrong file is kept, hidden */
+        @JavascriptInterface
+        public String replaceSong(final String key, final String newId, final String title, final String artist, final String secs) {
+            if (!Ytdl.available(MainActivity.this))
+                return "The downloader is missing from this install - get the APK from the Releases page";
+            final Library.Song s = Library.get(MainActivity.this).byKey.get(key);
+            if (s == null) return "That song is not in the library any more";
+            if (Importer.tree(MainActivity.this) == null) return "Pick your music folder first (Music folder, on the home screen)";
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    tell(Mismatch.replace(MainActivity.this, s, newId, title, artist, secs));
+                }
+            }).start();
+            return "Fixing " + s.title + "...";
         }
 
         /** use this upload instead of the gone one: download it into the playlist */

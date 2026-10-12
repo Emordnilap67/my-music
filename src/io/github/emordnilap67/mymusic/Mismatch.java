@@ -21,12 +21,12 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * "Wrong audio" check. A downloader that saves songs by title only (yt-dlp
- * with -o "%(title)s") goes wrong when two songs in a playlist have the
- * same title ("Free" by Third Party, "Free" by La Cream): it finds
- * "Free.mp3" already there, skips the download and still writes the
- * second song's name, artist, picture and link into the first song's
- * file. The app shows one song and plays the other.
+ * "Wrong audio" check. Songs saved by title only can collide: when two
+ * songs in a playlist have the same title ("Free" by one artist, "Free" by
+ * another), a downloader can find "Free.mp3" already there, skip the
+ * download and still write the second song's name, artist, picture and
+ * link into the first song's file. The app shows one song and plays the
+ * other.
  *
  * The check: every file's tags name a YouTube video; the YouTube playlist
  * says how long that video is; the file's own audio says how long it
@@ -35,6 +35,17 @@ import java.util.regex.Pattern;
  * The fix moves those files out of the playlist (.mismatched in the music folder -
  * nothing is deleted) and downloads both songs again, each into its own
  * correctly named file.
+ *
+ * Every song is checked, not only those in the YouTube playlist:
+ *   - the playlist read is checked against the count the page states and
+ *     read again (up to 3 times, keeping what each read found) when short;
+ *   - every length YouTube gives is kept (Lengths) - asked once, ever;
+ *   - songs whose video is not in the playlist are looked up one by one,
+ *     a few per run (40 by hand, 25 in the background) so YouTube does not
+ *     pause the phone; the rest are done by the background check later;
+ *   - the sheet shows what it is doing as it goes, no "about a minute";
+ *   - YouTube pausing the phone is not an error: what could be checked is
+ *     checked, and the background check carries on later by itself.
  */
 final class Mismatch {
     private static final Pattern ID = Pattern.compile("^[A-Za-z0-9_-]{11}$");
@@ -54,33 +65,148 @@ final class Mismatch {
         return "";
     }
 
-    /** every video in a YouTube playlist: id -> {title, channel, seconds} (yt-dlp, no downloading) */
-    static Map<String, String[]> listing(Context c, String link) throws Exception {
-        if (!Ytdl.available(c)) throw new Exception("The downloader is missing from this install - get the APK from the Releases page");
-        Ytdl.init(c);
-        List<String> a = new ArrayList<>(Arrays.asList("--flat-playlist", "--no-warnings",
-                "--print", "MMID\t%(id)s\t%(title)s\t%(duration)s\t%(channel,uploader|)s",
-                "--extractor-retries", "10", "--retry-sleep", "extractor:exp=2:30",
-                link.trim().replace("music.youtube.com", "www.youtube.com")));
-        Process p = Ytdl.start(c, a);
-        BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
-        Map<String, String[]> out = new LinkedHashMap<>();
-        String line, err = "";
+    /** what the sheet is told while the check runs */
+    interface Progress {
+        void say(String line);
+    }
+
+    private static void say(Progress p, String line) {
+        if (p != null) p.say(line);
+    }
+
+    /** a playlist read: id -> {title, channel, seconds}, the count the page states, the last error */
+    static final class Read {
+        final Map<String, String[]> got = new LinkedHashMap<>();
+        int said = -1;
+        String err = "";
+
+        boolean held() {
+            return got.isEmpty() && DownloadService.held(err);
+        }
+    }
+
+    /** yt-dlp's lines from a playlist read (plain Java, for the tests) */
+    static void parse(BufferedReader r, Read into, Progress p, String what) throws Exception {
+        String line;
+        int n0 = into.got.size();
         while ((line = r.readLine()) != null) {
             if (line.startsWith("MMID\t")) {
                 String[] f = line.split("\t", -1);
-                if (f.length >= 5 && ID.matcher(f[1].trim()).matches())
-                    out.put(f[1].trim(), new String[]{na(f[2]), na(f[4]).replaceAll("\\s*-\\s*Topic$", ""), na(f[3])});
+                if (f.length >= 5 && ID.matcher(f[1].trim()).matches()) {
+                    into.got.put(f[1].trim(), new String[]{na(f[2]), na(f[4]).replaceAll("\\s*-\\s*Topic$", ""), na(f[3])});
+                    int n = into.got.size();
+                    if (n != n0 && n % 100 == 0) say(p, what + " - " + String.format(Locale.US, "%,d", n) + " songs so far");
+                }
+            } else if (line.startsWith("MMCOUNT\t")) {
+                try {
+                    into.said = Integer.parseInt(line.substring(8).trim());
+                } catch (Exception ignored) {
+                    // "NA": the page did not say
+                }
             } else if (line.startsWith("ERROR")) {
-                err = line;
+                into.err = line;
             }
         }
-        p.waitFor();
-        if (out.isEmpty()) {
-            if (DownloadService.held(err)) throw new Exception("YouTube is pausing this phone right now - try again in an hour");
-            throw new Exception(err.isEmpty() ? "Could not read that playlist" : err.replaceFirst("^ERROR:\\s*", ""));
+    }
+
+    /**
+     * every video in a YouTube playlist (yt-dlp, no downloading). a read
+     * short of the count the page states is read again, up to 3 times, and
+     * what every read found is kept - YouTube sometimes sends a short list.
+     */
+    static Read listing(Context c, String link, Progress p) throws Exception {
+        if (!Ytdl.available(c)) throw new Exception("The downloader is missing from this install - get the APK from the Releases page");
+        Ytdl.init(c);
+        Read all = new Read();
+        for (int round = 1; round <= 3; round++) {
+            say(p, round == 1 ? "Reading the YouTube playlist" : "Reading the YouTube playlist again to be sure (" + round + " of 3)");
+            List<String> a = new ArrayList<>(Arrays.asList("--flat-playlist", "--no-warnings",
+                    "--print", "MMID\t%(id)s\t%(title)s\t%(duration)s\t%(channel,uploader|)s",
+                    "--print", "playlist:MMCOUNT\t%(playlist_count)s",
+                    "--extractor-retries", "10", "--retry-sleep", "extractor:exp=2:30",
+                    link.trim().replace("music.youtube.com", "www.youtube.com")));
+            Process pr = Ytdl.start(c, a);
+            Read one = new Read();
+            parse(new BufferedReader(new InputStreamReader(pr.getInputStream(), "UTF-8")), one, p, "Reading the YouTube playlist");
+            pr.waitFor();
+            all.got.putAll(one.got);
+            if (one.said > 0) all.said = one.said;
+            if (!one.err.isEmpty()) all.err = one.err;
+            if (one.held()) break;                                  // YouTube is pausing the phone: no point asking again now
+            if (one.got.isEmpty() && round == 1) break;             // not a playlist it can read at all
+            if (all.said <= 0 || all.got.size() >= all.said) break; // the whole list (or the page did not say)
+            if (round < 3) Thread.sleep(15000);
         }
-        return out;
+        if (!all.got.isEmpty()) Lengths.putAll(c, all.got);
+        return all;
+    }
+
+    /**
+     * the length of each video that is not in the playlist, one by one
+     * (at most max this run). Returns true if YouTube paused the phone.
+     */
+    static boolean lookup(Context c, List<String> ids, int max, Progress p) throws Exception {
+        if (ids.isEmpty() || max <= 0) return false;
+        Ytdl.init(c);
+        List<String> want = ids.size() > max ? ids.subList(0, max) : ids;
+        List<String> a = new ArrayList<>(Arrays.asList("--skip-download", "--no-playlist", "--no-warnings",
+                "--ignore-no-formats-error", "--ignore-errors", "--sleep-requests", "1", "--extractor-retries", "3",
+                "--print", "MMID\t%(id)s\t%(title)s\t%(duration)s\t%(channel,uploader|)s"));
+        for (String id : want) a.add("https://www.youtube.com/watch?v=" + id);
+        Process pr = Ytdl.start(c, a);
+        BufferedReader r = new BufferedReader(new InputStreamReader(pr.getInputStream(), "UTF-8"));
+        Map<String, String[]> got = new LinkedHashMap<>();
+        long now = System.currentTimeMillis();
+        boolean held = false;
+        int done = 0;
+        String line;
+        try {
+            while ((line = r.readLine()) != null) {
+                if (line.startsWith("MMID\t")) {
+                    String[] f = line.split("\t", -1);
+                    if (f.length >= 5 && ID.matcher(f[1].trim()).matches()) {
+                        got.put(f[1].trim(), new String[]{na(f[2]), na(f[4]).replaceAll("\\s*-\\s*Topic$", ""), na(f[3])});
+                        done++;
+                        say(p, "Asking YouTube about songs that are not in the playlist - " + done + " of " + want.size());
+                    }
+                } else if (line.startsWith("ERROR")) {
+                    if (DownloadService.held(line)) {
+                        held = true;
+                        pr.destroy();                               // the rest waits for the background check
+                        break;
+                    }
+                    String id = errId(line);
+                    if (id != null && gone(line)) {
+                        Lengths.gone(c, id, now);
+                        done++;
+                    }
+                }
+            }
+        } finally {
+            try {
+                pr.waitFor();
+            } catch (Exception ignored) {
+            }
+            Lengths.putAll(c, got);
+            Lengths.save(c);
+        }
+        return held;
+    }
+
+    private static final Pattern ERR_ID = Pattern.compile("\\[youtube[^\\]]*\\]\\s*([A-Za-z0-9_-]{11})\\s*:");
+
+    /** the video an ERROR line is about, or null */
+    static String errId(String line) {
+        java.util.regex.Matcher m = ERR_ID.matcher(line);
+        return m.find() ? m.group(1) : null;
+    }
+
+    /** the video itself is gone (not YouTube being busy) */
+    static boolean gone(String line) {
+        if (DownloadService.held(line)) return false;
+        String e = line.toLowerCase(Locale.ROOT);
+        return e.contains("private") || e.contains("unavailable") || e.contains("removed") || e.contains("terminated")
+                || e.contains("does not exist") || e.contains("copyright");
     }
 
     private static String na(String s) {
@@ -150,53 +276,120 @@ final class Mismatch {
         return new File(c.getFilesDir(), "mismatch.json");
     }
 
-    /** check one playlist (slow: reads the YouTube playlist and each file's tags once) */
+    /** songs looked up one by one per run: by hand / in the background */
+    static final int SINGLE_HAND = 40, SINGLE_AUTO = 25;
+    /** with no playlist link and more unknown songs than this, the link is asked for (one read beats hundreds of look-ups) */
+    static final int ASK_LINK_OVER = 60;
+
+    /** check one playlist by hand (shows its progress) */
     static String check(Context c, String folder, String link) {
+        return check(c, folder, link, null, SINGLE_HAND);
+    }
+
+    /**
+     * check one playlist. lengths already known are used as they are;
+     * the YouTube playlist is read only when some of its songs are new to
+     * the app, and songs that are not in it are looked up one by one (at
+     * most single this run). The result says how many are left for later.
+     */
+    static String check(Context c, String folder, String link, Progress p, int single) {
         try {
-            if (link == null || link.trim().isEmpty()) link = linkFor(c, folder);
-            if (link.isEmpty()) return "{\"folder\":" + Library.q(folder) + ",\"needLink\":true}";
-            String listId = DownloadService.listId(link.trim());
-            if (listId == null) return "{\"folder\":" + Library.q(folder) + ",\"needLink\":true,\"error\":\"That is not a YouTube playlist link\"}";
-            Map<String, String[]> listing = listing(c, link);
+            boolean given = link != null && !link.trim().isEmpty();
+            if (!given) link = linkFor(c, folder);
+            String listId = link.isEmpty() ? null : DownloadService.listId(link.trim());
+            if (given && listId == null)
+                return "{\"folder\":" + Library.q(folder) + ",\"needLink\":true,\"error\":\"That is not a YouTube playlist link\"}";
+            say(p, "Reading the songs' own tags");
             List<Song> songs = new ArrayList<>();
             Library lib = Library.get(c);
-            for (Library.Pl p : lib.playlists) {
-                if (!p.name.equalsIgnoreCase(folder)) continue;
-                for (Library.Song s : p.songs)
+            for (Library.Pl pl : lib.playlists) {
+                if (!pl.name.equalsIgnoreCase(folder)) continue;
+                for (Library.Song s : pl.songs)
                     songs.add(new Song(s.key, s.file, Ids.of(c, s.path), s.title, s.artist, s.durMs / 1000.0));
             }
             Ids.save(c, null);
+            long now = System.currentTimeMillis();
+            List<String> need = unknownIds(c, songs, now);
+            boolean held = false, readIt = false;
+            int inList = -1;
+            // 1. the playlist, in one read: when some songs are new to the app, or a link was just given
+            if (listId != null && (given || !need.isEmpty())) {
+                Read rd = listing(c, link, p);
+                readIt = true;
+                if (rd.got.isEmpty()) {
+                    if (rd.held()) held = true;
+                    else if (given) return "{\"folder\":" + Library.q(folder) + ",\"needLink\":true,\"error\":"
+                            + Library.q(rd.err.isEmpty() ? "Could not read that playlist" : rd.err.replaceFirst("^ERROR:\\s*", "")) + "}";
+                } else {
+                    inList = 0;
+                    int withIds = 0;
+                    for (Song s : songs) {
+                        if (s.id.isEmpty()) continue;
+                        withIds++;
+                        if (rd.got.containsKey(s.id)) inList++;
+                    }
+                    // only remember the link when it really is this playlist (a good share of its songs are in it)
+                    if (withIds > 0 && inList * 10 < withIds) {
+                        if (given) return "{\"folder\":" + Library.q(folder) + ",\"needLink\":true,\"error\":"
+                                + Library.q("Only " + inList + " of this playlist's songs are in that YouTube playlist - is it the right link?") + "}";
+                    } else {
+                        c.getSharedPreferences("lists", Context.MODE_PRIVATE).edit().putString(listId, folder).apply();
+                    }
+                }
+                Lengths.save(c);
+                need = unknownIds(c, songs, now);
+            }
+            // 2. no link and many songs new to the app: ask for the link (one read beats hundreds of look-ups)
+            boolean askLink = listId == null && need.size() > ASK_LINK_OVER;
+            // 3. the songs that are not in the playlist, one by one - a few this run, the rest later
+            if (!held && !askLink && !need.isEmpty()) {
+                if (!Ytdl.available(c)) throw new Exception("The downloader is missing from this install - get the APK from the Releases page");
+                held = lookup(c, need, single, p);
+                need = unknownIds(c, songs, now);
+            }
+            say(p, "Checking each song's length");
+            Map<String, String[]> known = Lengths.known(c);
             int[] checked = new int[1];
-            List<String[]> bad = find(songs, listing, checked);
-            int withIds = 0;
-            for (Song s : songs) if (!s.id.isEmpty()) withIds++;
-            // only remember the link when it really is this playlist (a good share of its songs are in it)
-            if (withIds > 0 && checked[0] * 10 < withIds)
-                return "{\"folder\":" + Library.q(folder) + ",\"needLink\":true,\"error\":"
-                        + Library.q("Only " + checked[0] + " of this playlist's songs are in that YouTube playlist - is it the right link?") + "}";
-            c.getSharedPreferences("lists", Context.MODE_PRIVATE).edit().putString(listId, folder).apply();
+            List<String[]> bad = find(songs, known, checked);
+            int noId = 0, gone = 0;
+            for (Song s : songs) {
+                if (s.id.isEmpty()) noId++;
+                else if (!known.containsKey(s.id) && !Lengths.unknown(c, s.id, now)) gone++;
+            }
             JSONArray arr = new JSONArray();
             for (String[] b : bad) {
                 arr.put(new JSONObject().put("key", b[0]).put("file", b[1]).put("shown", b[2]).put("tagId", b[3])
                         .put("realId", b[4]).put("real", b[5]).put("expected", Long.parseLong(b[6])).put("actual", Long.parseLong(b[7])));
             }
             JSONObject all = readAll(c);
-            JSONObject mine = new JSONObject().put("at", System.currentTimeMillis()).put("bad", arr);
+            JSONObject mine = new JSONObject().put("at", now).put("bad", arr).put("left", need.size());
             // what YouTube calls each song, for the fix
             JSONObject names = new JSONObject();
             for (String[] b : bad) {
                 for (String id : new String[]{b[3], b[4]}) {
-                    String[] e = listing.get(id);
+                    String[] e = known.get(id);
                     if (e != null) names.put(id, new JSONArray().put(e[0]).put(e[1]).put(e[2]));
                 }
             }
             mine.put("names", names);
             all.put(folder, mine);
             Backup.write(store(c), all.toString().getBytes("UTF-8"));
-            return new JSONObject().put("folder", folder).put("songs", songs.size()).put("checked", checked[0]).put("bad", arr).toString();
+            JSONObject out = new JSONObject().put("folder", folder).put("songs", songs.size()).put("checked", checked[0])
+                    .put("bad", arr).put("left", need.size()).put("noId", noId).put("gone", gone);
+            if (held) out.put("held", true);
+            if (askLink) out.put("needLink", true).put("many", need.size());
+            if (readIt && inList >= 0) out.put("inList", inList);
+            return out.toString();
         } catch (Exception e) {
             return "{\"folder\":" + Library.q(folder) + ",\"error\":" + Library.q(e.getMessage() == null ? e.toString() : e.getMessage()) + "}";
         }
+    }
+
+    /** the songs' videos the app does not know the length of yet (each once) */
+    private static List<String> unknownIds(Context c, List<Song> songs, long now) {
+        java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+        for (Song s : songs) if (!s.id.isEmpty() && Lengths.unknown(c, s.id, now)) seen.add(s.id);
+        return new ArrayList<>(seen);
     }
 
     private static JSONObject readAll(Context c) {
@@ -326,10 +519,13 @@ final class Mismatch {
     private static final long AUTO_GAP_MS = 6L * 3600 * 1000, RECHECK_MS = 7L * 24 * 3600 * 1000;
 
     /**
-     * nobody has to tap anything. When the app opens, each
-     * playlist with a known YouTube link is checked (at most once a week,
-     * looked at every 6 hours, in the background) and any song playing the
-     * wrong audio is fixed straight away - only those songs are fetched again.
+     * nobody has to tap anything. When the app opens, the
+     * playlists are checked (each at most once a week, looked at every 6
+     * hours, in the background) and any song playing the wrong audio is
+     * fixed straight away - only those songs are fetched again.
+     * every playlist, not only ones with a known link (lengths already
+     * known need no YouTube at all), and a playlist with songs still left
+     * to look up is carried on at the next look instead of waiting a week.
      */
     static void auto(Context c) {
         final Context a = c.getApplicationContext();
@@ -344,23 +540,21 @@ final class Mismatch {
             public void run() {
                 try {
                     java.util.Set<String> folders = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-                    for (Object v : a.getSharedPreferences("lists", Context.MODE_PRIVATE).getAll().values())
-                        if (v instanceof String) folders.add((String) v);
-                    java.util.Set<String> here = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-                    for (Library.Pl pl : Library.get(a).playlists) here.add(pl.name);
+                    for (Library.Pl pl : Library.get(a).playlists) folders.add(pl.name);
                     for (String folder : folders) {
-                        if (!here.contains(folder)) continue;
                         String k = "ok:" + folder.toLowerCase(Locale.ROOT);
                         if (System.currentTimeMillis() - p.getLong(k, 0) < RECHECK_MS) continue;
-                        JSONObject r = new JSONObject(check(a, folder, ""));
-                        if (r.has("error") || r.optBoolean("needLink")) continue;      // YouTube busy / no link: next time
+                        JSONObject r = new JSONObject(check(a, folder, "", null, SINGLE_AUTO));
+                        if (r.has("error")) continue;                         // next time
                         JSONArray bad = r.optJSONArray("bad");
                         if (bad != null && bad.length() > 0) {
                             String msg = fix(a, folder);
                             MainActivity.tell(msg);
-                            Progress.announce(a, msg, null);
+                            io.github.emordnilap67.mymusic.Progress.announce(a, msg, null);   // the class, not Mismatch.Progress
                         }
-                        p.edit().putLong(k, System.currentTimeMillis()).apply();
+                        // all of it known now (or nothing more to learn without a link): rest a week
+                        if (r.optInt("left") == 0 || r.optBoolean("needLink")) p.edit().putLong(k, System.currentTimeMillis()).apply();
+                        if (r.optBoolean("held")) break;                      // YouTube is pausing the phone: the rest next time
                     }
                 } catch (Exception ignored) {
                 } finally {
@@ -370,7 +564,41 @@ final class Mismatch {
         });
     }
 
-    /** the last check's wrong songs, for the page: {"Chill": {at, bad: [...]}} */
+    /**
+     * "Plays the wrong song" (one song, picked by hand): the YouTube video
+     * the listener picks is downloaded into this song's place under the SAME file
+     * name (so its plays, heart and queue spot stay), and the wrong file is
+     * kept, renamed "Wrong audio - ..." and hidden - it may be the only copy
+     * of whatever song it really is.
+     */
+    static String replace(Context c, Library.Song s, String newId, String t, String a, String secs) {
+        try {
+            Uri tree = Importer.tree(c);
+            if (tree == null) return "Pick your music folder first (Music folder, on the home screen)";
+            ContentResolver r = c.getContentResolver();
+            String fid = Importer.folderId(c, tree, s.pl);
+            if (fid == null) return "Could not open " + s.pl;
+            Map<String, String> files = Importer.names(c, tree, fid);
+            String doc = files.get(s.file.toLowerCase(Locale.ROOT));
+            if (doc == null) return "Could not find " + s.file + " in " + s.pl;
+            String keepAs = KEPT + s.file;
+            for (int n = 2; files.containsKey(keepAs.toLowerCase(Locale.ROOT)); n++) keepAs = KEPT + n + " - " + s.file;
+            if (DocumentsContract.renameDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, doc), keepAs) == null)
+                return "Could not move the wrong file - nothing changed";
+            String root = Library.get(c).root + "/" + s.pl + "/";
+            List<String[]> fetch = new ArrayList<>();
+            fetch.add(new String[]{newId, t == null || t.isEmpty() ? s.title : t, a == null ? "" : a, secs == null ? "0" : secs, s.file});
+            Backup.addRestoreItems(c, s.pl, fetch);
+            Importer.scan(c, Arrays.asList(root + s.file, root + keepAs));
+            Library.hideAll(c, java.util.Collections.singletonList(s.pl + "/" + keepAs));
+            DownloadService.start(c, Backup.IDS + s.pl, s.pl);
+            return "Getting the right audio for " + s.title + " - the wrong file is kept under Hidden songs";
+        } catch (Exception e) {
+            return "Could not fix it: " + e.getMessage();
+        }
+    }
+
+    /** the last check's wrong songs, for the page: {"Playlist": {at, bad: [...]}} */
     static String json(Context c) {
         JSONObject all = readAll(c);
         java.util.Iterator<String> it = all.keys();

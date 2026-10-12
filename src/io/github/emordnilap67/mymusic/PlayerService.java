@@ -277,6 +277,26 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         if (k != null) load(k, 0, true);
     }
 
+    /** Play next (first) / Add to queue; with nothing on, it just plays */
+    void enqueue(String key, boolean first) {
+        if (key == null || !Library.get(this).byKey.containsKey(key)) return;
+        if (q.current() == null) {
+            setQueue(java.util.Collections.singletonList(key), 0, false);
+            return;
+        }
+        if (first) q.playNext(key);
+        else q.addToQueue(key);
+        saveQueue();
+        changed();
+    }
+
+    /** take a queued song off (n = its place in Up next), or all of them (n < 0) */
+    void unqueue(int n) {
+        q.unqueue(n);
+        saveQueue();
+        changed();
+    }
+
     void toggle() {
         if (isPlaying() || (wantPlay && preparing)) pause();
         else play();
@@ -366,7 +386,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
         String before = q.current();
         boolean was = isPlaying() || (wantPlay && preparing);
-        q.keepOnly(Library.get(this).byKey.keySet(), before);
+        q.keepOnly(Library.get(this).byKey.keySet(), q.listCurrent());
         saveQueue();
         String now = q.current();
         if (before != null && !before.equals(now)) {
@@ -415,8 +435,10 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         countKey = key;                       // a new time through this song
         counted = false;
         prefs.edit().putString("cur", key).putInt("pos", at).apply();
+        Embed.soon(this);                         // the song before this one is free for its lyrics now
         try {
             // by file handle, not by name: a ":" in a file name would confuse Android
+            Embed.waitIfWriting(s.path);          // lyrics being written into it - a second at most
             FileInputStream in = new FileInputStream(s.path);
             try {
                 mp.setDataSource(in.getFD());
@@ -606,7 +628,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
         Bitmap small = null;
         if (art != null && s.key.equals(artKey)) small = art;   // the widget rounds it and takes its colours
-        PlayerWidget.show(this, s.title, s.artist.isEmpty() ? s.pl : s.artist,
+        PlayerWidget.show(this, LyricsQuery.shownTitle(s.title, s.artist), s.artist.isEmpty() ? s.pl : s.artist,
                 isPlaying() || (wantPlay && preparing), small, q.shuffle, q.repeat, position(), duration());
         MAIN.removeCallbacks(widgetTick);
         if (isPlaying()) MAIN.postDelayed(widgetTick, 1000);
@@ -645,15 +667,27 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                     + ",\"repeat\":" + Library.q(q.repeat)
                     + ",\"qi\":" + q.i
                     + ",\"qn\":" + q.size()
+                    + ",\"up\":" + keys(q.upNext)
+                    + ",\"nx\":" + keys(q.upcoming(12))
+                    + ",\"queued\":" + (q.extra != null)
                     + ",\"note\":" + Library.q(note) + "}";
         } catch (Exception e) {
             return "{}";
         }
     }
 
+    private static String keys(List<String> l) {
+        StringBuilder b = new StringBuilder("[");
+        for (String k : l) {
+            if (b.length() > 1) b.append(',');
+            b.append(Library.q(k));
+        }
+        return b.append(']').toString();
+    }
+
     private MediaMetadata meta(Library.Song s) {
         MediaMetadata.Builder b = new MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, s.title)
+                .putString(MediaMetadata.METADATA_KEY_TITLE, LyricsQuery.shownTitle(s.title, s.artist))
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, s.artist)
                 .putString(MediaMetadata.METADATA_KEY_ALBUM, s.album.isEmpty() ? s.pl : s.album)
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, duration());
@@ -691,7 +725,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         if (small == 0) small = android.R.drawable.ic_media_play;
         Notification.Builder b = new Notification.Builder(this, CH)
                 .setSmallIcon(small)
-                .setContentTitle(s.title)
+                .setContentTitle(LyricsQuery.shownTitle(s.title, s.artist))
                 .setContentText(s.artist.isEmpty() ? s.pl : s.artist)
                 .setContentIntent(openApp())
                 .setDeleteIntent(action(A_STOP, 4))
@@ -739,6 +773,8 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                 .putString("cur", k == null ? "" : k)
                 .putInt("pos", position())
                 .putInt("i", q.i)
+                .putString("lcur", q.listCurrent() == null ? "" : q.listCurrent())
+                .putString("extra", q.extra == null ? "" : q.extra)
                 .putBoolean("shuffle", q.shuffle)
                 .putString("repeat", q.repeat)
                 .apply();
@@ -747,6 +783,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private void saveQueue() {
         writeList("base.txt", q.base);
         writeList("order.txt", q.order);
+        writeList("upnext.txt", q.upNext);
         save();
     }
 
@@ -757,9 +794,13 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         q.order.clear();
         q.base.addAll(readList("base.txt"));
         q.order.addAll(readList("order.txt"));
+        q.upNext.clear();
+        q.upNext.addAll(readList("upnext.txt"));
         String cur = prefs.getString("cur", "");
+        String ex = prefs.getString("extra", "");
+        q.extra = ex.isEmpty() ? null : ex;
         q.i = prefs.getInt("i", -1);
-        q.keepOnly(Library.get(this).byKey.keySet(), cur);
+        q.keepOnly(Library.get(this).byKey.keySet(), prefs.getString("lcur", cur));
         String k = q.current();
         if (k != null) load(k, k.equals(cur) ? prefs.getInt("pos", 0) : 0, false);
         else changed();

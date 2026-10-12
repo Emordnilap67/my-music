@@ -33,9 +33,9 @@ import java.util.regex.Pattern;
 
 /**
  * Downloads inside MY MUSIC: reads the link with yt-dlp, skips what the
- * folder's download history already has, fetches each song (MP3 192k,
- * square picture, tags) into the app's cache, names it "Artist - Song.mp3"
- * and copies it into the music folder.
+ * folder's archive already has, fetches each song (MP3 192k, square
+ * picture, tags) into the app's cache, names it "Artist - Song.mp3" and
+ * copies it into the music folder.
  *
  * a shared YouTube playlist becomes a playlist of its own
  * (named after it), or fills the playlist on the phone that already has
@@ -354,6 +354,7 @@ public class DownloadService extends Service {
         String plTitle = "", lastErr = "", lastLine = "";
         if (stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
         Map<String, String> restoreNames = new LinkedHashMap<>();   // id -> the file name it had
+        Map<String, String> restoreAs = new LinkedHashMap<>();      // the same, as written (it comes back under it)
         Process p = null;
         BufferedReader r = null;
         String line;
@@ -361,6 +362,7 @@ public class DownloadService extends Service {
             for (String[] it : Backup.restoreItems(this, wanted)) {
                 meta.put(it[0], new String[]{it[1], it[2], it[3]});
                 restoreNames.put(it[0], it[4].toLowerCase(Locale.ROOT));
+                restoreAs.put(it[0], it[4]);
             }
             plTitle = wanted;
             if (meta.isEmpty()) return "Nothing to get back for " + wanted;
@@ -405,6 +407,13 @@ public class DownloadService extends Service {
                 }
             }
             return "Could not read that link" + (lastErr.isEmpty() ? "" : ": " + shorten(lastErr));
+        }
+
+        // every video's length, kept - the wrong-audio check then needs no YouTube for these songs
+        try {
+            Lengths.putAll(this, meta);
+            Lengths.save(this);
+        } catch (Exception ignored) {
         }
 
         // where it goes: the playlist picked, the one it went to before, the one that already has
@@ -521,7 +530,10 @@ public class DownloadService extends Service {
                     if (f.length < 3) continue;
                     inARow = 0;
                     File mp3 = new File(f[2]);
-                    String name = finalName(mp3, f[1]);
+                    String as = restore ? restoreAs.get(f[1]) : null;
+                    // a song fetched back keeps the name it had (its plays, heart and queue spot go with the name)
+                    String name = as != null && as.toLowerCase(Locale.ROOT).endsWith(".mp3") && as.length() > 4
+                            && !as.matches(".*[/\\\\:*?\"<>|].*") ? as : finalName(mp3, f[1]);
                     boolean inFolder = false;
                     if (have.containsKey(name.toLowerCase(Locale.ROOT))) {
                         dupes++;
@@ -690,7 +702,7 @@ public class DownloadService extends Service {
         return s.length() > 90 ? s.substring(0, 90) + "..." : s;
     }
 
-    // ---------------------------------------------------------------- "Artist - Song.mp3"
+    // ---------------------------------------------------------------- "Artist - Song.mp3" (like songnames)
 
     private static final Pattern DASH = Pattern.compile("\\s[-\u2010-\u2015]\\s");
     private static final Pattern EXTRA = Pattern.compile(

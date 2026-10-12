@@ -37,9 +37,28 @@ final class Captions {
         }
     }
 
+    /** the song changed while YouTube was being asked - nothing to show */
+    static final class Stopped extends Exception {
+        Stopped() {
+            super("skipped");
+        }
+    }
+
+    /** asked often while yt-dlp runs; true = stop now */
+    interface Cancel {
+        boolean now();
+    }
+
+    /** how long YouTube gets (was 90 seconds - the page sat on "Reading the video's captions...") */
+    static final long LIMIT_MS = 25000;
+
     private Captions() {}
 
     static Result fetch(Context c, String id) throws Exception {
+        return fetch(c, id, null);
+    }
+
+    static Result fetch(Context c, String id, final Cancel cancel) throws Exception {
         if (id == null || id.isEmpty() || !Ytdl.available(c)) return null;
         Ytdl.init(c);
         File dir = new File(c.getCacheDir(), "cc");
@@ -50,12 +69,24 @@ final class Captions {
                 "--extractor-retries", "3", "-o", new File(dir, "cc.%(ext)s").getAbsolutePath(),
                 "https://www.youtube.com/watch?v=" + id));
         final Process p = Ytdl.start(c, a);
-        // a stuck yt-dlp must not hold up every song's lyrics: stop it after 90 seconds
+        // a slow yt-dlp must not hold up the lyrics: stop it after LIMIT_MS, or as soon as the song changes
+        final boolean[] stopped = {false};
         Thread watch = new Thread(new Runnable() {
             @Override
             public void run() {
+                long end = System.currentTimeMillis() + LIMIT_MS;
                 try {
-                    if (!p.waitFor(90, TimeUnit.SECONDS)) p.destroy();
+                    while (!p.waitFor(300, TimeUnit.MILLISECONDS)) {
+                        if (cancel != null && cancel.now()) {
+                            stopped[0] = true;
+                            p.destroy();
+                            return;
+                        }
+                        if (System.currentTimeMillis() > end) {
+                            p.destroy();
+                            return;
+                        }
+                    }
                 } catch (InterruptedException ignored) {
                 }
             }
@@ -71,6 +102,10 @@ final class Captions {
         }
         if (!p.waitFor(5, TimeUnit.SECONDS)) p.destroy();
         watch.interrupt();
+        if (stopped[0]) {
+            Ytdl.delete(dir);
+            throw new Stopped();
+        }
         String said = out.toString();
         Result best = null;
         int bestRank = -1;
