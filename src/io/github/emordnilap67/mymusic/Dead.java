@@ -12,14 +12,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.Iterator;
 
-/**
- * Songs YouTube says are gone. A song that fails as removed /
- * private / blocked in two separate tries is not asked for again for 90
- * days, so a playlist with dead songs stops spending its YouTube requests
- * on them every time it retries (and gets paused less). One failure is
- * not enough: a busy YouTube can make a song look gone for a while.
- * dead.json: {"videoid": [times failed, last failure ms, why]}
- */
 final class Dead {
     static final int TRIES = 2;
     static final long KEEP_MS = 90L * 24 * 3600 * 1000;

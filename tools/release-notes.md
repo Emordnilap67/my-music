@@ -1,12 +1,13 @@
-**New in 4.0:**
+**New in 5.0:**
 
-- **Lyrics saved in the song:** lyrics MY MUSIC finds are written into the MP3 itself, so they go wherever the file goes and work offline and in other players
-- **Queue:** Play next, Add to queue, and Up next always showing in the player
-- **Favourites:** a heart in the player; the heart filter lists your favourites from every playlist
-- **Wrong audio check** now checks every song and finishes in the background; **Plays the wrong song** fixes one song by hand
-- **Quieter lyrics:** no busy message - it keeps looking by itself; YouTube's automatic captions are used too, and replaced when the library gets real lyrics
-- Long "Artist - Song" names are shortened; the record shrinks to fit long artist lists
-- Backups include your favourites
+- **A new player:** a black record inside a visualizer that dances to each song - the bass warps the outer waves on every beat, the voice ripples the inner ones, and the high notes make a cloud of stars drift and twinkle
+- **A galaxy** turns slowly behind it, and the song's colours **glow behind the buttons**, throbbing on the beat
+- **Up to five colours** from each song's picture, fading smoothly from song to song
+- **New songs by themselves:** shared YouTube playlists are checked every 6 hours and new songs come in on their own
+- **Shuffle never repeats** a song until the whole playlist has played, even after a restart
+- **Faster:** the visualizer runs on its own thread; Back, Sort and opening the player are instant
+- **Widget:** tap the progress bar to jump through the song
+- Fixes: the player opening blank after starting a song from the widget; Back needing several presses
 
 **Install:** tap the `.apk` below on your phone, then **Install** (or **Update**).
 

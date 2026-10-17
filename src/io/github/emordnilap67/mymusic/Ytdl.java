@@ -20,12 +20,6 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/**
- * The downloader built into MY MUSIC: Python 3.11 + ffmpeg made for Android
- * phones (from the youtubedl-android project, put in by build.sh as
- * lib/arm64-v8a/lib*.so) and yt-dlp itself (assets/yt-dlp, kept current
- * from yt-dlp's GitHub once a day).
- */
 final class Ytdl {
     private Ytdl() {}
 
@@ -250,6 +244,24 @@ final class Ytdl {
         env.put("TMPDIR", c.getCacheDir().getAbsolutePath());
         env.put("PYTHONIOENCODING", "utf-8");
         pb.redirectErrorStream(true);
-        return pb.start();
+        // the downloader starts at background priority (it keeps it), so the screen comes first
+        int was = 0;
+        boolean low = false;
+        try {
+            was = android.os.Process.getThreadPriority(android.os.Process.myTid());
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            low = true;
+        } catch (Throwable ignored) {
+        }
+        try {
+            return pb.start();
+        } finally {
+            if (low) {
+                try {
+                    android.os.Process.setThreadPriority(was);
+                } catch (Throwable ignored) {
+                }
+            }
+        }
     }
 }

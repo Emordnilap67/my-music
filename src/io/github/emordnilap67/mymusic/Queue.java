@@ -2,14 +2,12 @@ package io.github.emordnilap67.mymusic;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-/**
- * The play order. Plain Java on purpose (no Android parts), so it can be
- * tested anywhere. A song is named by its key: "Playlist/File.mp3".
- */
 final class Queue {
     /** the order the songs were picked in (the list as sorted on screen) */
     final List<String> base = new ArrayList<>();
@@ -29,6 +27,46 @@ final class Queue {
     boolean shuffle;
     String repeat = "off";          // off | all | one
     private final Random rnd = new Random();
+
+    /** songs heard in the current shuffle pass (kept by the player across new shuffles and restarts) */
+    final Set<String> heard = new HashSet<>();
+    /** key -> "same song" tag (tidied name | first artist) and its length, for spotting two copies of one song */
+    private final Map<String, String> tags = new java.util.concurrent.ConcurrentHashMap<>();     // filled in the background
+    private final Map<String, Long> lens = new java.util.concurrent.ConcurrentHashMap<>();
+    boolean knows(String key) {
+        return lens.containsKey(key);
+    }
+    /** songs played since this order began (their copies are skipped) */
+    private final List<String> played = new ArrayList<>();
+    /** goes up each time a shuffle starts over after the whole list (the player saves the new order) */
+    int rounds;
+
+    /** what a song is, for copies: its tidied name + artist, and its length */
+    void info(String key, String tag, long ms) {
+        if (tag != null && !tag.isEmpty()) tags.put(key, tag);
+        lens.put(key, ms);
+    }
+
+    /** two files of one song (same name and artist, length within 3 s) */
+    boolean copies(String a, String b) {
+        if (a == null || b == null || a.equals(b)) return false;
+        String ta = tags.get(a), tb = tags.get(b);
+        if (ta == null || !ta.equals(tb)) return false;
+        Long la = lens.get(a), lb = lens.get(b);
+        return la != null && lb != null && la > 0 && lb > 0 && Math.abs(la - lb) <= 3000;
+    }
+
+    private boolean copyOfAny(String k, List<String> those) {
+        for (String p : those) if (copies(k, p)) return true;
+        return false;
+    }
+
+    /** this song started - it counts as heard in the pass */
+    void markHeard(String key) {
+        if (key == null) return;
+        heard.add(key);
+        if (!played.contains(key)) played.add(key);
+    }
 
     String current() {
         return extra != null ? extra : listCurrent();
@@ -63,6 +101,7 @@ final class Queue {
     void set(List<String> keys, int start, boolean shuf) {
         extra = null;                   // the queue itself stays, like Spotify
         round2 = null;
+        played.clear();
         base.clear();
         base.addAll(keys);
         order.clear();
@@ -83,10 +122,41 @@ final class Queue {
 
     /** base in random order; first (if given) stays at the front */
     private List<String> shuffled(String first) {
-        List<String> a = new ArrayList<>(base);
-        if (first != null) a.remove(first);
-        Collections.shuffle(a, rnd);
-        if (first != null) a.add(0, first);
+        return shuffled(first, false);
+    }
+
+    /**
+     * base in random order, first (if given) at the front, then the
+     * songs not heard yet in this pass, then the ones heard already (and
+     * second copies of songs). newPass = the whole list is starting over:
+     * nothing counts as heard (nothing is changed here - next() clears it).
+     */
+    private List<String> shuffled(String first, boolean newPass) {
+        boolean fresh = newPass;
+        if (!fresh) {                    // everything heard already: this is a new pass too
+            fresh = true;
+            for (String k : base) if (!k.equals(first) && !heard.contains(k)) { fresh = false; break; }
+            if (fresh) heard.removeAll(base);
+        }
+        List<String> now = new ArrayList<>(), later = new ArrayList<>(), heardHere = new ArrayList<>();
+        if (!fresh) for (String k : base) if (heard.contains(k)) heardHere.add(k);
+        for (String k : base) {
+            if (k.equals(first)) continue;
+            if (!fresh && (heard.contains(k) || copyOfAny(k, heardHere))) later.add(k);
+            else now.add(k);
+        }
+        Collections.shuffle(now, rnd);
+        Collections.shuffle(later, rnd);
+        // a second copy of a song already in "now" waits until later
+        List<String> a = new ArrayList<>(), keep = new ArrayList<>();
+        if (first != null && base.contains(first)) { a.add(first); keep.add(first); }
+        List<String> second = new ArrayList<>();
+        for (String k : now) {
+            if (copyOfAny(k, keep)) second.add(k);
+            else { a.add(k); keep.add(k); }
+        }
+        a.addAll(later);
+        a.addAll(second);
         return a;
     }
 
@@ -102,8 +172,10 @@ final class Queue {
         }
         extra = null;
         if (order.isEmpty()) return null;
-        if (i + 1 < order.size()) {
+        while (i + 1 < order.size()) {
             i++;
+            // a second copy of a song already played in this pass is passed over (in shuffle)
+            if (shuffle && copyOfAny(current(), played)) continue;
             return current();
         }
         if (!"off".equals(repeat)) {
@@ -112,6 +184,9 @@ final class Queue {
                 round2 = null;
                 order.clear();
                 order.addAll(a);
+                heard.removeAll(base);       // the whole list played - a new pass
+                played.clear();
+                rounds++;
             }
             i = 0;
             return current();
@@ -120,7 +195,12 @@ final class Queue {
     }
 
     private List<String> nextRound() {
-        if (round2 == null) round2 = shuffled(null);
+        if (round2 == null) {
+            round2 = shuffled(null, true);
+            // the song that ended the round does not open the next one
+            String last = order.isEmpty() ? null : order.get(order.size() - 1);
+            if (round2.size() > 1 && round2.get(0).equals(last)) round2.add(round2.remove(0));
+        }
         return round2;
     }
 
@@ -134,9 +214,13 @@ final class Queue {
         List<String> src = order;
         int j = i + 1;
         boolean wrapped = false;
+        List<String> seen = new ArrayList<>(played);
         while (out.size() < n) {
             if (j >= 0 && j < src.size()) {
-                out.add(src.get(j++));
+                String k = src.get(j++);
+                if (shuffle && !wrapped && copyOfAny(k, seen)) continue;     // next() passes it over too
+                out.add(k);
+                seen.add(k);
                 continue;
             }
             if ("off".equals(repeat) || wrapped || order.isEmpty()) break;
@@ -161,6 +245,8 @@ final class Queue {
     void setShuffle(boolean on) {
         String cur = listCurrent();
         round2 = null;
+        played.clear();
+        if (cur != null) played.add(cur);
         shuffle = on;
         if (order.isEmpty()) return;
         List<String> a = on ? shuffled(cur) : new ArrayList<>(base);
@@ -178,6 +264,8 @@ final class Queue {
         base.retainAll(known);
         order.retainAll(known);
         upNext.retainAll(known);
+        heard.retainAll(known);
+        played.retainAll(known);
         round2 = null;
         if (extra != null && !known.contains(extra)) extra = null;
         i = cur == null ? -1 : order.indexOf(cur);

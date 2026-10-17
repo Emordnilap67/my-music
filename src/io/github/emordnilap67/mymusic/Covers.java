@@ -9,10 +9,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-/**
- * Playlist pictures. In order: one picked in the app (kept in the app's
- * files), then the one built in (assets/covers/NAME.jpg), then the first song's.
- */
 final class Covers {
     private Covers() {}
 
@@ -33,7 +29,6 @@ final class Covers {
         }
     }
 
-    /** the picture he picked: cropped square, 800 px, saved for this playlist */
     static boolean save(Context c, String pl, Uri u) {
         try {
             BitmapFactory.Options o = new BitmapFactory.Options();

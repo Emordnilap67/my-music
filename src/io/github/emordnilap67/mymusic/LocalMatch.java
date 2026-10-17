@@ -5,14 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Local first: is this YouTube song already in the playlist
- * folder? Songs on the phone always win - a song that is in the folder is
- * never called "gone from YouTube" and never downloaded again. Matches by
- * the song's name and artist the way the files and tags have them, so a
- * different upload of the same song counts too. Plain Java so it can be
- * tested.
- */
 final class LocalMatch {
     /** song name key -> the artist keys it has in this folder ("" = no artist) */
     private final Map<String, Set<String>> byTitle = new HashMap<>();

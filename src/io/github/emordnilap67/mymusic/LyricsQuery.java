@@ -5,11 +5,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-/**
- * What to ask the lyrics library for, from a song's own title
- * and artist - which, for YouTube downloads, often carry extras like
- * "(Official Video)" or "Artist - Song". Plain Java so it can be tested.
- */
 final class LyricsQuery {
     final String track, artist;          // tidied: what most lyrics sites call it
     final String simpleTrack, simpleArtist;   // barest form: no brackets, first artist only
@@ -216,8 +211,9 @@ final class LyricsQuery {
     }
 
     /**
-     * the song name to show. "Artist - Song" by Artist shows as "Song";
-     * "Song - Artist" by Artist as "Song". Anything else stays as it is.
+     * the song name to show. "TwinBeats - Jou Eyes Se Alles" by
+     * TwinBeats shows as "Jou Eyes Se Alles"; "Ganjaman - Alfons" by Alfons
+     * as "Ganjaman". Anything else stays as it is.
      */
     static String shownTitle(String title, String artist) {
         String t = title == null ? "" : title.trim();

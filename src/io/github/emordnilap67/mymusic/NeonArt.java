@@ -13,21 +13,12 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Typeface;
 
-/**
- * the neon parts of the widget, drawn in the song's two
- * colours - the glowing edge
- * (nine pieces, so its corners keep their shape at any widget size), the
- * play / pause button in a glowing rounded square, previous / next in dark
- * circles, shuffle and repeat with their dots, the bar, and the rounded
- * picture.
- */
 final class NeonArt {
     /** inside the card: nearly black, a touch see-through */
     static final int FILL = 0xF407050D;
     /** inside the play button */
     static final int PLAY_FILL = 0xFF0A0812;
 
-    // the glow: wide soft halo, tight glow, then the bright tube
     static final float HALO_W = 3.4f, HALO_BLUR = 0.5f, TIGHT_W = 2.2f, TIGHT_BLUR = 1.5f, CORE = 0.2f;
     static final int HALO_A = 0xA6, TIGHT_A = 0xEE;
     /** the play button's body (the rest of its square is room for the glow) and the side buttons */
@@ -192,7 +183,6 @@ final class NeonArt {
         return bm;
     }
 
-    /** two crossing lines with arrows on the right */
     static Path shufflePath(RectF b) {
         float W = b.width(), H = b.height(), x = b.left, y = b.top, a = H * 0.2f;
         Path p = new Path();

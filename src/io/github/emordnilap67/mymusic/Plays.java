@@ -19,6 +19,9 @@ import java.io.InputStream;
  */
 final class Plays {
     private static JSONObject all;
+    /* the page asks for all of this when Sort opens and on every new song;
+       it is turned into text once and kept until a play is counted */
+    private static String text;
 
     private Plays() {}
 
@@ -60,6 +63,7 @@ final class Plays {
             v.put(n + 1);
             v.put(System.currentTimeMillis());
             all(c).put(key, v);
+            text = null;
             File f = file(c), tmp = new File(f.getPath() + ".tmp");
             FileOutputStream o = new FileOutputStream(tmp);
             try {
@@ -76,9 +80,11 @@ final class Plays {
     /** read again from the file (after a restore) */
     static synchronized void reload() {
         all = null;
+        text = null;
     }
 
     static synchronized String json(Context c) {
-        return all(c).toString();
+        if (text == null) text = all(c).toString();
+        return text;
     }
 }

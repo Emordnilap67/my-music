@@ -17,13 +17,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Lyrics from the song's own YouTube video: its captions,
- * fetched with the built-in yt-dlp. They are timed to the very audio in
- * the file, so they follow along exactly. Typed-in captions first; YouTube's
- * automatic ones (words heard by a computer, often a little off) if that is
- * all there is.
- */
 final class Captions {
     static final class Result {
         String lrc;          // "[mm:ss.xx]line" lines

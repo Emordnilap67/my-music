@@ -9,13 +9,6 @@ import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Reads the few MP3 tags MY MUSIC needs that Android does not hand out
- *: the YouTube link yt-dlp writes into the comment (so a
- * song can be fetched again on a new phone, and its captions found), the
- * video's description (lyric channels often paste the words there) and
- * any lyrics already inside the file. Plain Java so it can be tested.
- */
 final class Id3 {
     static final class Tags {
         String id = "";            // the YouTube video id, "" if none

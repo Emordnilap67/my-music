@@ -15,15 +15,6 @@ import android.widget.RemoteViews;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * The MY MUSIC home-screen widget: a neon card - a glowing edge, the big rounded
- * picture, a big title, the whole bar in colour with a white knob, a
- * glowing play / pause button between dark previous / next circles,
- * shuffle and repeat in the corners with a dot when on. The colours come
- * from the song's picture (Neon.palette, the same as the player screen).
- * Everything is laid out by weights from the widget's real size, so it
- * fills the widget the same on any launcher; a one-row widget is a strip.
- */
 public class PlayerWidget extends AppWidgetProvider {
     // what every widget shows now (kept, so a resized widget can be drawn again)
     private static String title = "MY MUSIC", artist = "Tap play to start", repeat = "off";
@@ -45,6 +36,8 @@ public class PlayerWidget extends AppWidgetProvider {
     static final int FULL_W = 300, FULL_H = 160, MID_W = 200, MID_H = 96;
     /** drawn sizes (dp): the picture, the button row, the corner toggles, the bar */
     private static final int ART_DP = 160, BUTTONS_DP = 64, TOGGLE_DP = 22, BAR_W = 384;
+    /** tap zones over the bar (res/layout w_s0 ... w_s23) */
+    static final int SEEK_ZONES = 24;
 
     @Override
     public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
@@ -206,12 +199,16 @@ public class PlayerWidget extends AppWidgetProvider {
             strip(c, v);
         } else {
             card(c, v, z, rich);
+            for (int i = 0; i < SEEK_ZONES; i++) {
+                int zone = id(c, "id", "w_s" + i);
+                if (zone != 0) v.setOnClickPendingIntent(zone, seekButton(c, i));
+            }
         }
         times(c, v, z);
         return v;
     }
 
-    /** the one-row strip */
+    /** the one-row strip (unchanged since ) */
     private static void strip(Context c, RemoteViews v) {
         v.setImageViewResource(id(c, "id", "w_play"), id(c, "drawable", playing ? "ic_wn_pause" : "ic_wn_play"));
         v.setImageViewResource(id(c, "id", "w_shuf"), id(c, "drawable", shuffle ? "ic_wn_shuf_on" : "ic_wn_shuf_off"));
@@ -279,6 +276,19 @@ public class PlayerWidget extends AppWidgetProvider {
     static String clock(long ms) {
         long s = Math.max(0, ms / 1000);
         return (s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60);
+    }
+
+    /** where tap zone i jumps to, in thousandths of the song (zone 0 = the very start) */
+    static int zonePermille(int i) {
+        if (i <= 0) return 0;
+        return (int) Math.round((i + 0.5) * 1000.0 / SEEK_ZONES);
+    }
+
+    private static PendingIntent seekButton(Context c, int i) {
+        Intent in = new Intent(c, PlayerService.class).setAction(PlayerService.A_SEEK)
+                .putExtra("fg", true).putExtra("permille", zonePermille(i));
+        return PendingIntent.getForegroundService(c, 200 + i, in,              // one code per zone, so each keeps its own spot
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     /** widget buttons start the player as a foreground service (allowed for widget taps) */

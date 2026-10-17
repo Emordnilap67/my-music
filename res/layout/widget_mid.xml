@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MY MUSIC widget, the smaller card (about 4 x 2): the neon card. Every part is sized by weights from
-     the widget's real size (no sizes from the launcher needed), the edge is nine pieces drawn
-     in the song's colours (NeonArt.frame: corners keep their shape at any size), texts size
-     themselves. -->
+<!-- MY MUSIC widget v21 (Oct 9) - about 4 x 2. Made by tests/v21/gen_layout.py: the neon card
+     from his picture. Every part is sized by weights from the widget's real size (no sizes
+     from the launcher needed), the edge is nine pieces drawn in the song's colours
+     (NeonArt.frame: corners keep their shape at any size), texts size themselves. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/w_root" android:layout_width="match_parent" android:layout_height="match_parent">
     <ImageView android:id="@+id/w_plain" android:layout_width="match_parent" android:layout_height="match_parent"
         android:layout_margin="4dp" android:src="@drawable/widget_neon_bg" android:scaleType="fitXY" android:importantForAccessibility="no" />
@@ -41,21 +41,54 @@
                     android:maxLines="1" android:ellipsize="end" android:gravity="start|center_vertical"
                     android:autoSizeTextType="uniform" android:autoSizeMinTextSize="11sp" android:autoSizeMaxTextSize="24sp" android:autoSizeStepGranularity="1sp" />
                 <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="20" />
-                <FrameLayout android:id="@+id/w_barbox" android:layout_width="match_parent" android:layout_height="16dp">
-                    <ImageView android:id="@+id/w_track" android:layout_width="match_parent" android:layout_height="10dp" android:layout_gravity="center_vertical"
-                        android:layout_marginStart="7dp" android:layout_marginEnd="7dp" android:scaleType="fitXY" android:src="@drawable/widget_track" android:importantForAccessibility="no" />
-                    <ProgressBar android:id="@+id/w_prog" style="@android:style/Widget.ProgressBar.Horizontal"
-                        android:layout_width="match_parent" android:layout_height="match_parent" android:minHeight="0dp" android:maxHeight="64dp"
-                        android:max="10000" android:progress="1" android:progressDrawable="@drawable/widget_seek" />
-                </FrameLayout>
-                <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="4" />
-                <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="34">
-                    <TextView android:id="@+id/w_pos" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="start|center_vertical"
-                        android:text="0:00" android:textColor="#FFA6A4B6" android:textSize="11sp" android:maxLines="1"
-                        android:autoSizeTextType="uniform" android:autoSizeMinTextSize="9sp" android:autoSizeMaxTextSize="16sp" android:autoSizeStepGranularity="1sp" />
-                    <TextView android:id="@+id/w_dur" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="end|center_vertical"
-                        android:text="0:00" android:textColor="#FFA6A4B6" android:textSize="11sp" android:maxLines="1"
-                        android:autoSizeTextType="uniform" android:autoSizeMinTextSize="9sp" android:autoSizeMaxTextSize="16sp" android:autoSizeStepGranularity="1sp" />
+                <!-- tap anywhere on the bar (or the times under it) to jump there.
+                     16dp + weight 38 = exactly the old bar (16dp) + gap (4) + times (34), so nothing moves.
+                     A widget cannot be dragged, so the bar is 24 invisible tap zones laid over it. -->
+                <FrameLayout android:id="@+id/w_seekbox" android:layout_width="match_parent" android:layout_height="16dp" android:layout_weight="38">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+                    <FrameLayout android:id="@+id/w_barbox" android:layout_width="match_parent" android:layout_height="16dp">
+                        <ImageView android:id="@+id/w_track" android:layout_width="match_parent" android:layout_height="10dp" android:layout_gravity="center_vertical"
+                            android:layout_marginStart="7dp" android:layout_marginEnd="7dp" android:scaleType="fitXY" android:src="@drawable/widget_track" android:importantForAccessibility="no" />
+                        <ProgressBar android:id="@+id/w_prog" style="@android:style/Widget.ProgressBar.Horizontal"
+                            android:layout_width="match_parent" android:layout_height="match_parent" android:minHeight="0dp" android:maxHeight="64dp"
+                            android:max="10000" android:progress="1" android:progressDrawable="@drawable/widget_seek" />
+                    </FrameLayout>
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="4" />
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="34">
+                        <TextView android:id="@+id/w_pos" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="start|center_vertical"
+                            android:text="0:00" android:textColor="#FFA6A4B6" android:textSize="11sp" android:maxLines="1"
+                            android:autoSizeTextType="uniform" android:autoSizeMinTextSize="9sp" android:autoSizeMaxTextSize="16sp" android:autoSizeStepGranularity="1sp" />
+                        <TextView android:id="@+id/w_dur" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="end|center_vertical"
+                            android:text="0:00" android:textColor="#FFA6A4B6" android:textSize="11sp" android:maxLines="1"
+                            android:autoSizeTextType="uniform" android:autoSizeMinTextSize="9sp" android:autoSizeMaxTextSize="16sp" android:autoSizeStepGranularity="1sp" />
+                    </FrameLayout>
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/w_seek" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="horizontal">
+                        <FrameLayout android:id="@+id/w_s0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s4" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s5" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s6" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s7" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s8" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s9" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s11" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s12" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s13" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s14" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s15" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s16" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s17" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s18" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s19" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s20" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s21" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s22" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                        <FrameLayout android:id="@+id/w_s23" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                    </LinearLayout>
                 </FrameLayout>
                 <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="2" />
                 <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="164" android:orientation="horizontal" android:baselineAligned="false">

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- the song's place on the bar - only the white glowing knob (the bar itself is
+<!-- v21: the song's place on the bar - only the white glowing knob (the bar itself is
      w_track behind it). The knob rides at the end of a scale drawable: its left edge
      sits at progress x (bar width - knob), so 0:00 = left end, the end = right end,
      with no widget size needed. The knob is 15dp. -->

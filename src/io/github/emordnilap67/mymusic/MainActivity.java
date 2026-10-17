@@ -27,6 +27,7 @@ import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
+import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -48,11 +49,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * The screen. The look (index.html) is a page inside the app; it asks the
  * player for everything through "Native". Nothing here goes on the internet:
- * https://appassets.androidplatform.net/ (a name Android keeps for exactly this) is answered by the app itself, never the internet.
+ * https://mymusic.app/ is answered by the app itself.
  */
 public class MainActivity extends Activity implements PlayerService.Listener {
     static final String HOST = "appassets.androidplatform.net";
-    static final String ORIGIN = "https://appassets.androidplatform.net/";
+    static final String ORIGIN = "https://mymusic.app/";
 
     private WebView web;
     private boolean granted;
@@ -60,11 +61,10 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     private String pendingCover;
     static final int REQ_DELETE = 7, REQ_COVER = 8, REQ_TREE = 9, REQ_SONGS = 10, REQ_MIC = 11, REQ_RESTORE = 12;
     static final String MIC = "android.permission.RECORD_AUDIO";      // Android's name for "see your own sound"
-    private String addKey;                  // "Add to playlist" waiting for the music folder
+    private String addKey;
     private List<String> addFolders;
     private static volatile MainActivity current;
     private String sharedLink, importFolder, dlLink, dlFolder;
-    /** what to do once the music folder is allowed ("backup" / "getback") */
     private String afterTree;
     private boolean anyway;
     /** one of our own pickers is open: the app is not really closed, no backup now */
@@ -128,6 +128,9 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         });
     }
     private final Handler h = new Handler(Looper.getMainLooper());
+    /* the ring's permission, looked up at most every 2 s (0 = look now) */
+    static volatile long micAt;
+    static volatile boolean micOk;
 
     static final PlayerService.Job LIBRARY_CHANGED = new PlayerService.Job() {
         @Override
@@ -223,6 +226,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     protected void onResume() {
         super.onResume();
         if (web != null) web.onResume();
+        micAt = 0;                            // allowed in Settings meanwhile? looked up again
         PlayerService.listener = this;
         current = this;
         if (!granted && hasPermission()) onGranted();     // allowed in Settings meanwhile
@@ -231,6 +235,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         else startPlayer();
         Retry.check(this);                    // songs that were waiting for YouTube carry on
         Mismatch.auto(this);                  // wrong-audio songs found and fixed by themselves
+        Sync.maybe(this);                     // new songs on YouTube, every 6 hours
     }
 
     /** "Tap to keep downloading" (when Android would not let the retry start by itself) */
@@ -267,8 +272,18 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     }
 
     private void back() {
-        if (web != null && web.canGoBack()) web.goBack();
-        else moveTaskToBack(true);       // leave the app, keep the music going
+        if (web == null) {
+            moveTaskToBack(true);
+            return;
+        }
+        web.evaluateJavascript("window.appBack?appBack():''", new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String r) {
+                if ("\"1\"".equals(r)) return;
+                if (web != null && web.canGoBack() && !"\"0\"".equals(r)) web.goBack();
+                else moveTaskToBack(true);       // leave the app, keep the music going
+            }
+        });
     }
 
     @Override
@@ -304,6 +319,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
         if (code == REQ_MIC) {
             boolean ok = checkSelfPermission(MIC) == PackageManager.PERMISSION_GRANTED;
+            micAt = 0;                        // the ring's permission is looked up again at once
             if (ok) Viz.reset();
             boolean forever = !ok && !shouldShowRequestPermissionRationale(MIC);    // Android will not ask again
             js("window.onMic&&onMic(" + ok + "," + forever + ")");
@@ -334,6 +350,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         java.util.regex.Matcher m = java.util.regex.Pattern.compile("https?://\\S+").matcher(text);
         if (m.find()) sharedLink = m.group();
     }
+
 
     private void addNow(final String key, final List<String> folders) {
         final Uri t = Importer.tree(this);
@@ -382,7 +399,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         afterTree = then;
         js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like MY MUSIC inside Music), then Use this folder, then Allow") + ")");
         try {
-            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(this));
+            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(MainActivity.this));
             startActivityForResult(i, REQ_TREE);
         } catch (Exception e) {
             afterTree = null;
@@ -580,7 +597,6 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 importNow(t);
                 return;
             }
-            // "Music folder": read what is in the folder now
             final String name = Importer.label(this);
             new Thread(new Runnable() {
                 @Override
@@ -725,7 +741,6 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                         importNow(t);
                         return;
                     }
-                    // first time: point MY MUSIC at the music folder
                     js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like MY MUSIC inside Music), then Use this folder, then Allow") + ")");
                     Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                             .putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(MainActivity.this));
@@ -734,7 +749,6 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
-        /** download inside MY MUSIC */
         @JavascriptInterface
         public String download(final String link, final String folder) {
             if (!Ytdl.available(MainActivity.this))
@@ -776,7 +790,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void stopFetch() {
-            DownloadService.stop(MainActivity.this);
+            DownloadService.stop(MainActivity.this);           // the built-in one
         }
 
         /** a link that came in through Share, once */
@@ -799,6 +813,18 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             } catch (Exception e) {
                 return "";
             }
+        }
+
+        /** "what is playing?" without the page waiting - the answer comes in via onNative */
+        @JavascriptInterface
+        public void askState() {
+            h.post(new Runnable() {
+                @Override
+                public void run() {
+                    PlayerService p = PlayerService.instance;
+                    if (p != null) js("window.onNative&&onNative(" + p.stateJson() + ")");
+                }
+            });
         }
 
         @JavascriptInterface
@@ -925,7 +951,15 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final String msg = Library.rescan(MainActivity.this);
+                    String m = Library.rescan(MainActivity.this);
+                    // Update library also checks each playlist's YouTube link for new songs
+                    try {
+                        String which = Sync.run(MainActivity.this);
+                        m += which.isEmpty() ? " - no YouTube playlist links yet: share a playlist into MY MUSIC once"
+                                : " - checking YouTube for new songs in " + which;
+                    } catch (Exception ignored) {
+                    }
+                    final String msg = m;
                     PlayerService.run(MainActivity.this, LIBRARY_CHANGED);
                     h.post(new Runnable() {
                         @Override
@@ -1144,7 +1178,6 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
-        /** found = the backup in the music folder / MY MUSIC backup; otherwise pick a file */
         @JavascriptInterface
         public void restoreBackup(final boolean found) {
             h.post(new Runnable() {
@@ -1171,7 +1204,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
-        /** "Music folder": pick (or make) the folder MY MUSIC reads and fills */
+        /** "Music folder" on the home screen: pick (or make) the folder MY MUSIC reads */
         @JavascriptInterface
         public void chooseFolder() {
             h.post(new Runnable() {
@@ -1187,7 +1220,6 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
-        /** the music folder's name for the screen ("" until one is picked) */
         @JavascriptInterface
         public String folder() {
             return Importer.tree(MainActivity.this) == null ? "" : Importer.label(MainActivity.this);
@@ -1215,6 +1247,18 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                     MainActivity.this.shareSong(key);
                 }
             });
+        }
+
+        /** the hearted songs: ["playlist/file", ...] */
+        @JavascriptInterface
+        public String favs() {
+            return Favs.json(MainActivity.this);
+        }
+
+        /** heart a song on or off; returns the new state */
+        @JavascriptInterface
+        public boolean fav(final String key, final boolean on) {
+            return Favs.set(MainActivity.this, key, on);
         }
 
         /** how often and when each song was played: {"playlist/file": [times, last ms]} */
@@ -1246,18 +1290,6 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                     });
                 }
             }).start();
-        }
-
-        /** the hearted songs: ["playlist/file", ...] */
-        @JavascriptInterface
-        public String favs() {
-            return Favs.json(MainActivity.this);
-        }
-
-        /** heart a song on or off; returns the new state */
-        @JavascriptInterface
-        public boolean fav(final String key, final boolean on) {
-            return Favs.set(MainActivity.this, key, on);
         }
 
         /** "Plays the wrong song": this video's audio goes in the song's place; the wrong file is kept, hidden */
@@ -1321,10 +1353,16 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
-        /** the ring's numbers right now (see Viz.read) */
+        /** the ring's numbers right now (see Viz.read) - never waits; the permission is
+         *  looked up at most every 2 s (it was asked of Android 40 times a second) */
         @JavascriptInterface
         public String viz() {
-            if (checkSelfPermission(MIC) != PackageManager.PERMISSION_GRANTED) return "x";
+            long now = android.os.SystemClock.uptimeMillis();
+            if (now - micAt > 2000) {
+                micOk = checkSelfPermission(MIC) == PackageManager.PERMISSION_GRANTED;
+                micAt = now;
+            }
+            if (!micOk) return "x";
             return Viz.read();
         }
 

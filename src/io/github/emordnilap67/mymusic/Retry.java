@@ -9,11 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
-/**
- * When YouTube pauses the downloads, MY MUSIC tries again by itself: an alarm an hour later starts the downloader for whatever is
- * still waiting in Pending. If Android will not let it start from the
- * background, a notification says "Tap to keep downloading" instead.
- */
 public class Retry extends BroadcastReceiver {
     static final String A_RESUME = "io.github.emordnilap67.mymusic.RESUME";
     private static final int NOTE_ID = 197;

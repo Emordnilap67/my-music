@@ -31,22 +31,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Downloads inside MY MUSIC: reads the link with yt-dlp, skips what the
- * folder's archive already has, fetches each song (MP3 192k, square
- * picture, tags) into the app's cache, names it "Artist - Song.mp3" and
- * copies it into the music folder.
- *
- * a shared YouTube playlist becomes a playlist of its own
- * (named after it), or fills the playlist on the phone that already has
- * its songs; every song is listed at once (Pending) and each one shows up
- * in the app as soon as it is in; when YouTube pauses the downloads it
- * tries again by itself an hour later (Retry).
- */
 public class DownloadService extends Service {
     static final String A_START = "io.github.emordnilap67.mymusic.DL_START";
     static final String A_STOP = "io.github.emordnilap67.mymusic.DL_STOP";
     static final String A_RESUME = "io.github.emordnilap67.mymusic.DL_RESUME";
+    /** Sync's quiet check of a linked YouTube playlist for new songs */
+    static final String A_SYNC = "io.github.emordnilap67.mymusic.DL_SYNC";
     /** the card's name while a new playlist is being read (its real name comes from YouTube) */
     static final String READING = "New playlist";
 
@@ -56,6 +46,7 @@ public class DownloadService extends Service {
     private int lastStartId;
     private Thread worker;
     private volatile String[] running;             // the job being fetched now
+    private volatile boolean quietJob;             // a Sync check - says something only when songs came in
     private volatile Process proc;
     private volatile boolean stopping;
     private volatile String limitNote;
@@ -63,6 +54,12 @@ public class DownloadService extends Service {
 
     static void start(Context c, String link, String folder) {
         Intent i = new Intent(c, DownloadService.class).setAction(A_START).putExtra("link", link).putExtra("folder", folder);
+        c.startForegroundService(i);
+    }
+
+    /** check a playlist's YouTube link for new songs, quietly (Sync) */
+    static void sync(Context c, String link, String folder) {
+        Intent i = new Intent(c, DownloadService.class).setAction(A_SYNC).putExtra("link", link).putExtra("folder", folder);
         c.startForegroundService(i);
     }
 
@@ -108,6 +105,8 @@ public class DownloadService extends Service {
         List<String[]> add = new ArrayList<>();
         if (A_RESUME.equals(a)) {
             add.addAll(Pending.toResume(this));       // what YouTube held back last time
+        } else if (A_SYNC.equals(a) && link != null && folder != null) {
+            add.add(new String[]{link, folder, "sync"});
         } else if (link != null && folder != null) {
             add.add(new String[]{link, folder});
         }
@@ -118,7 +117,7 @@ public class DownloadService extends Service {
                 try {
                     // Android wants the notification at once
                     startForeground(FG_ID, Progress.progressNote(this, label(add.isEmpty() ? "" : add.get(0)[1]),
-                            "reading", 0, 0, "Getting ready"));
+                            "reading", 0, 0, A_SYNC.equals(a) ? "Checking YouTube for new songs" : "Getting ready"));
                 } catch (Exception ignored) {
                 }
             }
@@ -216,6 +215,7 @@ public class DownloadService extends Service {
                     stopping = false;
                     limitNote = null;
                     running = job;
+                    quietJob = job.length > 2 && "sync".equals(job[2]);
                 } else {
                     running = null;
                     worker = null;
@@ -236,9 +236,28 @@ public class DownloadService extends Service {
             Progress.update(label(job[1]), null, 0, 0, null);
             Progress.update(where, null, 0, 0, null);
             MainActivity.progress();
-            PlayerService.run(this, MainActivity.LIBRARY_CHANGED);
-            MainActivity.tell(msg);
-            Progress.announce(this, msg, where);
+            boolean cameIn = !quietJob || msg.startsWith("Added ") || msg.contains(" new song");
+            if (cameIn) PlayerService.run(this, MainActivity.LIBRARY_CHANGED);   // a check that found nothing changes nothing
+            if (quietJob) {
+                // a Sync check speaks only when new songs came in
+                Matcher n = Pattern.compile("^Added (\\d+) song").matcher(msg);
+                if (n.find()) {
+                    int k = Integer.parseInt(n.group(1));
+                    msg = "Added " + k + (k == 1 ? " new song to " : " new songs to ") + where + " from your YouTube playlist";
+                    MainActivity.tell(msg);
+                    Progress.announce(this, msg, where);
+                } else {
+                    try {
+                        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(Progress.noteId(where));
+                    } catch (Exception ignored) {
+                    }
+                }
+                Sync.schedule(this);
+            } else {
+                MainActivity.tell(msg);
+                Progress.announce(this, msg, where);
+                Sync.schedule(this);          // a playlist shared for the first time is checked from now on
+            }
         }
     }
 
@@ -337,7 +356,7 @@ public class DownloadService extends Service {
         boolean playlist = listId != null;
 
         // 1. every song in the link: id, title, length, artist (+ the playlist's own title)
-        progress(card, "reading", 0, 0, playlist ? "Reading the playlist" : "");
+        progress(card, "reading", 0, 0, quietJob ? "Checking YouTube for new songs" : playlist ? "Reading the playlist" : "");
         List<String> a = new ArrayList<>(Arrays.asList("--flat-playlist", "--no-warnings",
                 "--print", "MMID\t%(id)s\t%(title)s\t%(duration)s\t%(channel,uploader|)s",
                 "--extractor-retries", "10", "--retry-sleep", "extractor:exp=2:30"));
@@ -396,6 +415,7 @@ public class DownloadService extends Service {
         if (lastErr.isEmpty()) lastErr = lastLine;
         if (stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
         if (meta.isEmpty()) {
+            if (quietJob) return "Nothing new checked for " + wanted;      // offline or held - the next check tries again
             if (held(lastErr)) {
                 // YouTube is pausing this phone right now: keep the link and try again by itself
                 if (playlist || !wanted.isEmpty()) {
@@ -475,6 +495,20 @@ public class DownloadService extends Service {
         }
         if (!deadOnes.isEmpty()) Missing.add(this, folder, deadOnes);
         if (!alreadyHere.isEmpty()) Importer.appendArchive(this, tree, fid, alreadyHere);    // checked once, not again
+        if (quietJob && listId != null) {
+            // songs new since the last check first, then from the end of the playlist; at most Sync.MAX -
+            // the rest come at the next check
+            List<Integer> pick = Sync.order(todo, Sync.seen(this, listId), Sync.MAX);
+            List<String> t2 = new ArrayList<>();
+            List<String[]> i2 = new ArrayList<>();
+            for (int k : pick) {
+                t2.add(todo.get(k));
+                i2.add(items.get(k));
+            }
+            todo = t2;
+            items = i2;
+            Sync.saveSeen(this, listId, meta.keySet());
+        }
         int total = todo.size();
         if (total == 0) {
             Pending.finish(this, folder);
@@ -485,7 +519,7 @@ public class DownloadService extends Service {
         // the whole list shows in the app at once; each song fills in as it arrives
         Pending.start(this, folder, link, wanted, plTitle, items);
 
-        // 2. fetch them, one after another, at a polite pace
+        // 2. fetch them, one after another, at the same polite pace as playlist.sh
         File work = new File(getCacheDir(), "dl");
         Ytdl.delete(work);
         work.mkdirs();
@@ -661,8 +695,7 @@ public class DownloadService extends Service {
 
     /**
      * what a finished (or paused) download says, most important first - the
-     * notification shows the start of it, the rest when pulled down. Never
-     * "Added 0 songs".
+     * notification shows the start of it, the rest when pulled down. * never "Added 0 songs".
      */
     static String finishText(String folder, int added, int dupes, int notSaved, int gone, int failed,
                              boolean stopped, String pausedWhy, int left, long at) {

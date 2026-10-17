@@ -60,7 +60,7 @@ img{display:block}
 .list{max-width:640px;margin:0 auto}
 .lhead{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.94);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
 .lrow{display:flex;align-items:center;gap:12px}
-.back{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;margin-left:-8px}
+.back{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;margin-left:-12px}   /* bigger to hit */
 .lhead h2{font-family:var(--display);font-weight:500;font-size:21px;letter-spacing:.04em;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .count{color:var(--mist);font-size:13px}
 .search{width:100%;margin-top:10px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--ink);font:inherit}
@@ -126,12 +126,24 @@ body.playing .song.on .th::after{animation-play-state:running}
   75%{background-size:4px 95%,4px 45%,4px 80%}
   100%{background-size:4px 30%,4px 85%,4px 50%}}
 @media (prefers-reduced-motion:reduce){.song.on .th::after{animation:none}}
+.song.on .th::after{content:none;animation:none}
+.eq{position:absolute;left:12px;right:12px;bottom:12px;top:12px;display:flex;align-items:flex-end;justify-content:space-between;pointer-events:none}
+.song:not(.on) .eq{display:none}
+.eq i{display:block;width:4px;height:100%;background:linear-gradient(var(--pc2),var(--pc1));transform-origin:50% 100%;transform:scaleY(.4);
+  animation:eqa .9s ease-in-out infinite alternate;animation-play-state:paused;will-change:transform}
+.eq i:nth-child(2){transform:scaleY(.9);animation-name:eqb}
+.eq i:nth-child(3){transform:scaleY(.6);animation-name:eqc}
+body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
+@keyframes eqa{0%{transform:scaleY(.4)}25%{transform:scaleY(.85)}50%{transform:scaleY(.55)}75%{transform:scaleY(.95)}100%{transform:scaleY(.3)}}
+@keyframes eqb{0%{transform:scaleY(.9)}25%{transform:scaleY(.35)}50%{transform:scaleY(.7)}75%{transform:scaleY(.45)}100%{transform:scaleY(.85)}}
+@keyframes eqc{0%{transform:scaleY(.6)}25%{transform:scaleY(.75)}50%{transform:scaleY(.3)}75%{transform:scaleY(.8)}100%{transform:scaleY(.5)}}
+@media (prefers-reduced-motion:reduce){.eq i{animation:none}}
 .empty{padding:40px 20px;color:var(--mist);text-align:center}
 
 /* ---------- mini player ---------- */
-.mini{position:fixed;left:0;right:0;bottom:0;z-index:10;height:calc(var(--bar) + env(safe-area-inset-bottom));padding:0 12px env(safe-area-inset-bottom);
-  display:flex;align-items:center;gap:12px;background:rgba(9,7,16,.98);border-top:1px solid var(--line)}
-.mini .prog{position:absolute;left:0;top:-1px;height:2px;background:var(--grad);width:0}
+.mini{touch-action:none;position:fixed;left:0;right:0;bottom:0;z-index:10;height:calc(var(--bar) + env(safe-area-inset-bottom));padding:0 12px env(safe-area-inset-bottom);
+  display:flex;align-items:center;gap:12px;background:#090710;border-top:1px solid var(--line)}   /* solid - nothing shows through */
+.mini .prog{position:absolute;left:0;top:-1px;height:2px;background:var(--grad);width:100%;transform:scaleX(0);transform-origin:0 50%;will-change:transform}
 .mini .open{display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left;height:100%}
 .mini .th{width:46px;height:46px;border-radius:8px;overflow:hidden;background:var(--raise);flex:none}
 .mini .th img{width:100%;height:100%;object-fit:cover}
@@ -142,7 +154,7 @@ body.playing .song.on .th::after{animation-play-state:running}
 
 /* ---------- full player ---------- */
 .now{position:fixed;inset:0;z-index:20;background:radial-gradient(120% 70% at 50% 0%,#170f2b 0%,#000 60%);
-  display:flex;flex-direction:column;padding:12px 22px calc(26px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .32s ease}
+  display:flex;flex-direction:column;padding:12px 22px calc(26px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .24s cubic-bezier(.2,.8,.25,1);will-change:transform}
 .now.show{transform:none}
 .nowtop{display:flex;align-items:center;justify-content:space-between;color:var(--mist);font-size:14px}
 .nowtop .pname{font-family:var(--display);letter-spacing:.06em}
@@ -161,11 +173,16 @@ body.playing .song.on .th::after{animation-play-state:running}
 .times{display:flex;justify-content:space-between;color:var(--mist);font-size:13px;font-variant-numeric:tabular-nums;margin-top:6px}
 .ctrl{display:flex;align-items:center;justify-content:space-between;margin-top:18px}
 .ctrl .ib svg{width:28px;height:28px}
+.ctrl .ib{width:clamp(48px,14vw,58px);height:clamp(48px,14vw,58px)}
+.ctrl .ib svg{width:34px;height:34px}
+.ctrl #prev,.ctrl #next{width:clamp(52px,15vw,62px);height:clamp(52px,15vw,62px)}
+.ctrl #prev svg,.ctrl #next svg{width:40px;height:40px}
 .big{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:#07050d;box-shadow:0 0 28px -6px var(--orchid)}
 .big svg{width:34px;height:34px;fill:currentColor}
 .tog{color:var(--mist);position:relative}
 .tog[aria-pressed="true"]{color:var(--cyan)}
 .tog .one{position:absolute;right:6px;top:6px;font-size:10px;font-weight:700}
+.ctrl .tog .one{right:7px;top:6px;font-size:11px}
 
 .toast{position:fixed;left:50%;bottom:calc(var(--bar) + 16px);transform:translateX(-50%);z-index:50;background:var(--raise);border:1px solid var(--line);
   padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw}
@@ -230,7 +247,7 @@ body.playing .song.on .th::after{animation-play-state:running}
 /* ---------- each song's own colours, the moving ring, lyrics, add to playlist ---------- */
 @property --c1{syntax:"<color>";inherits:true;initial-value:#CF49FF}
 @property --c2{syntax:"<color>";inherits:true;initial-value:#0FEBFF}
-.now{--grad:linear-gradient(90deg,var(--c1),var(--c2));transition:transform .32s ease,--c1 .9s ease,--c2 .9s ease;
+.now{--grad:linear-gradient(90deg,var(--c1),var(--c2));transition:transform .32s ease;   /* the colours no longer animate across the whole player (it repainted every frame for 0.9 s at each song change) */
   background:radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--c1) 20%,#000) 0%,#000 62%)}
 .now .vinyl{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c1) 60%,var(--c2)),0 0 26px -6px var(--c1),0 0 30px -8px var(--c2);
   background:repeating-radial-gradient(circle,transparent 0 3px,rgba(255,255,255,.035) 3px 4px),
@@ -238,7 +255,7 @@ body.playing .song.on .th::after{animation-play-state:running}
     radial-gradient(circle at 30% 25%,color-mix(in srgb,var(--c1) 14%,#100c1c),#08060f 62%)}
 .now .big{box-shadow:0 0 28px -6px var(--c1)}
 .stage{position:relative}
-#ring{position:absolute;left:-14%;top:-14%;width:128%;height:128%;pointer-events:none}
+#ring{position:absolute;left:-85%;top:-85%;width:270%;height:270%;pointer-events:none}   /* RING_K = 2.7 */
 .nowact{display:flex;align-items:center}
 .lyrbtn{position:relative;color:var(--mist)}
 .lyrbtn svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -262,6 +279,62 @@ body.playing .song.on .th::after{animation-play-state:running}
 @media (prefers-reduced-motion:reduce){.lyr p{transition:none}.now{transition:none}}
 /* a long name or artist list never runs under the ring - the disc shrinks to the room it has, the names sit on top */
 .meta{position:relative;z-index:2}
+.info{position:relative;isolation:isolate}
+.infobg{position:absolute;left:-22px;right:-22px;top:-44px;bottom:-8px;z-index:-1;overflow:hidden;pointer-events:none;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 32%,#000 74%,transparent);mask-image:linear-gradient(180deg,transparent,#000 32%,#000 74%,transparent)}
+.ctrl,.upnext{position:relative;z-index:1}          /* the buttons always sit above it */
+.now{isolation:isolate}
+.nowbg{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.nowbg i{position:absolute;inset:-25%;opacity:0;transition:opacity 1.2s ease;background-size:cover;background-position:center;
+  will-change:transform,opacity;animation:infodrift 40s ease-in-out infinite alternate;animation-play-state:paused}
+.nowbg i.on{opacity:.62}
+body.playing .now.show .nowbg i.on{animation-play-state:running}
+.nowbg::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.6) 0%,rgba(0,0,0,.4) 28%,rgba(0,0,0,.48) 52%,rgba(0,0,0,.74) 72%,rgba(0,0,0,.86) 100%)}
+@media (prefers-reduced-motion:reduce){.nowbg i{animation:none;transition:none}}
+.stars{position:absolute;inset:-4%;z-index:-1;overflow:hidden;pointer-events:none;will-change:transform;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 50%,rgba(0,0,0,.4) 74%,transparent 96%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 50%,rgba(0,0,0,.4) 74%,transparent 96%);
+  animation:stardrift 80s ease-in-out infinite alternate;animation-play-state:paused}
+.stars canvas{position:absolute;inset:0;width:100%;height:100%}
+.stars .tw{opacity:.6;animation:twinkle 3.1s ease-in-out infinite alternate;animation-play-state:paused}
+.stars .tw.b{animation-duration:4.3s;animation-delay:-2.2s}
+.now.show .stars,.now.show .stars .tw{animation-play-state:running}
+@keyframes stardrift{from{transform:translate3d(-1.2%,-.8%,0) rotate(-1.2deg)}to{transform:translate3d(1.2%,.8%,0) rotate(1.2deg)}}
+@keyframes twinkle{from{opacity:.18}to{opacity:1}}
+.gx{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 56%,rgba(0,0,0,.35) 76%,transparent 92%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 56%,rgba(0,0,0,.35) 76%,transparent 92%)}
+.gxt{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:0;height:0;transform:rotate(-22deg) scaleY(.56)}
+.gxs{position:absolute;width:var(--gd,800px);height:var(--gd,800px);left:calc(var(--gd,800px) / -2);top:calc(var(--gd,800px) / -2);
+  will-change:transform;animation:gxspin 420s linear infinite;animation-play-state:paused}
+.gxs canvas{position:absolute;inset:0;width:100%;height:100%}
+.gxs .gxc{opacity:0;transition:opacity 1.4s ease}
+.gxs .gxc.on{opacity:.9}
+body.playing .now.show .gxs{animation-play-state:running}
+@keyframes gxspin{to{transform:rotate(-360deg)}}
+.cglow{position:absolute;left:-12%;right:-12%;bottom:0;height:52%;z-index:-1;pointer-events:none;opacity:.74;
+  transform-origin:50% 72%;will-change:opacity,transform}
+.cglow i{position:absolute;inset:0;opacity:0;transition:opacity 1.3s ease}
+.cglow i.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.gxs{animation:none}.cglow i,.gxs .gxc{transition:none}}
+/* the buttons' own glow eases to the new song's colour (small, so cheap) */
+.ctrl #prev,.ctrl #next,.now .big,.trk .knob{transition:border-color .8s ease,box-shadow .8s ease,background-color .8s ease}
+.ctrl #shuf,.ctrl #rep{transition:color .8s ease}
+/* the lists under the player rest completely while it is up - nothing can show through */
+body.nowup #home,body.nowup #list,body.nowup #hid{visibility:hidden}
+
+@media (prefers-reduced-motion:reduce){.stars,.stars .tw{animation:none}}
+.infobg i{position:absolute;inset:-35%;opacity:0;transition:opacity 1.1s ease;background-size:cover;background-position:center;
+  will-change:transform,opacity;animation:infodrift 28s ease-in-out infinite alternate;animation-play-state:paused}
+.infobg i.on{opacity:.7}
+body.playing .now.show .infobg i.on{animation-play-state:running}
+/* soft top and bottom (the mask above): it melts into the player - and never covers the ring */
+.infobg::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.24)}
+@keyframes infodrift{0%{transform:translate3d(-6%,-4%,0) scale(1.04) rotate(-5deg)}
+  50%{transform:translate3d(5%,3%,0) scale(1.2) rotate(6deg)}100%{transform:translate3d(-2%,6%,0) scale(1.1) rotate(-2deg)}}
+@media (prefers-reduced-motion:reduce){.infobg i{animation:none;transition:none}}
+.meta h3,.meta p,.times{text-shadow:0 1px 12px rgba(0,0,0,.5)}
 .meta p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .meta p.more{cursor:pointer}
 .meta p.all{-webkit-line-clamp:8}
@@ -282,6 +355,47 @@ button,a,input,.song,.pl{touch-action:manipulation}
 .toast:not(.hidden){animation:fadeIn .15s ease-out}
 .song.new{animation:fadeIn .5s ease-out}
 @media (prefers-reduced-motion:reduce){.enter,.sheet:not(.hidden),.sheet:not(.hidden) .sheetcard,.toast:not(.hidden),.song.new{animation:none}}
+.ib.press,.back.press{background:rgba(255,255,255,.1)}
+.pill.press,.ghost.press,.chip.press,.sortbtn.press,.srow.press,.copy.press{opacity:.72}
+.big.press{transform:scale(.95)}
+.big{transition:transform .12s ease}
+.now .big{transition:transform .12s ease,box-shadow .8s ease}
+.now .vinyl{--s:min(38vw,22vh,220px)}
+.stage{z-index:1}                  /* the ring stays above the glow behind the song name */
+@supports (width:1cqh){.now .vinyl{--s:min(38vw,22vh,220px,37cqh,43cqw)}}   /* 43cqw = 38% of the screen */
+.now .vinyl{background:
+    conic-gradient(from 0deg,rgba(255,255,255,0) 8deg,rgba(255,255,255,.15) 40deg,rgba(255,255,255,.04) 62deg,rgba(255,255,255,0) 84deg,rgba(255,255,255,0) 188deg,rgba(255,255,255,.12) 220deg,rgba(255,255,255,.03) 242deg,rgba(255,255,255,0) 264deg),
+    repeating-radial-gradient(circle,#0a0a0c 0 1.1px,#16161a 1.5px 2.3px),#09090b;
+  box-shadow:0 0 0 1px rgba(255,255,255,.07),0 10px 40px -8px rgba(0,0,0,.9)}
+.now .vinyl .label{inset:20%;box-shadow:0 0 0 2px #050506,0 0 18px -4px rgba(0,0,0,.8)}
+.meta h3{font-size:clamp(24px,7vw,30px);font-weight:600;letter-spacing:.01em}
+.wave{display:block;position:relative;height:34px;gap:0;margin-top:2px}
+.trk{position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:rgba(255,255,255,.16)}
+.trk .fill{position:absolute;inset:0;border-radius:2px;background:linear-gradient(90deg,var(--c1),color-mix(in srgb,var(--c1) 55%,var(--c2)));
+  transform-origin:0 50%;transform:scaleX(0);will-change:transform}
+.trk .kw{position:absolute;inset:0;transform:translateX(0);pointer-events:none;will-change:transform}
+.trk .knob{position:absolute;left:-9px;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:var(--c1);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--c1) 28%,transparent),0 0 12px 1px var(--c1)}
+.times{margin-top:0}
+.ctrl{display:grid;grid-template-columns:auto auto auto;grid-template-areas:"prev play next" "shuf . rep";
+  justify-content:center;align-items:center;column-gap:clamp(20px,7vw,34px);row-gap:6px;margin-top:14px}
+.ctrl #prev{grid-area:prev}.ctrl #nplay{grid-area:play}.ctrl #next{grid-area:next}.ctrl #rep{grid-area:rep}.ctrl #shuf{grid-area:shuf}
+.ctrl #prev,.ctrl #next{width:clamp(56px,16vw,66px);height:clamp(56px,16vw,66px);border-radius:50%;color:#fff;background:rgba(6,6,9,.55);
+  border:2px solid var(--c1);box-shadow:0 0 14px -2px var(--c1),inset 0 0 14px -6px var(--c1)}
+.ctrl #next{border-color:var(--c2);box-shadow:0 0 14px -2px var(--c2),inset 0 0 14px -6px var(--c2)}
+.ctrl #prev svg,.ctrl #next svg{width:30px;height:30px}
+.now .big{width:clamp(84px,24vw,100px);height:clamp(84px,24vw,100px);color:#fff;border:3px solid transparent;
+  background:radial-gradient(circle at 50% 32%,#1d1c22,#060608 72%) padding-box,linear-gradient(135deg,var(--c1),var(--c2)) border-box;
+  box-shadow:0 0 22px -4px var(--c1),0 0 28px -6px var(--c2),inset 0 2px 10px rgba(255,255,255,.06)}
+.now .big svg{width:46px;height:46px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))}
+.ctrl .tog{width:48px;height:48px;justify-self:center;border-radius:50%}
+.ctrl #shuf{color:var(--c1)}.ctrl #rep{color:var(--c2)}
+.ctrl .tog svg{width:30px;height:30px}
+.ctrl .tog[aria-pressed="false"]{opacity:.6}
+.ctrl .tog[aria-pressed="true"] svg{filter:drop-shadow(0 0 6px currentColor)}
+.ctrl .tog .one{color:#fff}
+.ctrl #prev.press,.ctrl #next.press{background:rgba(255,255,255,.1)}
+
 /* lyrics: where they came from, and "Search by name" */
 .lfoot{margin:22px 0 0;color:var(--mist);font-size:13px;line-height:1.5}
 .lfix{display:inline-block;margin-top:10px;border:1px solid var(--line);border-radius:999px;padding:8px 14px;color:var(--ink);font-size:14px}
@@ -369,6 +483,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
   <div id="wrong"></div>
   <div id="pend"></div>
   <div id="miss"></div>
+  <div id="favnote"></div>
   <ul id="songs" class="songs"></ul>
 </section>
 
@@ -546,6 +661,10 @@ button,a,input,.song,.pl{touch-action:manipulation}
 </footer>
 
 <section id="now" class="now" aria-label="Now playing" aria-hidden="true">
+  <div class="nowbg" id="nowbg" aria-hidden="true"><i></i><i></i></div>
+  <div class="gx" id="nowgx" aria-hidden="true"><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas></div></div></div>
+  <div class="stars" id="nowstars" aria-hidden="true"><canvas></canvas><canvas class="tw"></canvas><canvas class="tw b"></canvas></div>
+  <div class="cglow" id="nowglow" aria-hidden="true"><i></i><i></i></div>
   <div class="nowtop">
     <button class="ib" id="nclose" aria-label="Close player"><svg viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg></button>
     <span class="pname" id="npl"></span>
@@ -558,9 +677,11 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <div class="vinyl" id="disc"><canvas id="ring" aria-hidden="true"></canvas><div class="label spin"><img id="nart" alt=""></div></div>
     <div class="lyr hidden" id="lyr" aria-label="Lyrics"></div>
   </div>
+  <div class="info" id="info">
   <div class="meta"><span></span><div><h3 id="ntitle"></h3><p id="nartist"></p></div><button class="ib heart" id="nfav" aria-label="Favorite" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 20.6l-1.3-1.2C5.8 15 3 12.4 3 9.1 3 6.4 5.1 4.3 7.8 4.3c1.5 0 3 .7 4.2 1.9 1.2-1.2 2.7-1.9 4.2-1.9C18.9 4.3 21 6.4 21 9.1c0 3.3-2.8 5.9-7.7 10.3L12 20.6z"/></svg></button></div>
-  <div class="wave" id="wave" role="slider" aria-label="Song position" tabindex="0"></div>
+  <div class="wave" id="wave" role="slider" aria-label="Song position" tabindex="0"><div class="trk"><span class="fill" id="pfill"></span><span class="kw" id="pknob"><span class="knob"></span></span></div></div>
   <div class="times"><span id="tcur">0:00</span><span id="tdur">0:00</span></div>
+  </div>
   <div class="ctrl">
     <button class="ib tog" id="shuf" aria-label="Shuffle" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M10.6 9.2 5.4 4 4 5.4l5.2 5.2 1.4-1.4zM14.5 4l2 2L4 18.6 5.4 20 18 7.5l2 2V4h-5.5zm.3 9.4-1.4 1.4 3.1 3.1-2 2H20v-5.5l-2 2-3.2-3z"/></svg></button>
     <button class="ib" id="prev" aria-label="Previous song"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
@@ -573,16 +694,523 @@ button,a,input,.song,.pl{touch-action:manipulation}
 
 <div id="toast" class="toast hidden" role="status"></div>
 
+<script type="text/plain" id="ringsrc">
+"use strict";
+const NB = 64;
+const bars = new Float32Array(NB), aim = new Float32Array(NB), peak = new Float32Array(NB), fall = new Float32Array(NB);
+let cv = null, x = null, Z = 0, K = 2.7;                     /* K = how many times wider than the record the canvas is */
+let COL = [[150, 70, 255], [40, 170, 255]], colFrom = null, colTo = null, colAt = 0;
+let live = false, top = 55, running = false, still = 0, last = 0, loud = 0, loopId = 0, phase = 0, twPh = 0;
+const mix = (a, b, k) => a.map((v, j) => v + (b[j] - v) * k);
+const rgb = c => "rgb(" + c.map(Math.round).join(",") + ")";
+const rgba = (c, a) => "rgba(" + c.map(Math.round).join(",") + "," + a + ")";
+/* the colours as drawn: a third less saturated than the song's ("too much saturation") */
+const tone = c => { const g = .3 * c[0] + .59 * c[1] + .11 * c[2]; return c.map(v => Math.max(0, Math.min(255, (g + (v - g) * .62) * .95))); };
+let TC = [tone(COL[0]), tone(COL[1])];
+/* the bass, from the raw readings (0..100 = -60..0 dB): its level now, its recent level, how loud
+   the bass is held, the last beat. BEATS = the last few beats (when, how hard): each one gives the
+   outer waves a new shape */
+let rawBass = 0, rawPrev = 0, rawAvg = -1, bassHold = 0, lastBeat = -1e9, clock = 0;
+const BEATS = [];
+/* the voice (bands 20-47, about 250 Hz - 3.4 kHz) and the other tones on top (bands 48-61, about
+   3.4 - 12 kHz): their levels, and each new syllable (a ripple, PK) or hit (sparkles, GL) */
+let vox = 0, vAim = 0, hiLvl = 0, hAim = 0, ripPh = 0, midTop = 30, hiTop = 25;
+let midAvg = -1, midPrev = 0, lastSyl = -1e9, hiAvg = -1, hiPrev = 0, lastHit = -1e9;
+/* each voice band, measured against the voice's own loudness (VA), and as drawn (VB) - so a loud
+   bass never drowns the voice out of the picture */
+const VA = new Float32Array(28), VB = new Float32Array(28), VS = new Float32Array(28);
+const PK = [], GL = [];
+/* sharpness that fits the phone: drawn at full sharpness first; if frames come too slowly while a
+   song plays (under ~40 a second), it steps down to 80%, then 64% of the pixels - never below */
+const RS = [1, .8, .64];
+let PXW = 0, lvl = 0, acc = 0, cnt = 0, warm = 0;
+function setPx() { const z = Math.round(PXW * RS[lvl]); if (z && z !== Z) { cv.width = cv.height = Z = z; } }
+const nextFrame = typeof self.requestAnimationFrame === "function"
+  ? f => self.requestAnimationFrame(f)
+  : f => setTimeout(() => f(performance.now()), 16);
+
+/* the shape: made once, the same every time (a fixed seed). Sizes are in record radii. */
+let seed = 4880123;
+const rnd = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+let seed2 = 9001;                                               /* where the sparkles land */
+const rnd2 = () => (seed2 = (Math.imul(seed2, 1103515245) + 12345) >>> 0) / 4294967296;
+const M = 180, M1 = M + 1;                                     /* points round each wave */
+const CT = new Float32Array(M1), ST = new Float32Array(M1), C6 = new Float32Array(M1), C12 = new Float32Array(M1),
+  DS = new Float32Array(M1), UB = new Float32Array(M1), TIP = new Float32Array(M1),
+  VP = new Float32Array(M1), PSIA = new Float32Array(M1);
+for (let m = 0; m <= M; m++) {
+  const t = 2 * Math.PI * m / M;
+  CT[m] = Math.cos(t); ST[m] = Math.sin(t);
+  const psi = Math.abs(Math.atan2(CT[m], -ST[m]));             /* 0 at the top .. PI at the bottom, the same left and right */
+  C6[m] = Math.cos(6 * psi); C12[m] = Math.cos(12 * psi); PSIA[m] = psi;
+  DS[m] = Math.abs(psi - Math.PI / 2) / (Math.PI / 2);          /* 0 at the left/right points .. 1 top and bottom */
+  UB[m] = (1 + C6[m]) / 2 * 27;                                 /* which voice band shapes this spot: low voice at the corners, high voice mid-side */
+  const d = Math.min(Math.abs(Math.atan2(ST[m], CT[m])), Math.PI - Math.abs(Math.atan2(ST[m], CT[m])));
+  TIP[m] = Math.pow(Math.max(0, 1 - d / .3), 2);                /* 1 on the horizontal axis, 0 by ~17 degrees: the pointed tips */
+}
+const LIM = 2.62;                                               /* nothing past here (the canvas edge is at K) */
+/* the waves: standing waves round the record (mirror images left and right), so they breathe in and
+   out rather than spin. Each: radius, its two waves (height), and what moves it - vg the voice
+   breathing, rg the voice ripples, pg the voice's shape, wg how far the beat's warp bends it - and how it is
+   drawn */
+const WAV = [];
+const WN = [2, 3, 4, 6, 8, 12], NW = WN.length;               /* the warp's simple shapes: cos(n x the angle from the top) */
+const WW = [1, 1, 1, 1, .7, .55];                               /* the busier ones (8, 12 bumps) a little gentler */
+function wave(r0, a1, a2, kind, vg, rg, pg, wg) {
+  WAV.push({r0, a1, w1: .5 + .7 * rnd(), p1: rnd() * 6.283, a2, w2: .8 + 1.2 * rnd(), p2: rnd() * 6.283, kind, vg, rg, pg, wg,
+    wa: new Float32Array(NW), wc: new Float32Array(NW), wv: new Float32Array(M1), tau: 40 + Math.max(0, r0 - 1.54) * 260,
+    lag: Math.max(0, r0 - 1.13) * .3,
+    tip: r0 < 1.15 ? .03 : r0 < 1.3 ? .15 : r0 < 1.7 ? .32 : .5});       /* the outer waves reach the tips, the inner ones lean toward them */
+}
+/* the two ribbons: the inner one (the voice) close round the record, the outer one (the bass) */
+wave(1.27, -.085, .012, "ribbon", .075, .05, .06, 0);
+wave(1.66, -.11, .016, "ribbon", .015, .02, 0, 1);
+/* fainter lines between and round them: inside the outer ribbon the voice moves them, outside it the bass */
+for (const [r0, a1, vg, rg, pg, wg] of [
+  [1.13, -.045, .04, .035, .04, 0], [1.38, -.09, .07, .055, .06, 0], [1.46, -.1, .065, .05, .055, 0],
+  [1.54, -.1, .05, .04, .04, .3],
+  [1.79, -.11, .01, .016, 0, 1.1], [1.88, -.1, 0, .012, 0, 1.2], [1.97, -.08, 0, .01, 0, 1.3]])
+  wave(r0, a1, .01, "line", vg, rg, pg, wg);
+/* the web: spokes out from the record, and points further out joined by fine threads */
+const SPOKES = 44;
+const NODES = [];
+for (let i = 0; i < 110; i++) NODES.push({a: rnd() * 6.283, r: 1.62 + .7 * Math.pow(rnd(), .9), wa: rnd() * 6.283, ws: .2 + .5 * rnd(), br: rnd() < .18});
+const EDGES = [];
+for (let i = 0; i < NODES.length; i++) {                       /* each point joined to its 2 nearest */
+  const A = NODES[i], ax = Math.cos(A.a) * A.r, ay = Math.sin(A.a) * A.r;
+  const d = NODES.map((B, j) => [j, Math.hypot(Math.cos(B.a) * B.r - ax, Math.sin(B.a) * B.r - ay)]).filter(q => q[0] !== i).sort((p, q) => p[1] - q[1]);
+  for (const [j, dd] of d.slice(0, 2)) if (dd < .55 && !EDGES.some(e => (e[0] === j && e[1] === i))) EDGES.push([i, j]);
+}
+/* the particle cloud round the outside, thickest a little outside the outer ribbon; each speck
+   drifts slowly one way or the other round the ring (dv) */
+const DUST = [];
+for (let i = 0; i < 2800; i++) {
+  const u = rnd(), r = u < .78 ? 1.9 + .55 * Math.pow(rnd(), .9) : 1.6 + .95 * rnd();
+  DUST.push({a: rnd() * 6.283, r, s: rnd() < .06 ? .012 + .009 * rnd() : .0045 + .0045 * rnd(), tw: rnd() * 6.283, sp: .5 + 2.5 * rnd(),
+    dv: (rnd() - .5) * .09});
+}
+
+/* - the bass's WARP. WT = the shape the outer waves are heading for (how much of each simple
+   shape, in record radii), CW = where the particle cloud and the web are (they follow a little
+   slower), CWV = that, worked out round the ring once a frame. A beat picks the next shape: two of
+   the simple shapes, never the one just used, the six-fold one only ever sharpening the corners */
+const WCOS = WN.map(n => Float32Array.from(PSIA, p => Math.cos(n * p)));
+const WT = new Float32Array(NW), CA = new Float32Array(NW), CW = new Float32Array(NW), CWV = new Float32Array(M1);
+/* the dance. POSES = for each kind of song, its two poses (simple shape n, how much); a
+   beat that is due a new pose swaps to the other one, so the ring sways between them */
+const POSES = {
+  bass:  [[[2, -1], [6, -.3]], [[2, .6], [4, .3]]],         /* deep heavy bass: wide, then tall - a sway */
+  punch: [[[6, -1], [2, -.35]], [[6, .45], [4, -.5]]],      /* punchy kicks: sharp corners, then softened */
+  busy:  [[[8, .65], [2, -.3]], [[12, .5], [2, .25]]],      /* fast and busy: quick small ripples */
+  voice: [[[3, .8], [6, -.3]], [[4, .7], [2, .3]]],         /* carried by the voice: gentle, flowing */
+  mix:   [[[2, .7], [4, -.4]], [[3, -.7], [6, -.35]]]       /* anything else */
+};
+let nShape = 0, pose = 0, lastPoseAt = -1e9, ivMed = 470, subLean = 0, style = "mix", styleNext = "mix";
+/* what the song is like right now: bassSlow = the bass over the last ~2 s, bassPeak = how loud it
+   is on the beats (close together = the bass is held, like an 808; far apart = separate punchy
+   kicks), hitRate = sharp hits up top a second */
+let bassSlow = -1, bassPeak = 0, hitRate = 0;
+const IV = [];                                                  /* the last few times between beats */
+function newPose(s) {
+  const sustain = bassPeak - bassSlow;                         /* small = the bass is held between beats */
+  const want = IV.length < 3 ? "mix" : bassSlow > 60 && sustain < 6 ? "bass" : vox > .55 && bassSlow < 55 ? "voice"
+    : hitRate > 7.8 || ivMed < 330 ? "busy" : sustain >= 6 ? "punch" : "mix";
+  if (want === styleNext) style = want; styleNext = want;         /* a new kind only after two beats agree: no flip-flopping */
+  pose ^= 1; nShape++; lastPoseAt = clock;
+  const d = (.05 + .035 * s) * (.8 + .4 * bassHold);
+  WT.fill(0);
+  for (const [n, k] of POSES[style][pose]) { const i = WN.indexOf(n); WT[i] = d * k * WW[i]; }
+}
+/* the warp at one spot round the ring; inward a little less than outward, so it never crowds the voice's waves */
+const warpOf = (cf, m) => { let s = 0; for (let n = 0; n < NW; n++) s += cf[n] * WCOS[n][m]; return s < 0 ? s * .65 : s; };
+/* the spot round the ring (0..M-1) for an angle */
+const mOf = a => { let u = a / 6.283185; u -= Math.floor(u); return Math.min(M - 1, (u * M) | 0); };
+/* how bright the last beats still are (half gone in ~0.12 s) */
+const hitAt = () => { let s = 0; for (const b of BEATS) s += b.s * Math.exp(-(clock - b.t) / 170); return Math.min(1, s); };
+/* the voice's ripples along the way from the points (0) to the top and bottom (1), once a frame */
+const RD0 = -.2, RD1 = 1.6, RJ = 144, RIPT = new Float32Array(RJ + 1);
+const ripAt = d => { const p = Math.max(0, Math.min(RJ, (d - RD0) / (RD1 - RD0) * RJ)), i = Math.min(RJ - 1, p | 0); return RIPT[i] + (RIPT[i + 1] - RIPT[i]) * (p - i); };
+
+/* small ready-made pictures (made when the colours change): a soft round glow and a four-point
+   sparkle in each colour, and the haze of light behind the ribbons */
+const canvasOf = n => typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(n, n) : Object.assign(document.createElement("canvas"), {width: n, height: n});
+let SPR = null, STAR = null, HAZE = null, PICS = null, PICS_OLD = null, blendE = 1;
+function picsFor(cols) {
+  const keep = TC; TC = [tone(cols[0]), tone(cols[1])];
+  const p = {key: cols.map(c3 => c3.map(Math.round).join(",")).join("|") + K,
+    SPR: [glowPic(TC[0]), glowPic(TC[1])], STAR: [starPic(TC[0]), starPic(TC[1])], HAZE: hazePic()};
+  TC = keep; return p;
+}
+function glowPic(col) {
+  const n = 48, c2 = canvasOf(n), g2 = c2.getContext("2d"), h = n / 2, rg = g2.createRadialGradient(h, h, 0, h, h, h);
+  rg.addColorStop(0, rgba(mix(col, [255, 255, 255], .5), 1)); rg.addColorStop(.25, rgba(mix(col, [255, 255, 255], .2), .6));
+  rg.addColorStop(.55, rgba(col, .15)); rg.addColorStop(1, rgba(col, 0));
+  g2.fillStyle = rg; g2.fillRect(0, 0, n, n);
+  return c2;
+}
+function starPic(col) {
+  const n = 64, c2 = canvasOf(n), g2 = c2.getContext("2d"), h = n / 2, lite = mix(col, [255, 255, 255], .45);
+  const rg = g2.createRadialGradient(h, h, 0, h, h, h * .42);
+  rg.addColorStop(0, rgba(lite, .9)); rg.addColorStop(.3, rgba(col, .35)); rg.addColorStop(1, rgba(col, 0));
+  g2.fillStyle = rg; g2.fillRect(0, 0, n, n);
+  g2.globalCompositeOperation = "lighter";
+  for (const [len, wid, al, rot] of [[h, 1.6, .85, 0], [h * .55, 1.1, .5, Math.PI / 4]]) {   /* the long cross, and a short one turned */
+    for (let k = 0; k < 2; k++) {
+      g2.setTransform(1, 0, 0, 1, h, h); g2.rotate(rot + k * Math.PI / 2);
+      const lg = g2.createLinearGradient(-len, 0, len, 0);
+      lg.addColorStop(0, rgba(col, 0)); lg.addColorStop(.5, rgba(lite, al)); lg.addColorStop(1, rgba(col, 0));
+      g2.fillStyle = lg; g2.beginPath(); g2.moveTo(-len, 0); g2.lineTo(0, -wid); g2.lineTo(len, 0); g2.lineTo(0, wid); g2.closePath(); g2.fill();
+    }
+  }
+  return c2;
+}
+function hazePic() {
+  const n = 200, c2 = canvasOf(n), g2 = c2.getContext("2d"), h = n / 2, r = n / K / 2;
+  const lg = g2.createLinearGradient(h - r * 2, 0, h + r * 2, 0);
+  lg.addColorStop(0, rgb(TC[0])); lg.addColorStop(.4, rgb(TC[0])); lg.addColorStop(.5, rgb(mix(TC[0], TC[1], .5)));
+  lg.addColorStop(.6, rgb(TC[1])); lg.addColorStop(1, rgb(TC[1]));
+  g2.fillStyle = lg; g2.globalAlpha = .62; g2.fillRect(0, 0, n, n);
+  g2.globalCompositeOperation = "destination-in"; g2.globalAlpha = 1;
+  const hz = g2.createRadialGradient(h, h, 0, h, h, r * K), at = v => Math.min(1, v / K);
+  hz.addColorStop(0, "rgba(0,0,0,0)"); hz.addColorStop(at(1), "rgba(0,0,0,0)"); hz.addColorStop(at(1.2), "rgba(0,0,0,.5)");
+  hz.addColorStop(at(1.6), "rgba(0,0,0,.6)"); hz.addColorStop(at(2), "rgba(0,0,0,.25)"); hz.addColorStop(at(2.5), "rgba(0,0,0,.06)"); hz.addColorStop(1, "rgba(0,0,0,0)");
+  g2.fillStyle = hz; g2.fillRect(0, 0, n, n);
+  return c2;
+}
+
+function handle(m) {
+  if (m.t === "init") { cv = m.canvas; x = cv.getContext("2d"); return; }
+  if (!cv) return;
+  if (m.t === "size") { if (m.k) K = m.k; if (m.px) { PXW = m.px; setPx(); } draw(); }
+  else if (m.t === "live") { live = !!m.on; if (!live) { aim.fill(0); VA.fill(0); vAim = hAim = 0; rawAvg = midAvg = hiAvg = -1; } kick(); }
+  else if (m.t === "v") { reading(m.v); kick(); }
+  else if (m.t === "col") {
+    IV.length = 0; bassSlow = -1; hitRate = 0; style = styleNext = "mix";   /* a new song - learn what it is like afresh */
+    acc = cnt = warm = 0;                    /* a busy moment at the song change never counts as "too slow" */
+    if (running) { colFrom = COL.map(c => c.slice()); colTo = m.pair.map(c => c.slice()); colAt = performance.now(); blendE = 0; }
+    else { COL = m.pair.map(c => c.slice()); colTo = null; draw(); }
+  }
+  else if (m.t === "halt") { live = false; running = false; last = 0; }     /* player closed: stop drawing now */
+  else if (m.t === "draw") draw();
+}
+self.onmessage = e => handle(e.data);
+
+/* one reading: BANDS numbers 0..100 (how loud each pitch band is, bass first) */
+function reading(s) {
+  if (!live || !s) return;
+  const v = s.split(",");
+  let mx = 0; for (let i = 0; i < v.length; i++) { const n = +v[i]; if (n > mx) mx = n; }
+  top = Math.max(mx, top - .06, 50);                            /* follows how loud the song is right now */
+  const lo = top - 40;
+  for (let i = 0; i < NB; i++) aim[i] = Math.pow(Math.max(0, Math.min(1, (+v[i] - lo) / 40)), 1.5);
+  /* the three levels, each against its own recent level */
+  let rb = 0; for (let i = 0; i < 8; i++) rb += +v[i] / 8;
+  let rm = 0; for (let i = 20; i < 48; i++) rm += +v[i] / 28;
+  let rh = 0; for (let i = 48; i < 62; i++) rh += +v[i] / 14;
+  if (rawAvg < 0) rawAvg = rb;
+  if (midAvg < 0) midAvg = rm;
+  if (hiAvg < 0) hiAvg = rh;
+  const jump = rb - rawAvg, mj = rm - midAvg, hj = rh - hiAvg;
+  /* Android turns its capture up or down in steps, which lifts EVERY band together - that is
+     not a beat */
+  const gainStep = mj > 4 && hj > 4 && Math.abs(jump - mj) < 3.5 && Math.abs(jump - hj) < 3.5;
+  let sub = 0, kb = 0; for (let i = 0; i < 4; i++) sub += +v[i] / 4; for (let i = 4; i < 10; i++) kb += +v[i] / 6;
+  subLean += (sub - kb - subLean) * .05;                          /* deep sub-bass vs punchy kick */
+  if (bassSlow < 0) bassSlow = bassPeak = rb;
+  bassSlow += (rb - bassSlow) * .015;
+  hitRate *= .985;                                                /* ~2 s memory, in hits a second */
+  /* a beat: the bass (lowest 8 bands) jumping well above where it has just been, and still rising.
+     Measured on the raw numbers, so it works however loud the song is (tested in - kept) */
+  if (jump > 6.5 && rb > rawPrev + 1 && rb > 30 && clock - lastBeat > 170 && !gainStep) {
+    const bs = Math.min(1, .5 + (jump - 6.5) / 22) * (.85 + .3 * bassHold), iv = clock - lastBeat;
+    if (iv > 200 && iv < 2000) { IV.push(iv); if (IV.length > 8) IV.shift(); const so = IV.slice().sort((a, b) => a - b); ivMed = so[so.length >> 1]; }
+    BEATS.push({t: clock, s: bs}); lastBeat = clock;
+    self.postMessage({t: "beat", s: bs});                       /* the glow behind the buttons throbs */
+    bassPeak += (rb - bassPeak) * .25;
+    if (BEATS.length > 4) BEATS.shift();
+    if (clock - lastPoseAt >= Math.max(380, .55 * ivMed)) newPose(bs);   /* a new pose at most every 0.38 s */
+  }
+  rawAvg += (rb - rawAvg) * .12;                                  /* the recent level: about the last quarter second */
+  rawPrev = rb; rawBass = rb;
+  /* a new syllable: the middle of the sound jumping above its recent level -> a ripple runs round */
+  midTop = Math.max(rm, midTop - .08, 30);                        /* how loud the voice has been lately */
+  vAim = Math.pow(Math.max(0, Math.min(1, (rm - midTop + 22) / 22)), 1.2);
+  for (let i = 0; i < 28; i++) VA[i] = Math.max(0, Math.min(1, (+v[i + 20] - midTop + 30) / 34));
+  if (mj > 3.5 && rm > midPrev && rm > 25 && clock - lastSyl > 200 && !gainStep) {
+    PK.push({t: clock, s: Math.min(1, .45 + (mj - 3.5) / 12)}); lastSyl = clock;
+    if (PK.length > 5) PK.shift();
+  }
+  midAvg += (rm - midAvg) * .15; midPrev = rm;
+  /* a hit up top (hi-hat, cymbal, a sharp sound): sparkles all round */
+  hiTop = Math.max(rh, hiTop - .08, 25);
+  hAim = Math.pow(Math.max(0, Math.min(1, (rh - hiTop + 24) / 24)), 1.2);
+  if (hj > 4.5 && rh > hiPrev && rh > 20 && clock - lastHit > 70 && !gainStep) {
+    const st = Math.min(1, .35 + (hj - 4.5) / 14), n = Math.round(3 + 9 * st);
+    for (let i = 0; i < n; i++) GL.push({a: rnd2() * 6.2832, r: 1.72 + .8 * Math.pow(rnd2(), .8), t: clock + 25 * rnd2(), s: st * (.6 + .4 * rnd2())});
+    if (GL.length > 70) GL.splice(0, GL.length - 70);
+    lastHit = clock; hitRate += .015 * 33;
+  }
+  hiAvg += (rh - hiAvg) * .2; hiPrev = rh;
+}
+
+/* one drawing loop at a time: a loop left over from before a "halt" ends itself (loopId) */
+function kick() { if (!running) { running = true; still = 0; last = 0; warm = acc = cnt = 0; const id = ++loopId; nextFrame(t => frame(t, id)); } }
+
+let dtS = 0;                                                    /* seconds since the last frame, while playing */
+function frame(t, id) {
+  if (!running || id !== loopId) return;
+  const real = last ? Math.max(1, t - last) : 16.7, dt = Math.min(66, real), f = dt / 16.7;
+  last = t; clock = t;
+  if (live && lvl < 2 && (warm += real) > 500) {                 /* too slow for this phone? fewer pixels */
+    acc += real;
+    if (++cnt >= 45 || acc > 1500) { if (acc / cnt > 24) { lvl++; setPx(); self.postMessage({t: "lvl", lvl}); } acc = cnt = 0; }
+  }
+  const up = 1 - Math.pow(1 - .5, f), down = 1 - Math.pow(1 - .1, f);
+  let moving = false, sum = 0;
+  for (let i = 0; i < NB; i++) {
+    const b = bars[i], a = aim[i];
+    bars[i] = b + (a - b) * (a > b ? up : down);
+    if (bars[i] >= peak[i]) { peak[i] = bars[i]; fall[i] = 0; }
+    else { fall[i] += .0007 * f; peak[i] = Math.max(0, peak[i] - fall[i] * f); }
+    if (bars[i] > .004 || peak[i] > .004) moving = true;
+    sum += bars[i];
+  }
+  for (let i = 0; i < 28; i++) VB[i] += (VA[i] - VB[i]) * (VA[i] > VB[i] ? up : down);
+  loud += (sum / NB - loud) * Math.min(1, .08 * f);
+  bassHold += ((live ? Math.max(0, Math.min(1, (rawBass - 38) / 42)) : 0) - bassHold) * Math.min(1, dt / 90);
+  vox += (vAim - vox) * Math.min(1, dt / (vAim > vox ? 70 : 320));     /* the voice: breathes out quickly, back slowly */
+  hiLvl += (hAim - hiLvl) * Math.min(1, dt / (hAim > hiLvl ? 40 : 200));
+  dtS = live ? dt / 1000 : 0;
+  if (live) {
+    phase += dtS * (.6 + 1.2 * loud);                             /* the waves breathe faster when the song is loud */
+    twPh += dtS * (1 + 2.5 * hiLvl);                              /* the cloud twinkles faster with the hats */
+    ripPh += dtS * (3 + 7 * vox);                                 /* the voice's ripples run faster when it is loud */
+  }
+  while (BEATS.length && clock - BEATS[0].t > 1200) BEATS.shift();
+  /* the warp: each outer wave flows into the new shape (two soft steps, so it starts smoothly),
+     the cloud a little slower; the shape eases back to plain when the beats stop */
+  const wd = Math.exp(-dt / (live ? 2200 : 450));
+  let wbusy = 0;
+  for (let n = 0; n < NW; n++) { WT[n] *= wd; wbusy += Math.abs(WT[n]) + Math.abs(CW[n]); }
+  const morph = Math.max(170, Math.min(420, .4 * ivMed));          /* a new pose flows in over 40% of a beat */
+  for (const W of WAV) if (W.wg) {
+    const k = Math.min(1, dt / ((morph + Math.max(0, W.r0 - 1.54) * 250) / 4));
+    for (let n = 0; n < NW; n++) { W.wa[n] += (WT[n] - W.wa[n]) * k; W.wc[n] += (W.wa[n] - W.wc[n]) * k; }
+  }
+  const kc = Math.min(1, dt / ((morph + 180) / 4));
+  for (let n = 0; n < NW; n++) { CA[n] += (WT[n] - CA[n]) * kc; CW[n] += (CA[n] - CW[n]) * kc; }
+  while (PK.length && clock - PK[0].t > 1800) PK.shift();
+  while (GL.length && clock - GL[0].t > 420) GL.shift();
+  if (colTo) {
+    const k = Math.min(1, (t - colAt) / 900), e = k * k * (3 - 2 * k);
+    COL = [mix(colFrom[0], colTo[0], e), mix(colFrom[1], colTo[1], e)]; blendE = e;
+    if (k >= 1) { colTo = null; blendE = 1; }
+  }
+  draw();
+  dtS = 0;
+  /* paused and settled: stop until something changes (the calm picture stays on screen) */
+  const busy = BEATS.length || PK.length || GL.length || vox > .01 || hiLvl > .01 || wbusy > .003;
+  still = !live && !moving && !colTo && !busy ? still + 1 : 0;
+  if (still > 20) { running = false; last = 0; self.postMessage({t: "idle"}); return; }
+  nextFrame(t2 => frame(t2, id));
+}
+
+function draw() {
+  if (!x || !Z) return;
+  const c = Z / 2, R = Z / K / 2;                                  /* the centre, and the record's radius */
+  const px1 = Math.max(.6, R / 160);                               /* about one screen pixel, never thinner */
+
+  /* this frame's music, worked out once */
+  const hit = hitAt();
+  for (const W of WAV) if (W.wg) for (let m = 0; m <= M; m++) W.wv[m] = W.wg * warpOf(W.wc, m);   /* each outer wave's warp */
+  for (let m = 0; m <= M; m++) CWV[m] = 1.25 * warpOf(CW, m);       /* the cloud's and the web's */
+  /* the voice's ripples: a steady run while it sings, and a pulse from each new syllable that
+     travels from the points round to the top and bottom */
+  for (let j = 0; j <= RJ; j++) {
+    const d = RD0 + (RD1 - RD0) * j / RJ;
+    let s = .5 * vox * Math.sin(14 * d - ripPh);
+    for (const P of PK) {
+      const age = (clock - P.t) / 1000, at = age * 1.1, g = (d - at) / .22;
+      if (g > -3 && g < 3) s += P.s * Math.exp(-g * g - age / 1.2) * Math.cos(15 * (d - at));
+    }
+    RIPT[j] = Math.max(-1, Math.min(1, s));
+  }
+  /* the voice's shape: low voice at the six corners, high voice halfway along each side - the
+     same on all six sides; only how it differs from its own average (the average is the breath) */
+  for (let i = 0; i < 28; i++) { let s = 0, n = 0; for (let j = Math.max(0, i - 3); j <= Math.min(27, i + 3); j++) { s += VB[j]; n++; } VS[i] = s / n; }
+  let vpm = 0;
+  for (let m = 0; m < M; m++) {
+    const p = UB[m], i = Math.min(26, p | 0), k = p - i;
+    VP[m] = VS[i] + (VS[i + 1] - VS[i]) * k; vpm += VP[m];
+  }
+  vpm /= M; for (let m = 0; m < M; m++) VP[m] -= vpm; VP[M] = VP[0];
+
+  x.setTransform(1, 0, 0, 1, 0, 0);
+  x.globalCompositeOperation = "source-over"; x.globalAlpha = 1;
+  x.clearRect(0, 0, Z, Z);
+  x.globalCompositeOperation = "lighter";                          /* light adds up */
+  x.lineCap = "round"; x.lineJoin = "round";
+  const tgt = colTo || COL, key = tgt.map(c3 => c3.map(Math.round).join(",")).join("|") + K;
+  if (!PICS || PICS.key !== key) { PICS_OLD = colTo && PICS ? PICS : null; PICS = picsFor(tgt); }
+  if (!colTo) { PICS_OLD = null; blendE = 1; }
+  TC = [tone(COL[0]), tone(COL[1])];                               /* just the two colours each frame - cheap */
+  const PS = PICS_OLD && blendE < .5 ? PICS_OLD : PICS;
+  SPR = PS.SPR; STAR = PS.STAR; HAZE = PICS.HAZE;
+  /* left = the song's first colour, right = its second; they meet at the top and bottom */
+  const grad = k => {
+    const a = mix(TC[0], [255, 255, 255], k), b = mix(TC[1], [255, 255, 255], k);
+    const g = x.createLinearGradient(c - R * 2, 0, c + R * 2, 0);
+    g.addColorStop(0, rgb(a)); g.addColorStop(.4, rgb(a)); g.addColorStop(.5, rgb(mix(a, b, .5)));
+    g.addColorStop(.6, rgb(b)); g.addColorStop(1, rgb(b));
+    return g;
+  };
+  const g0 = grad(0), g2 = grad(.25), g4 = grad(.45);
+
+  /* 1. the web: spokes from the record's edge outward (they glow with the highs; their ends follow
+        the warp), the four axes brighter, flaring on the beat */
+  const sp = new Path2D(), ax = new Path2D();
+  for (let i = 0; i < SPOKES; i++) {
+    const a = i / SPOKES * 2 * Math.PI, ca = Math.cos(a), sa = Math.sin(a);
+    const axis = i % (SPOKES / 4) === 0, r1 = (axis ? 2.5 : 2.25) + .8 * CWV[mOf(a)];
+    (axis ? ax : sp).moveTo(c + ca * R * 1.03, c + sa * R * 1.03);
+    (axis ? ax : sp).lineTo(c + ca * R * r1, c + sa * R * r1);
+  }
+  x.strokeStyle = g2;
+  x.globalAlpha = .13 + .14 * hiLvl; x.lineWidth = px1; x.stroke(sp);
+  x.globalAlpha = .42 + .3 * hit; x.lineWidth = px1 * 1.4; x.stroke(ax);
+
+  /* 2. the waves */
+  const ptsOf = (W, off) => {
+    const p = new Path2D(), q1 = W.p1 + W.w1 * phase, q2 = W.p2 + W.w2 * phase;
+    const b1 = W.a1 * (.8 + .2 * Math.cos(q1)) * (1 + 3 * off), b2 = W.a2 * Math.cos(q2) * (1 + 12 * off);
+    const lift = W.vg * vox;                                        /* the voice's breath: all the way round */
+    const tipR = 1.9 + .04 * off * 10 + lift * .9;
+    for (let m = 0; m <= M; m++) {
+      const wv = W.wg ? W.wv[m] : 0;                                /* the beat's warp (outer waves) */
+      let r = W.r0 + off + b1 * C6[m] + b2 * C12[m] + lift + wv;
+      if (W.rg) r += W.rg * ripAt(DS[m] + W.lag) * (1 - .7 * TIP[m]) + W.pg * VP[m];
+      r += (tipR + wv - r) * TIP[m] * W.tip;                         /* drawn to the tip at the left and right (the tips warp too) */
+      r = Math.min(LIM, Math.max(1.04, r));
+      const px = c + CT[m] * r * R, py = c + ST[m] * r * R;
+      if (m === 0) p.moveTo(px, py); else p.lineTo(px, py);
+    }
+    return p;
+  };
+  for (const W of WAV) {
+    if (W.kind === "ribbon") {
+      const outer = W.wg > 0, wide = outer ? 1 + .12 * bassHold : 1 + .3 * vox, lit = outer ? 1 + .25 * hit : 1 + .25 * vox;
+      const core = ptsOf(W, 0);
+      x.strokeStyle = g0;
+      x.globalAlpha = .18 * lit; x.lineWidth = R * .26 * wide; x.stroke(core);   /* the soft glowing band */
+      x.globalAlpha = .26 * lit; x.lineWidth = R * .14 * wide; x.stroke(core);
+      x.globalAlpha = .4; x.lineWidth = R * .075; x.stroke(core);
+      const c1 = ptsOf(W, -.022), c2 = ptsOf(W, .022);              /* two bright strands at its heart */
+      x.globalAlpha = .45; x.lineWidth = R * .035; x.stroke(c1); x.stroke(c2);
+      x.strokeStyle = g4; x.globalAlpha = .8; x.lineWidth = Math.max(px1, R * .013); x.stroke(c1); x.stroke(c2);
+      x.strokeStyle = g2;                                          /* fine lines running along it */
+      for (const o of [-.085, -.062, -.045, .045, .062, .085]) { x.globalAlpha = .55; x.lineWidth = px1; x.stroke(ptsOf(W, o)); }
+    } else {
+      const pth = ptsOf(W, 0);
+      x.strokeStyle = g0; x.globalAlpha = .16; x.lineWidth = R * .035; x.stroke(pth);
+      x.strokeStyle = g2; x.globalAlpha = .58; x.lineWidth = px1; x.stroke(pth);
+    }
+  }
+
+  /* 3. the threads joining points round the outside: they glow with the highs and follow the warp */
+  const npos = NODES.map(N => {
+    const a = N.a + .015 * Math.sin(N.wa + phase * N.ws), r = Math.min(LIM, N.r + CWV[mOf(a)]);
+    return [c + Math.cos(a) * r * R, c + Math.sin(a) * r * R];
+  });
+  const th = new Path2D();
+  for (const [i, j] of EDGES) { th.moveTo(npos[i][0], npos[i][1]); th.lineTo(npos[j][0], npos[j][1]); }
+  x.strokeStyle = g2; x.globalAlpha = .22 + .2 * hiLvl; x.lineWidth = px1; x.stroke(th);
+
+  /* 4. points of light: the web's points (brighter with the highs), and the ends of the
+        horizontal axis (they flash on the beat) */
+  const pts = [];
+  NODES.forEach((N, i) => pts.push(npos[i][0], npos[i][1], (N.br ? 3.2 : 1.6) * px1 * 1.6 * (1 + .3 * hiLvl), (N.br ? .8 : .42) + .3 * hiLvl));
+  for (const sx of [-1, 1]) for (const rr of [1.03, 1.6, 2.5]) {
+    const wv = rr > 1.5 ? CWV[sx > 0 ? 0 : M / 2] * (rr > 2 ? 1 : .8) : 0;
+    pts.push(c + sx * (rr + wv) * R, c, (rr > 1.5 ? 6 : 4) * px1 * (1 + .35 * hit), .7 + .3 * hit);
+  }
+  for (let i = 0; i < pts.length; i += 4) {
+    const s = pts[i + 2] * 2.4; x.globalAlpha = Math.min(1, pts[i + 3]);
+    x.drawImage(SPR[pts[i] < c ? 0 : 1], pts[i] - s, pts[i + 1] - s, s * 2, s * 2);
+  }
+
+  /* 5. the particle cloud round the outside: drifts slowly round (faster with the hats), shimmers
+        and twinkles with the highs, takes the warp's shape and lights a little on the beat */
+  const dl = [[new Path2D(), new Path2D(), new Path2D()], [new Path2D(), new Path2D(), new Path2D()]], big = [];
+  const drift = dtS * (.35 + 2.2 * hiLvl);
+  for (const d of DUST) {
+    if (drift) d.a += d.dv * drift;
+    const tw = Math.sin(d.tw + twPh * d.sp * 2);
+    const r = Math.min(LIM, d.r + CWV[mOf(d.a)] + .03 * hiLvl * Math.sin(d.tw * 3 + twPh * d.sp * 3));
+    const al = Math.min(1, (.42 + .5 * hiLvl + .15 * hit) * (.6 + .4 * tw) * (r > 2.35 ? (LIM - r) / .27 : 1));
+    if (al < .08) continue;
+    const ca = Math.cos(d.a), sa = Math.sin(d.a);
+    const px = c + ca * r * R, py = c + sa * r * R, sz = Math.max(px1 * .6, d.s * R);
+    if (d.s > .01) { big.push(px, py, sz * 3, al); continue; }
+    dl[px < c ? 0 : 1][al > .7 ? 2 : al > .4 ? 1 : 0].rect(px - sz, py - sz, sz * 2, sz * 2);
+  }
+  for (let sd = 0; sd < 2; sd++) for (let i = 0; i < 3; i++) {
+    x.fillStyle = rgb(mix(TC[sd], [255, 255, 255], i === 2 ? .62 : .32)); x.globalAlpha = .55 + .22 * i; x.fill(dl[sd][i]);
+  }
+  /* ...and the bigger ones are small four-point stars that twinkle (they swell a little as they brighten) */
+  for (let i = 0; i < big.length; i += 4) {
+    const al = big[i + 3], s = big[i + 2] * (1.05 + .55 * al); x.globalAlpha = Math.min(1, al * 1.05);
+    x.drawImage(STAR[big[i] < c ? 0 : 1], big[i] - s, big[i + 1] - s, s * 2, s * 2);
+  }
+
+  /* 6. the sparkles: a hit up top lights small four-point stars all round, here and there */
+  for (const G of GL) {
+    const age = clock - G.t; if (age < 0) continue;
+    const e = age < 45 ? age / 45 : Math.exp(-(age - 45) / 110); if (e < .03) continue;
+    const r = Math.min(LIM, G.r + CWV[mOf(G.a)]), px = c + Math.cos(G.a) * r * R, py = c + Math.sin(G.a) * r * R;
+    const s = R * (.06 + .06 * G.s) * (.7 + .3 * e);
+    x.globalAlpha = Math.min(.9, e * (.5 + .4 * G.s));
+    x.drawImage(STAR[px < c ? 0 : 1], px - s, py - s, s * 2, s * 2);
+  }
+
+  /* 7. last, BEHIND everything drawn: the soft haze (it breathes with the voice and the bass) */
+  x.globalCompositeOperation = "destination-over";
+  const ha = Math.min(1, .72 + .14 * vox + .14 * bassHold);
+  if (PICS_OLD && blendE < 1) {                                     /* the old song's haze fades into the new one's */
+    x.globalAlpha = ha * blendE; x.drawImage(PICS.HAZE, 0, 0, Z, Z);
+    x.globalAlpha = Math.min(1, ha * (1 - blendE) / Math.max(.05, 1 - ha * blendE)); x.drawImage(PICS_OLD.HAZE, 0, 0, Z, Z);
+  } else { x.globalAlpha = ha; x.drawImage(HAZE, 0, 0, Z, Z); }
+  x.globalAlpha = 1; x.globalCompositeOperation = "source-over";
+}
+</script>
+<script type="text/plain" id="sortsrc">
+"use strict";
+const C = new Intl.Collator(undefined, {sensitivity: "base", numeric: true}).compare;
+onmessage = e => {
+  const {id, by, rows} = e.data, n = rows.length, o = new Array(n);
+  for (let i = 0; i < n; i++) o[i] = i;
+  const t = i => rows[i][0], a = i => rows[i][1] || "~";
+  const byTitle = (i, j) => C(t(i), t(j)) || C(a(i), a(j));
+  if (by === "title") o.sort(byTitle);
+  else if (by === "new") o.sort((i, j) => rows[j][2] - rows[i][2] || byTitle(i, j));
+  else if (by === "plays") o.sort((i, j) => rows[j][3] - rows[i][3] || rows[j][4] - rows[i][4] || byTitle(i, j));
+  else if (by === "recent") o.sort((i, j) => rows[j][4] - rows[i][4] || byTitle(i, j));
+  else o.sort((i, j) => C(a(i), a(j)) || byTitle(i, j));
+  const order = Int32Array.from(o);
+  postMessage({id, order}, [order.buffer]);
+};
+</script>
 <script>
 "use strict";
-/* MY MUSIC app page. The playing happens in the app itself
-   (window.Native); this page shows it and sends taps. */
 const N = window.Native || null;
 const $ = s => document.querySelector(s);
 const enc = encodeURIComponent;
+/* work that can wait runs when the phone is free (never in the way of a tap),
+   or right after the screen has shown what a tap did */
+const idle = window.requestIdleCallback ? (f, ms) => requestIdleCallback(f, {timeout: ms || 400}) : f => setTimeout(f, 30);
+const afterPaint = f => requestAnimationFrame(() => setTimeout(f, 0));
 const PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 const PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-/* "Artist - Song" by Artist shows as "Song" (the artist is on the line below) */
+/* "TwinBeats - Jou Eyes Se Alles" by TwinBeats shows as "Jou Eyes Se Alles" (the artist is on the line below) */
 const nameKey = x => String(x || "").normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
 function shownTitle(t, a) {
   t = String(t || "").trim();
@@ -628,24 +1256,25 @@ async function getLib() {
   LIB.playlists.forEach(p => p.songs.forEach(s => {
     s.p = p.name; s.k = (s.title + " " + s.artist + " " + s.file).toLowerCase(); KEYS.set(keyOf(s), s);
   }));
-  sortCache = new Map(); PL = null;
+  sortCache = new Map(); PL = null; libGen++;
+  const was = cur;
   cur = ST.key ? KEYS.get(ST.key) || null : null;      /* the same song, from the fresh list (player stays open) */
+  if (cur && (!was || keyOf(was) !== keyOf(cur) || !$("#mtitle").textContent)) showSong(cur);
+  $("#mini").classList.toggle("hidden", !cur);
   loadPending(); mergePending(); loadPlays(); loadFavs();
+  idle(() => warmSorts(null, false), 1500);          /* every playlist's order, ready before it is opened */
 }
 /* favourites: hearted songs, per playlist ("playlist/file") */
 const HEART = '<svg viewBox="0 0 24 24"><path d="M12 20.6l-1.3-1.2C5.8 15 3 12.4 3 9.1 3 6.4 5.1 4.3 7.8 4.3c1.5 0 3 .7 4.2 1.9 1.2-1.2 2.7-1.9 4.2-1.9C18.9 4.3 21 6.4 21 9.1c0 3.3-2.8 5.9-7.7 10.3L12 20.6z"/></svg>';
 let FAV = new Set();
-function loadFavs() { try { FAV = new Set((N && JSON.parse(N.favs())) || []); } catch (e) { FAV = new Set(); } }
+function loadFavs() { try { FAV = new Set((N && JSON.parse(N.favs())) || []); } catch (e) { FAV = new Set(); } dropFavSorts(); }
+const dropFavSorts = () => { for (const k of [...sortCache.keys()]) if (k.startsWith("\u2665|")) sortCache.delete(k); };
 const isFav = s => !!s && FAV.has(keyOf(s));
 const favOnly = () => !!(PL && (load("mm_favonly") || {})[PL.name]);
-/*
- * the heart filter shows the favorites of EVERY playlist, in
- * the playlist's sort order. A song hearted in two playlists shows once -
- * the open playlist's copy. Songs from another playlist name it in grey.
- */
 function favAll() {
   const key = "\u2665|" + sortBy + "|" + sortRev, here = PL ? PL.name : "";
-  if (!sortCache.has(key)) sortCache.set(key, sorted([].concat(...LIB.playlists.map(p => p.songs))));
+  /* only the hearted songs are sorted (a few dozen), not every song of every playlist */
+  if (!sortCache.has(key)) sortCache.set(key, sorted([].concat(...LIB.playlists.map(p => p.songs.filter(isFav)))));
   const all = sortCache.get(key), tag = s => (showName(s) + "\u0001" + (s.artist || "")).toLowerCase(), seen = new Set(), out = [];
   for (const s of all) if (s.p === here && isFav(s)) seen.add(tag(s));
   for (const s of all) {
@@ -658,7 +1287,7 @@ function favAll() {
 function setFav(s, on) {
   if (!s || !N) return;
   const k = keyOf(s);
-  N.fav(k, on); if (on) FAV.add(k); else FAV.delete(k);
+  N.fav(k, on); if (on) FAV.add(k); else FAV.delete(k); dropFavSorts();
   const li = document.querySelector('.song[data-k="' + CSS.escape(k) + '"]');
   if (li) { const fv = li.querySelector(".fv"); if (on && !fv) li.querySelector("time").insertAdjacentHTML("beforebegin", '<i class="fv" aria-label="Favorite">' + HEART + '</i>'); else if (!on && fv) fv.remove(); }
   if (PL) { if (favOnly()) { const y = scrollY; renderList(); scrollTo(0, y); } else showFavBtn(); }     /* any playlist's heart counts here */
@@ -745,7 +1374,6 @@ function renderHome() {
   hb.classList.toggle("hidden", !nh); hb.textContent = "Hidden songs (" + nh + ")";
 }
 $("#hiddenBtn").onclick = () => go("#/hidden");
-$("#folderBtn").onclick = () => N && N.chooseFolder();
 $("#hback").onclick = () => goBack("#/");
 function renderHidden() {
   const hs = LIB.hidden || [];
@@ -791,7 +1419,9 @@ $("#psReset").onclick = () => { closePs(); if (sheetPl) N.resetCover(sheetPl.nam
 $("#pls").addEventListener("click", e => {
   if (plDone) { plDone = false; return; }
   const b = e.target.closest(".pl"); if (!b) return;
-  go("#/p/" + enc(LIB.playlists[+b.dataset.i].name));
+  const name = LIB.playlists[+b.dataset.i].name;
+  const m = load("mm_favonly") || {}; if (m[name]) { delete m[name]; store("mm_favonly", m); }
+  go("#/p/" + enc(name));
 });
 
 /* ---------- playlist view ---------- */
@@ -802,6 +1432,7 @@ let PLAYS = {};
 function loadPlays() {
   try { PLAYS = (N && JSON.parse(N.plays())) || {}; } catch (e) { PLAYS = {}; }
   for (const k of [...sortCache.keys()]) if (/\|(plays|recent)\|/.test(k)) sortCache.delete(k);
+  playsGen++;
 }
 const playsOf = s => PLAYS[keyOf(s)] || [0, 0];
 const SORTS = {
@@ -811,19 +1442,79 @@ const SORTS = {
   title: ["Title", "A to Z", "Z to A"],
   artist: ["Artist", "A to Z", "Z to A"]};
 if (!SORTS[sortBy]) sortBy = "artist";
-function sorted(songs) {
+function sortedBy(songs, by) {
   const c = COLL.compare;
   const a = songs.map(s => ({s, p: playsOf(s)}));
   const byTitle = (x, y) => c(showName(x.s), showName(y.s)) || c(x.s.artist || "~", y.s.artist || "~");
-  if (sortBy === "title") a.sort(byTitle);
-  else if (sortBy === "new") a.sort((x, y) => (y.s.mtime || 0) - (x.s.mtime || 0) || byTitle(x, y));
-  else if (sortBy === "plays") a.sort((x, y) => y.p[0] - x.p[0] || y.p[1] - x.p[1] || byTitle(x, y));
-  else if (sortBy === "recent") a.sort((x, y) => y.p[1] - x.p[1] || byTitle(x, y));
+  if (by === "title") a.sort(byTitle);
+  else if (by === "new") a.sort((x, y) => (y.s.mtime || 0) - (x.s.mtime || 0) || byTitle(x, y));
+  else if (by === "plays") a.sort((x, y) => y.p[0] - x.p[0] || y.p[1] - x.p[1] || byTitle(x, y));
+  else if (by === "recent") a.sort((x, y) => y.p[1] - x.p[1] || byTitle(x, y));
   else a.sort((x, y) => c(x.s.artist || "~", y.s.artist || "~") || byTitle(x, y));
-  if (sortRev) a.reverse();
   return a.map(x => x.s);
 }
-/* "5 min ago", "Yesterday", "Oct 3" */
+function sorted(songs) { const a = sortedBy(songs, sortBy); return sortRev ? a.reverse() : a; }
+
+let SW = null, swTried = false, swId = 0, libGen = 0, playsGen = 0;
+const swWait = new Map(), swBusy = new Map(), ROWS = new WeakMap();
+const sortKey = (name, by, rev) => name + "|" + by + "|" + rev;
+function sortThread() {
+  if (swTried) return SW;
+  swTried = true;
+  try {
+    SW = new Worker(URL.createObjectURL(new Blob([$("#sortsrc").textContent], {type: "text/javascript"})));
+    SW.onmessage = e => { const w = swWait.get(e.data.id); if (w) { swWait.delete(e.data.id); w(e.data.order); } };
+    SW.onerror = () => { SW = null; const ws = [...swWait.values()]; swWait.clear(); ws.forEach(w => w(null)); };
+  } catch (e) { SW = null; }
+  return SW;
+}
+function putSorted(name, by, fwd) {
+  sortCache.set(sortKey(name, by, false), fwd);
+  sortCache.set(sortKey(name, by, true), fwd.slice().reverse());
+}
+/* the order on screen, worked out here if the sort thread has not got to it */
+function sortedNow(pl) {
+  const k = sortKey(pl.name, sortBy, sortRev);
+  if (!sortCache.has(k)) putSorted(pl.name, sortBy, sortedBy(pl.songs, sortBy));
+  return sortCache.get(k);
+}
+/* what the sort thread needs to know about each song (made once per library / plays reading) */
+function rowsOf(songs) {
+  let r = ROWS.get(songs);
+  if (!r || r.g !== playsGen) {
+    r = songs.map(s => { const p = playsOf(s); return [showName(s), s.artist || "", s.mtime || 0, p[0], p[1]]; });
+    r.g = playsGen; ROWS.set(songs, r);
+  }
+  return r;
+}
+/* a playlist in one order, from the sort thread - done when it is in sortCache */
+function sortAsync(pl, by) {
+  if (sortCache.has(sortKey(pl.name, by, false))) return Promise.resolve();
+  const k = pl.name + "|" + by;
+  if (swBusy.has(k)) return swBusy.get(k);
+  const gen = libGen, pgen = playsGen, songs = pl.songs, w = sortThread();
+  const pr = new Promise(res => {
+    const here = () => { if (gen === libGen) putSorted(pl.name, by, sortedBy(songs, by)); res(); };
+    if (!w) { setTimeout(here, 0); return; }
+    const id = ++swId;
+    swWait.set(id, order => {
+      if (!order) { here(); return; }
+      if (gen === libGen && (pgen === playsGen || (by !== "plays" && by !== "recent"))) putSorted(pl.name, by, Array.from(order, i => songs[i]));
+      res();
+    });
+    w.postMessage({id, by, rows: rowsOf(songs)});
+  });
+  const done = pr.then(() => { swBusy.delete(k); });
+  swBusy.set(k, done);
+  return done;
+}
+/* every big playlist in the order in use (all = every order of one playlist), ahead of time */
+function warmSorts(pl, all) {
+  if (!sortThread()) return;
+  const pls = pl ? [pl] : LIB.playlists.filter(p => p.songs.length > 150);
+  const bys = all ? Object.keys(SORTS) : [sortBy];
+  pls.forEach(p => bys.forEach(by => sortAsync(p, by)));
+}
 function ago(ms) {
   const m = Math.floor((Date.now() - ms) / 60000);
   if (m < 1) return "Just now";
@@ -850,15 +1541,24 @@ function showSort() {
   });
 }
 let renderTok = 0, listDone = true, LIST_BASE = null;   /* the whole sorted playlist the screen was drawn from */
-const rowHtml = (s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '" data-k="' + esc(keyOf(s)) + '"><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
+const EQ = '<i class="eq" aria-hidden="true"><i></i><i></i><i></i></i>';     /* the playing song's bars */
+const rowHtml = (s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '" data-k="' + esc(keyOf(s)) + '"><div class="th">' + (cur === s ? EQ : '') + '<img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
   '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' + esc(s.artist || "Unknown artist") +
   (PL && s.p !== PL.name ? ' <em class="frm">&middot; ' + esc(s.p) + '</em>' : '') +
   '</span></div>' + (FAV.has(keyOf(s)) ? '<i class="fv" aria-label="Favorite">' + HEART + '</i>' : '') + '<time>' + side(s) + '</time></li>';
-function renderList() {
+function renderList(top) {
   if (!PL) return;
   const q = $("#q").value.trim().toLowerCase();
-  const key = PL.name + "|" + sortBy + "|" + sortRev;
-  if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
+  const key = sortKey(PL.name, sortBy, sortRev);
+  /* the order is not ready yet - ask the sort thread and draw when it answers (the tap
+     that got here already showed: the sheet closed, the playlist opened) */
+  if (!favOnly() && !sortCache.has(key)) {
+    const want = PL, by = sortBy, rev = sortRev;
+    $("#lname").textContent = PL.name; $("#lcount").textContent = countLine(PL.songs.length, waiting(pendOf(PL.name)));
+    if (!LIST_BASE || LIST_BASE.pl !== PL) { ++renderTok; $("#songs").innerHTML = ""; shown = []; LIST_BASE = {pl: PL, list: []}; }
+    sortAsync(PL, by).then(() => { if (PL === want && sortBy === by && sortRev === rev) { renderList(top); if (top) scrollTo(0, 0); } });
+    return;
+  }
   const words = q.split(/\s+/), fo = favOnly();
   const base = fo ? favAll() : sortCache.get(key);
   LIST_BASE = {pl: PL, list: base};
@@ -867,22 +1567,25 @@ function renderList() {
   const w = waiting(pendOf(PL.name));
   $("#lcount").textContent = q ? shown.length.toLocaleString() + " found" : fo ? (base.length === 1 ? "1 favorite" : base.length.toLocaleString() + " favorites") : countLine(PL.songs.length, w);
   showFavBtn();
-  renderPend(); renderMiss(); renderWrong();
+  renderPend(); renderMiss(); renderWrong(); renderFavNote(fo && !q);
   const ul = $("#songs"), list = shown, tok = ++renderTok, row = rowHtml;
   listDone = true;
   if (!list.length) { ul.innerHTML = q ? '<li class="empty">Nothing matches that search.</li>' : fo ? '<li class="empty">No favorites yet.<br><br>Tap the heart next to a song\'s name in the player, or long-press a song and pick Add to favorites.</li>' : pendOf(PL.name) ? '' : '<li class="empty">No songs here yet.</li>'; }
   else {
-    /* first screen now, the rest in small batches so the tap feels instant */
+    /* first screen now; the rest in small pieces only while the phone is free, so a
+       tap (Back, Sort, a song) never waits behind 2,000 rows being added */
     ul.innerHTML = list.slice(0, 40).map(row).join("");
     let n = 40;
     listDone = n >= list.length;
-    const more = () => {
+    const more = dl => {
       if (tok !== renderTok) return;
-      if (n >= list.length) { listDone = true; return; }
-      ul.insertAdjacentHTML("beforeend", list.slice(n, n + 250).map((s, k) => row(s, n + k)).join(""));
-      n += 250; if (n >= list.length) listDone = true; else setTimeout(more, 16);
+      do {
+        ul.insertAdjacentHTML("beforeend", list.slice(n, n + 120).map((s, k) => row(s, n + k)).join(""));
+        n += 120;
+      } while (n < list.length && dl && dl.timeRemaining && dl.timeRemaining() > 8);
+      if (n >= list.length) listDone = true; else idle(more, 500);
     };
-    if (!listDone) setTimeout(more, 16);
+    if (!listDone) idle(more, 500);
   }
   showSort();
 }
@@ -894,9 +1597,7 @@ function renderList() {
  */
 function patchList() {
   if (!PL || !listDone || $("#q").value.trim() || favOnly()) return false;
-  const key = PL.name + "|" + sortBy + "|" + sortRev;
-  if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
-  const list = sortCache.get(key), ul = $("#songs");
+  const list = sortedNow(PL), ul = $("#songs");
   const old = new Map();
   for (const li of ul.children) { if (!li.dataset.k) return false; old.set(li.dataset.k, li); }
   if (!old.size) return false;
@@ -935,6 +1636,17 @@ function renderPend() {
     (open ? '<ul class="songs">' + list.slice(0, 300).map(row).join("") +
       (list.length > 300 ? '<li class="empty">and ' + (list.length - 300).toLocaleString() + ' more</li>' : '') + '</ul>' : '');
 }
+/* while the heart filter is on, say so - the songs can come from other playlists */
+function renderFavNote(on) {
+  const box = $("#favnote");
+  if (!on || !PL) { box.innerHTML = ""; return; }
+  const from = [...new Set(favAll().map(s => s.p))], others = from.filter(n => n !== PL.name);
+  const names = from.map(esc), list = names.length < 2 ? names.join("") : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+  const where = !from.length ? "No hearted songs yet" : others.length ? "Hearted songs from " + list : "Hearted songs from this playlist";
+  box.innerHTML = '<div class="pendhead"><div><b>Favorites from every playlist</b><span>' + where + '</span></div>' +
+    '<button class="ghost" id="favOff">All of ' + esc(PL.name) + '</button></div>';
+}
+$("#favnote").addEventListener("click", e => { if (e.target.id === "favOff") $("#favBtn").click(); });
 const missOpen = {};
 function renderMiss() {
   const box = $("#miss"), list = PL ? missOf(PL.name) : [];
@@ -1018,15 +1730,20 @@ window.onSongs = async () => {
 let qt; $("#q").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(renderList, 160); });
 /* "Sort by": pick one (it sorts and closes); the order switch flips it in place */
 const closeSort = () => $("#srtsheet").classList.add("hidden");
-$("#sortBtn").onclick = () => { loadPlays(); showSort(); $("#srtsheet").classList.remove("hidden"); };
+$("#sortBtn").onclick = () => {
+  showSort(); $("#srtsheet").classList.remove("hidden");
+  afterPaint(() => { loadPlays(); showSort(); warmSorts(PL, true); });
+};
 $("#srtList").addEventListener("click", e => {
   const b = e.target.closest(".sortrow"); if (!b) return;
   if (b.dataset.sort !== sortBy) { sortBy = b.dataset.sort; sortRev = false; }
-  store("mm_sort", sortBy); store("mm_rev", sortRev); closeSort(); renderList(); scrollTo(0, 0);
+  closeSort(); showSort();                                   /* the sheet goes at once */
+  afterPaint(() => { store("mm_sort", sortBy); store("mm_rev", sortRev); renderList(true); scrollTo(0, 0); });
 });
 $("#srtOrder").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
-  sortRev = b.dataset.rev === "1"; store("mm_rev", sortRev); showSort(); renderList();
+  sortRev = b.dataset.rev === "1"; showSort();
+  afterPaint(() => { store("mm_rev", sortRev); renderList(); });
 });
 $("#srtDone").onclick = closeSort;
 $("#srtsheet").addEventListener("click", e => { if (e.target.id === "srtsheet") closeSort(); });
@@ -1037,10 +1754,8 @@ function playList(list, i, shuffle) {
 /* the whole playlist in the current order - a search only filters what you see */
 function fullList() {
   if (!PL) return [];
-  if (LIST_BASE && LIST_BASE.pl === PL) return LIST_BASE.list;        /* exactly the order on screen */
-  const key = PL.name + "|" + sortBy + "|" + sortRev;
-  if (!sortCache.has(key)) sortCache.set(key, sorted(PL.songs));
-  return favOnly() ? favAll() : sortCache.get(key);
+  if (LIST_BASE && LIST_BASE.pl === PL && LIST_BASE.list.length) return LIST_BASE.list;        /* exactly the order on screen */
+  return favOnly() ? favAll() : sortedNow(PL);
 }
 $("#songs").addEventListener("click", e => {
   if (lpDone) { lpDone = false; return; }
@@ -1057,20 +1772,25 @@ window.onNative = st => { if (!dragging) apply(st); };
 function apply(st) {
   ST = st || {}; stAt = performance.now();
   const s = ST.key ? KEYS.get(ST.key) || null : null;
-  if (s !== cur) { cur = s; if (s) showSong(s); markOn(); loadPlays(); }
+  if (s !== cur) { cur = s; if (s) showSong(s); markOn(); idle(loadPlays, 2000); }     /* play counts when free */
   $("#mini").classList.toggle("hidden", !cur);
   syncPlay(); tick(); renderUp();
   if (ST.note) toast(ST.note);
 }
-function ask() { if (N && !dragging) { try { apply(JSON.parse(N.state())); } catch (e) {} } }
+/* the page no longer waits for Android to answer "what is playing?" - it asks, and the
+   answer comes in through onNative a moment later (the old way held up the page every 2 s) */
+function ask() { if (N && !dragging) { try { if (N.askState) N.askState(); else apply(JSON.parse(N.state())); } catch (e) {} } }
 const pos = () => Math.min(dur(), (ST.pos || 0) + (ST.playing ? performance.now() - stAt : 0));   /* ms */
 const dur = () => ST.dur || (cur ? cur.duration * 1000 : 0);
 setInterval(() => { if (!document.hidden) ask(); }, 2000);                    /* stay in step */
 setInterval(() => { if (!document.hidden && ST.playing) tick(); }, 250);     /* smooth bars */
 document.addEventListener("visibilitychange", () => { if (!document.hidden) ask(); });
 function markOn() {
-  document.querySelectorAll(".song.on").forEach(e => e.classList.remove("on"));
-  if (cur && PL && shown.indexOf(cur) >= 0) { const li = document.querySelector('.song[data-i="' + shown.indexOf(cur) + '"]'); if (li) li.classList.add("on"); }   /* favorites from another playlist too */
+  document.querySelectorAll(".song.on").forEach(e => { e.classList.remove("on"); const q = e.querySelector(".eq"); if (q) q.remove(); });
+  if (cur && PL && shown.indexOf(cur) >= 0) {                                   /* favorites from another playlist too */
+    const li = document.querySelector('.song[data-i="' + shown.indexOf(cur) + '"]');
+    if (li) { li.classList.add("on"); const th = li.querySelector(".th"); if (th && !th.querySelector(".eq")) th.insertAdjacentHTML("afterbegin", EQ); }
+  }
 }
 $("#mplay").onclick = () => N && N.toggle(); $("#nplay").onclick = () => N && N.toggle();
 $("#mnext").onclick = () => N && N.next(); $("#next").onclick = () => N && N.next(); $("#prev").onclick = () => N && N.prev();
@@ -1102,30 +1822,38 @@ function showSong(s) {
   $("#npl").textContent = s.p;
   showHeart();
   for (const [id, big] of [["#mart", false], ["#nart", true]]) { const im = $(id); im.style.visibility = "visible"; im.onerror = () => im.style.visibility = "hidden"; im.src = artUrl(s.p, s.file, big); }
-  $("#wave").innerHTML = waveFor(s).map((h, i) => '<i style="height:' + h + '%;--c:' + waveColor(i) + '"></i>').join("");
+  waveOn = -1;                                            /* the progress line (no bars to build) */
   trackColors(s);
   if ($("#now").classList.contains("show") || LYR.open) wantLyrics(s);
   else { LYR.data = null; $("#nlyr").classList.remove("has"); }
 }
+let playShown = null;
 function syncPlay() {
   const p = !!ST.playing;
-  $("#mplay").innerHTML = $("#nplay").innerHTML = p ? PAUSE : PLAY;
-  $("#mplay").setAttribute("aria-label", p ? "Pause" : "Play"); $("#nplay").setAttribute("aria-label", p ? "Pause" : "Play");
-  $("#disc").classList.toggle("go", p);
-  document.body.classList.toggle("playing", p);           /* the bars on the playing song move only while it plays */
+  if (p !== playShown) {                                   /* only when it changed (was redrawn every 2 s) */
+    playShown = p;
+    $("#mplay").innerHTML = $("#nplay").innerHTML = p ? PAUSE : PLAY;
+    $("#mplay").setAttribute("aria-label", p ? "Pause" : "Play"); $("#nplay").setAttribute("aria-label", p ? "Pause" : "Play");
+    $("#disc").classList.toggle("go", p);
+    document.body.classList.toggle("playing", p);           /* the bars on the playing song move only while it plays */
+  }
   ringWake();
   const r = ST.repeat || "off", b = $("#rep");
   $("#shuf").setAttribute("aria-pressed", !!ST.shuffle);
   b.setAttribute("aria-pressed", r !== "off"); b.setAttribute("aria-label", "Repeat: " + r);
   $("#rep1").classList.toggle("hidden", r !== "one");
 }
+/* four times a second, but only what changed is touched (the bars, the times) -
+   and the thin bar over the mini player moves by transform, which needs no layout */
+let waveOn = -1, tShown = "";
 function tick() {
   const d = dur() / 1000, t = pos() / 1000, pct = d ? Math.min(1, t / d) : 0;
-  $("#mprog").style.width = (pct * 100) + "%";
-  $("#tcur").textContent = mmss(t); $("#tdur").textContent = mmss(d);
-  const on = Math.round(pct * BARS);
-  $("#wave").querySelectorAll("i").forEach((b, i) => b.classList.toggle("on", i < on));
-  $("#wave").setAttribute("aria-valuetext", mmss(t) + " of " + mmss(d));
+  $("#mprog").style.transform = "scaleX(" + pct.toFixed(4) + ")";
+  const tc = mmss(t), td = mmss(d);
+  if (tc + td !== tShown) { tShown = tc + td; $("#tcur").textContent = tc; $("#tdur").textContent = td; $("#wave").setAttribute("aria-valuetext", tc + " of " + td); }
+  /* the line fills and the dot moves by transform - no layout, no repaint */
+  const on = Math.round(pct * 2000);
+  if (on !== waveOn) { waveOn = on; $("#pfill").style.transform = "scaleX(" + (on / 2000) + ")"; $("#pknob").style.transform = "translateX(" + (on / 20) + "%)"; }
   if (!LYR.raf) lyricsTick();
   lyricsWake();
 }
@@ -1142,10 +1870,10 @@ function dragTo(e) {
   dragMs = Math.max(0, Math.min(1, x / r.width)) * dur();
   ST.pos = dragMs; stAt = performance.now(); tick();
 }
-$("#wave").addEventListener("pointerdown", e => { if (!cur) return; dragging = true; dragTo(e); });
+$("#wave").addEventListener("pointerdown", e => { if (!cur) return; dragging = true; $("#wave").classList.add("drag"); dragTo(e); });
 addEventListener("pointermove", e => { if (dragging) dragTo(e); });
-addEventListener("pointerup", () => { if (dragging) { dragging = false; seekTo(dragMs); } });
-addEventListener("pointercancel", () => { if (dragging) { dragging = false; ask(); } });
+addEventListener("pointerup", () => { if (dragging) { dragging = false; $("#wave").classList.remove("drag"); seekTo(dragMs); } });
+addEventListener("pointercancel", () => { if (dragging) { dragging = false; $("#wave").classList.remove("drag"); ask(); } });
 $("#wave").addEventListener("keydown", e => { if (e.key === "ArrowRight") seekTo(pos() + 5000); if (e.key === "ArrowLeft") seekTo(pos() - 5000); });
 
 /* ---------- add songs: paste a link, Share from YouTube, or from this phone ---------- */
@@ -1193,7 +1921,6 @@ const closeAdd = () => $("#asheet").classList.add("hidden");
 $("#aCancel").onclick = closeAdd;
 $("#asheet").addEventListener("click", e => { if (e.target.id === "asheet") closeAdd(); });
 $("#aLink").addEventListener("input", addChips);
-/* MY MUSIC fetches it itself. to = "" : a playlist of its own */
 function startDownload(link, to) {
   let built = true; try { built = N.builtIn(); } catch (e) {}
   if (!built) { toast("The downloader is missing from this install - get the APK from the Releases page"); return; }
@@ -1384,21 +2111,47 @@ $("#songs").addEventListener("contextmenu", e => e.preventDefault());
 
 /* ---------- views (the phone's Back button steps back through them) ---------- */
 let lastView = "#/";
-function go(h) { const d = ((history.state && history.state.d) || 0) + 1; history.pushState({d}, "", h); route(); }
-function goBack(fallback) { if (history.state && history.state.d > 0) history.back(); else { history.replaceState({d: 0}, "", fallback); route(); } }
-$("#mopen").onclick = () => go("#/now");
+const VIEWS = [];                       /* VIEWS[d] = the view at history depth d */
+let popFor = null, popT = 0, goNext = null;
+function go(h) {
+  if (popFor !== null) { goNext = h; return; }          /* a step back is still on its way: right after it */
+  if ((location.hash || "#/") === h) { route(); return; }
+  const d = ((history.state && history.state.d) || 0) + 1; VIEWS[d] = h; VIEWS.length = d + 1; history.pushState({d}, "", h); route();
+}
+function goBack(fallback) {
+  const d = (history.state && history.state.d) || 0;
+  if (popFor !== null) return;                          /* already stepping back */
+  if (d > 0) {
+    const to = VIEWS[d - 1] || fallback || "#/";
+    popFor = to; clearTimeout(popT); popT = setTimeout(popDone, 1500);
+    route(to); history.back();
+  } else { history.replaceState({d: 0}, "", fallback); VIEWS[0] = fallback; route(); }
+}
+function popDone() { popFor = null; clearTimeout(popT); if (goNext) { const h = goNext; goNext = null; go(h); } }
+/* the phone's own Back button (MainActivity asks the page first): "1" = the page stepped back */
+window.appBack = () => { if (popFor !== null) return "1"; if (history.state && history.state.d > 0) { goBack("#/"); return "1"; } return "0"; };
+let miniAt = 0;
+$("#mini").addEventListener("pointerdown", e => {
+  if (e.button > 0 || e.target.closest("#mplay,#mnext") || !cur) return;
+  miniAt = performance.now(); go("#/now");
+});
+$("#mini").addEventListener("click", e => {
+  if (e.target.closest("#mplay,#mnext") || !cur) return;
+  if (performance.now() - miniAt < 1000) return;           /* the touch already opened it */
+  go("#/now");
+});
 $("#nclose").onclick = () => goBack(lastView);
 function enter(el) {
   el.classList.remove("enter"); void el.offsetWidth; el.classList.add("enter");
   el.addEventListener("animationend", () => el.classList.remove("enter"), {once: true});
 }
-function route() {
-  const h = location.hash || "#/";
+function route(to) {
+  const h = to || location.hash || "#/";
   const now = $("#now");
   const wasHome = !$("#home").classList.contains("hidden");
   if (wasHome && h !== "#/" && h !== "#/now") homeY = scrollY;
   if (h === "#/now") { if (!cur) { history.replaceState({d: 0}, "", lastView); return route(); } now.classList.add("show"); now.setAttribute("aria-hidden", "false"); nowShown(); return; }
-  now.classList.remove("show"); now.setAttribute("aria-hidden", "true"); ringStop();
+  now.classList.remove("show"); now.setAttribute("aria-hidden", "true"); ringStop(); document.body.classList.remove("nowup");
   lastView = h;
   $("#hid").classList.add("hidden");
   if (h === "#/hidden") {
@@ -1416,9 +2169,26 @@ function route() {
   $("#list").classList.add("hidden"); $("#home").classList.remove("hidden"); renderHome();
   if (!wasHome) { scrollTo(0, homeY); enter($("#home")); }      /* back where you were on the home screen */
 }
-addEventListener("popstate", route);
+addEventListener("popstate", () => {
+  const h = location.hash || "#/", want = popFor;
+  popDone();
+  if (want !== null && want === h) return;              /* already on screen */
+  route();
+});
+
+/* a button shows it was pressed the moment the finger lands */
+const PRESSABLE = ".ib,.back,.pill,.ghost,.chip,.sortbtn,.srow,.copy,.big";
+let pressed = null;
+const unpress = () => { if (pressed) { pressed.classList.remove("press"); pressed = null; } };
+addEventListener("pointerdown", e => {
+  unpress();
+  const b = e.target && e.target.closest ? e.target.closest(PRESSABLE) : null;
+  if (b && !b.disabled) { b.classList.add("press"); pressed = b; }
+}, {passive: true, capture: true});
+["pointerup", "pointercancel"].forEach(ev => addEventListener(ev, () => setTimeout(unpress, 90), {passive: true, capture: true}));
 
 /* ---------- update library ---------- */
+$("#folderBtn").onclick = () => N && N.chooseFolder();
 $("#scan").onclick = () => {
   if (!N) return;
   const b = $("#scan"); b.disabled = true; b.textContent = "Updating...";
@@ -1438,10 +2208,6 @@ window.onLibrary = async msg => {
 let tt; function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.remove("hidden"); clearTimeout(tt); tt = setTimeout(() => t.classList.add("hidden"), 3200); }
 
 
-/* =====================================================================
-   each song's own colours, the moving ring, lyrics,
-   add to another playlist
-   ===================================================================== */
 const BRAND = [[207, 73, 255], [15, 235, 255]];
 const rgb = c => "rgb(" + c.map(Math.round).join(",") + ")";
 const mix = (a, b, k) => a.map((v, j) => v + (b[j] - v) * k);
@@ -1476,46 +2242,219 @@ function palette(px) {
     return vivid([0, 1, 2].map(c => z.reduce((a, j) => a + sum[j][c], 0) / W)); };
   let first = -1, second = -1;
   for (let i = 0; i < B; i++) if (w[i] && (first < 0 || score(i) > score(first))) first = i;
-  if (first < 0 || score(first) < 1.5) return BRAND.map(c => c.slice());
+  if (first < 0 || score(first) < 1.5) return fillPal(BRAND);
   for (let i = 0; i < B; i++) {
     const dist = Math.min(Math.abs(i - first), B - Math.abs(i - first));
     /* a second colour: well apart in hue, and the further apart the better */
     if (dist >= 3 && w[i] && score(i) >= .1 * score(first) && (second < 0 || score(i) * (.5 + dist / 12) > score(second) * (.5 + Math.min(Math.abs(second - first), B - Math.abs(second - first)) / 12))) second = i;
   }
-  const a = colourOf(first);
-  if (second >= 0) return [a, colourOf(second)];
-  return [a, vivid(mix(a, [255, 255, 255], .35).map((v, j) => j === 2 ? Math.min(255, v + 40) : v))];   /* one-colour art: a lighter partner */
+  const a = colourOf(first), out = [a];
+  out.push(second >= 0 ? colourOf(second) : vivid(mix(a, [255, 255, 255], .35).map((v, j) => j === 2 ? Math.min(255, v + 40) : v)));   /* one-colour art: a lighter partner */
+  const used = second >= 0 ? [first, second] : [first];
+  const far = i => used.every(j => Math.min(Math.abs(i - j), B - Math.abs(i - j)) >= 2);
+  const rest = [];
+  for (let i = 0; i < B; i++) if (w[i] && score(i) >= .04 * score(first)) rest.push(i);
+  rest.sort((p, q) => score(q) - score(p));
+  for (const i of rest) { if (out.length >= 5) break; if (far(i)) { used.push(i); out.push(colourOf(i)); } }
+  return fillPal(out);
 }
+/* at least four colours: when the picture has fewer, neighbours of its own hues fill in */
+function hueShift(c, dh) {
+  const [r, g, b] = c.map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) h = (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6;
+  h = ((h + dh) % 1 + 1) % 1;
+  const l = (mx + mn) / 2, s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+  return hsl2rgb(h, Math.max(s, .68), Math.min(.7, Math.max(.58, l)));
+}
+function fillPal(cols) {
+  const out = cols.map(c => c.slice());
+  if (out.length < 3) out.push(hueShift(out[0], -.07));
+  if (out.length < 4) out.push(hueShift(out[1], .07));
+  return out;
+}
+const pcStyle = document.head.appendChild(document.createElement("style"));
 let colTok = 0;
 function trackColors(s) {
   const tok = ++colTok, im = new Image();
   im.onload = () => {
     if (tok !== colTok) return;
+    let pal = fillPal(BRAND);
     try {
       const c = document.createElement("canvas"); c.width = c.height = 32;
       const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(im, 0, 0, 32, 32);
-      setColors(palette(x.getImageData(0, 0, 32, 32).data));
-    } catch (e) { setColors(BRAND); }
+      pal = palette(x.getImageData(0, 0, 32, 32).data);
+    } catch (e) {}
+    songLook(im, pal, tok);
   };
-  im.onerror = () => { if (tok === colTok) setColors(BRAND); };
+  im.onerror = () => { if (tok === colTok) songLook(null, fillPal(BRAND), tok); };
   im.src = artUrl(s.p, s.file);
+}
+/* the new song's look goes on in small steps a frame apart, not all in the one frame the
+   title changes in: colours first, then the background, then the glow, then (when the phone is
+   free) the galaxy's colours */
+function songLook(im, pal, tok) {
+  setColors(pal.slice(0, 2));
+  requestAnimationFrame(() => { if (tok !== colTok) return; infoBg(im, pal);
+    requestAnimationFrame(() => { if (tok !== colTok) return; glowFor(pal); idle(() => { if (tok === colTok) galaxyFor(pal); }, 700); }); });
 }
 let colSeq = 0;
 function setColors(pair) {
   const seq = ++colSeq;
   colFrom = [COL[0].slice(), COL[1].slice()]; colTo = pair.map(c => c.slice()); colAt = performance.now();
   const now = $("#now"); now.style.setProperty("--c1", rgb(pair[0])); now.style.setProperty("--c2", rgb(pair[1]));
-  document.documentElement.style.setProperty("--pc1", rgb(pair[0])); document.documentElement.style.setProperty("--pc2", rgb(pair[1]));
+  /* the list's colours for the playing song are set only where they are used - setting them
+     on the whole page made every one of the thousands of rows underneath be looked at again */
+  pcStyle.textContent = ".song.on,.sortrow,.order,.copy.close,.upnext{--pc1:" + rgb(pair[0]) + ";--pc2:" + rgb(pair[1]) + "}";
   const target = colTo;
   const done = () => { if (seq !== colSeq) return; COL = target.map(c => c.slice()); colTo = null;
     $("#wave").querySelectorAll("i").forEach((b, i) => b.style.setProperty("--c", waveColor(i))); };
-  if (RING.on) setTimeout(done, 900); else { done(); drawRing(); }
+  if (RW.w) { RW.w.postMessage({t: "col", pair: target}); if (RW.live) setTimeout(done, 900); else done(); return; }
+  done(); drawRing();
 }
-function stepColors(t) {
-  if (!colTo) return;
-  const k = Math.min(1, (t - colAt) / 900), e = k * k * (3 - 2 * k);
-  COL = [mix(colFrom[0], colTo[0], e), mix(colFrom[1], colTo[1], e)];
-  if (k >= 1) colTo = null;
+let bgFlip = 0;
+const rgba = (c, k) => "rgba(" + c.map(Math.round).join(",") + "," + k + ")";
+/* the galaxy behind the ring (CSS .stars above). Drawn once when the player is up, and again
+   only when the screen size changes. The band runs through the record at -24 degrees. */
+function drawStars() {
+  const box = $("#nowstars"); if (!box) return;
+  const w = box.offsetWidth, h = box.offsetHeight; if (!w || !h) return;
+  const dpr = Math.min(2, devicePixelRatio || 1), key = w + "x" + h + "@" + dpr;
+  if (drawStars.key === key) return;
+  drawStars.key = key; GX.key = "";
+  galaxyStars();
+  let sd = 20261017;
+  const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const TINT = ["255,255,255", "255,255,255", "214,224,255", "255,236,216"];
+  const cvs = box.querySelectorAll("canvas");
+  cvs.forEach(c => { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); });
+  /* 1. faint stars, about half of them crowding along the band, and the band's soft glow */
+  let g = cvs[0].getContext("2d"); g.scale(dpr, dpr);
+  const n = Math.round(w * h / 300);
+  for (let i = 0; i < n; i++) {
+    const x = r() * w, y = r() * h;
+    g.globalAlpha = .18 + .55 * r() * r(); g.fillStyle = "rgb(" + TINT[(r() * 4) | 0] + ")";
+    g.beginPath(); g.arc(x, y, r() < .88 ? .35 + .35 * r() : .7 + .5 * r(), 0, 6.2832); g.fill();
+  }
+  /* 2 and 3. brighter stars with a little glow - each set fades in and out in turn (the twinkle) */
+  for (let k = 1; k <= 2; k++) {
+    g = cvs[k].getContext("2d"); g.scale(dpr, dpr);
+    for (let i = 0; i < Math.round(w * h / 5200); i++) {
+      const x = r() * w, y = r() * h, s = .6 + 1.1 * r() * r(), tint = TINT[(r() * 4) | 0];
+      const rg = g.createRadialGradient(x, y, 0, x, y, s * 4);
+      rg.addColorStop(0, "rgba(" + tint + ",.9)"); rg.addColorStop(.25, "rgba(" + tint + ",.25)"); rg.addColorStop(1, "rgba(" + tint + ",0)");
+      g.fillStyle = rg; g.fillRect(x - s * 4, y - s * 4, s * 8, s * 8);
+      if (s > 1.3) { g.globalAlpha = .35; g.fillStyle = "rgb(" + tint + ")"; g.fillRect(x - s * 5, y - .3, s * 10, .6); g.fillRect(x - .3, y - s * 5, .6, s * 10); g.globalAlpha = 1; }
+    }
+  }
+}
+if (window.ResizeObserver) new ResizeObserver(() => { drawStars.key = ""; if ($("#now").classList.contains("show")) idle(drawStars, 600); }).observe($("#now"));
+/* the galaxy. Its stars are drawn once per screen size (white and blue-white, crowding into
+   two spiral arms and a bright middle behind the record); its glow is drawn once per song, small
+   and soft, in the song's colours - arm one runs colour 1 into colour 3, arm two colour 2 into
+   colour 4 - and fades over the last song's. CSS tilts it and turns it very slowly. */
+const GX = {key: "", flip: 0, pal: null};
+function gxSize() {
+  const box = $("#nowgx"); if (!box) return 0;
+  const w = box.offsetWidth, h = box.offsetHeight; if (!w || !h) return 0;
+  const d = $("#disc").getBoundingClientRect(), b = box.getBoundingClientRect(), D = Math.round(Math.max(w * 1.75, h * .95));
+  box.style.setProperty("--gx", (d.left + d.width / 2 - b.left).toFixed(1) + "px");
+  box.style.setProperty("--gy", (d.top + d.height / 2 - b.top).toFixed(1) + "px");
+  box.style.setProperty("--gd", D + "px");
+  return D;
+}
+const GPITCH = 1 / Math.tan(15 * Math.PI / 180);          /* how tightly the arms wind */
+const armAt = (k, u) => k * Math.PI + Math.log(Math.max(u, .05) / .05) * GPITCH * .42;
+function galaxyStars() {
+  const D = gxSize(); if (!D) return;
+  const c = $("#nowgx .gxp"), dpr = Math.min(1.5, devicePixelRatio || 1);
+  c.width = c.height = Math.round(D * dpr);
+  const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  let sd = 67;
+  const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const gauss = () => (r() + r() + r() + r() - 2) / 1.15;
+  const h = D / 2, Rg = D / 2 * .96;
+  const TINT = ["255,255,255", "214,226,255", "196,214,255", "255,240,222"];
+  const n = Math.round(D * D / 120);
+  for (let i = 0; i < n; i++) {
+    const q = r(); let u, a, al;
+    if (q < .62) {                                          /* in an arm */
+      u = .06 + .94 * Math.pow(r(), .8); a = armAt(r() < .5 ? 0 : 1, u) + gauss() * (.16 + .1 * u);
+      al = .25 + .6 * r() * (1 - .55 * u);
+    } else if (q < .8) {                                    /* the bright middle */
+      u = Math.abs(gauss()) * .11; a = r() * 6.2832; al = .3 + .55 * r();
+    } else { u = Math.sqrt(r()); a = r() * 6.2832; al = .12 + .3 * r() * r(); }   /* the faint disc */
+    const x = h + Math.cos(a) * u * Rg, y = h + Math.sin(a) * u * Rg, s = r() < .9 ? .45 + .4 * r() : .9 + .7 * r();
+    g.globalAlpha = al; g.fillStyle = "rgb(" + TINT[u < .15 ? 3 : (r() * 3) | 0] + ")";
+    if (s < .9) g.fillRect(x - s / 2, y - s / 2, s, s); else { g.beginPath(); g.arc(x, y, s / 2, 0, 6.2832); g.fill(); }
+  }
+  g.globalAlpha = 1;
+  if (GX.pal) galaxyFor(GX.pal, true);
+}
+function galaxyFor(pal, now) {
+  GX.pal = pal;
+  const box = $("#nowgx"); if (!box || !$("#now").classList.contains("show") && !now) { GX.key = ""; return; }
+  const D = box.querySelector(".gxp").width ? parseFloat(getComputedStyle(box).getPropertyValue("--gd")) : gxSize(); if (!D) return;
+  const key = pal.map(rgb).join() + D; if (GX.key === key) return; GX.key = key;
+  const cs = box.querySelectorAll(".gxc"), c = cs[GX.flip = 1 - GX.flip], L = Math.min(520, Math.round(D * .5));
+  c.width = c.height = L;
+  const g = c.getContext("2d"), h = L / 2, Rg = L / 2 * .96, T = pal.map(v => mix(v, [128, 128, 128], .12));
+  g.globalCompositeOperation = "lighter";
+  const blob = (x, y, rad, col, al) => { const rg = g.createRadialGradient(x, y, 0, x, y, rad);
+    rg.addColorStop(0, rgba(col, al)); rg.addColorStop(.45, rgba(col, al * .4)); rg.addColorStop(1, rgba(col, 0));
+    g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); };
+  blob(h, h, Rg, mix(T[0], T[1], .5), .1);                                    /* the whole disc, faintly */
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 64; i++) {                  /* the two arms */
+    const u = .07 + .93 * i / 63, a = armAt(k, u), col = mix(T[k], T[k + 2], Math.min(1, u * 1.25));
+    blob(h + Math.cos(a) * u * Rg, h + Math.sin(a) * u * Rg, Rg * (.07 + .12 * u), col, .2 * Math.pow(1 - u, .55) + .04);
+  }
+  blob(h, h, Rg * .3, mix(T[0], T[1], .5), .3);                               /* the middle: the song's colours */
+  blob(h, h, Rg * .14, [255, 236, 214], .55);                                 /* ...and a warm white heart */
+  g.globalCompositeOperation = "destination-out"; g.lineCap = "round";        /* dark dust along the inside of each arm */
+  for (let k = 0; k < 2; k++) { g.beginPath();
+    for (let i = 0; i <= 60; i++) { const u = .12 + .7 * i / 60, a = armAt(k, u) - .22; g[i ? "lineTo" : "moveTo"](h + Math.cos(a) * u * Rg, h + Math.sin(a) * u * Rg); }
+    g.strokeStyle = "rgba(0,0,0,.42)"; g.lineWidth = Rg * .035; g.stroke(); }
+  c.classList.add("on"); cs[1 - GX.flip].classList.remove("on");
+}
+/* the glow behind the buttons: four of the song's colours, low on the screen; fades over the last */
+let glowFlip = 0;
+function glowFor(pal) {
+  const L = $("#nowglow") ? $("#nowglow").children : []; if (L.length < 2) return;
+  const P = [pal[0], pal[1], pal[2] || pal[0], pal[3] || pal[1]];
+  const el = L[glowFlip = 1 - glowFlip];
+  el.style.background = "radial-gradient(38% 30% at 24% 66%," + rgba(P[0], .64) + ",transparent 72%)," +
+    "radial-gradient(38% 30% at 76% 64%," + rgba(P[1], .6) + ",transparent 72%)," +
+    "radial-gradient(34% 26% at 50% 80%," + rgba(P[2], .54) + ",transparent 74%)," +
+    "radial-gradient(70% 34% at 50% 104%," + rgba(P[3], .48) + ",transparent 76%)";
+  el.classList.add("on"); L[1 - glowFlip].classList.remove("on");
+}
+/* each beat the ring finds: the glow brightens and settles (graphics chip only) */
+let glowAt = 0;
+function ringMsg(m) {
+  if (!m || m.t !== "beat" || calm.matches) return;
+  const el = $("#nowglow"), t = performance.now(); if (!el || !el.animate || t - glowAt < 200) return;
+  glowAt = t;
+  const k = Math.min(1, Math.max(.3, m.s || .6));
+  el.animate([{opacity: .74 + .26 * k, transform: "scale(" + (1 + .045 * k).toFixed(3) + ")"}, {opacity: .74, transform: "none"}],
+    {duration: 520, easing: "cubic-bezier(.2,.7,.3,1)"});
+}
+
+function infoBg(im, pair) {
+  const layers = $("#nowbg") ? $("#nowbg").children : [];        /* the whole player */
+  if (layers.length < 2) return;
+  let url = "";
+  if (im) {
+    try {
+      const c = document.createElement("canvas"); c.width = c.height = 64;
+      const x = c.getContext("2d"); x.filter = "blur(4px) saturate(105%)";   /* was 140% - "too much saturation" */ x.drawImage(im, -8, -8, 80, 80);
+      url = c.toDataURL("image/jpeg", .8);
+    } catch (e) { url = ""; }
+  }
+  const glow = "radial-gradient(70% 55% at 12% 34%," + rgba(pair[0], .46) + ",transparent 72%),radial-gradient(70% 55% at 88% 40%," + rgba(pair[1], .42) + ",transparent 72%)";   /* softer (was .62/.58) */
+  bgFlip = 1 - bgFlip;
+  const el = layers[bgFlip], old = layers[1 - bgFlip];
+  el.style.backgroundImage = glow + (url ? ',url("' + url + '")' : "");
+  el.classList.add("on"); old.classList.remove("on");
 }
 
 /* ---------- the moving ring: the dark band around the song's picture ---------- */
@@ -1523,87 +2462,99 @@ const NB = 64, RING = {on: false, raf: 0, polled: 0, still: 0, top: 55, bars: ne
   peak: new Float32Array(NB), fall: new Float32Array(NB), off: false};
 const calm = matchMedia("(prefers-reduced-motion: reduce)");
 let vizOK = false;
-const ringVisible = () => $("#now").classList.contains("show") && !LYR.open && !document.hidden;
-function ringStart() {
-  vizOK = !!N && N.micAllowed(); sizeRing();
-  /* only animate when there is something to move: the music, a colour change, bars still falling */
-  const need = (vizOK && ST.playing && !RING.off) || !!colTo || RING.bars.some(v => v > .004) || RING.peak.some(v => v > .004);
-  if (!RING.on && need && ringVisible() && !calm.matches) { RING.on = true; RING.still = 0; RING.raf = requestAnimationFrame(ringFrame); } else if (!RING.on) drawRing();
+let nowSliding = false;          /* the player is still sliding up - the ring waits */
+const ringVisible = () => $("#now").classList.contains("show") && !nowSliding && !LYR.open && !document.hidden;
+const RING_K = 2.7;                /* 2.7 times the record - the waves, web and particle cloud round it */
+const RW = {w: null, tried: false, poll: 0, live: null, local: false};
+function ringThread() {
+  if (RW.tried) return RW.w;
+  RW.tried = true;
+  const src = $("#ringsrc").textContent;
+  try {
+    const c = $("#ring");
+    if (!c.transferControlToOffscreen || !window.Worker || !window.OffscreenCanvas) throw new Error("no thread");
+    const w = new Worker(URL.createObjectURL(new Blob([src], {type: "text/javascript"})));
+    const off = c.transferControlToOffscreen();
+    w.postMessage({t: "init", canvas: off}, [off]);
+    w.onerror = () => ringLocal(src, true);
+    w.onmessage = e => ringMsg(e.data);
+    RW.w = w;
+  } catch (e) { ringLocal(src, false); }
+  ringPx = 0; sizeRing(); RW.w.postMessage({t: "col", pair: COL});
+  return RW.w;
 }
-function ringStop() { if (RING.on) { RING.on = false; cancelAnimationFrame(RING.raf); } try { N && N.vizStop(); } catch (e) {} }
-function ringWake() { if (ringVisible()) ringStart(); }
-function ringFrame(t) {
-  if (!RING.on) return;
-  RING.raf = requestAnimationFrame(ringFrame);
-  const live = vizOK && ST.playing && !RING.off;
-  if (live && t - RING.polled > 24) {                          /* about 40 readings a second */
-    RING.polled = t;
-    let s = ""; try { s = N.viz(); } catch (e) {}
-    if (s === "x") { RING.off = true; setTimeout(() => { RING.off = false; }, 5000); }
-    else if (s) {
-      const v = s.split(","), m = Math.max(...v.map(Number));
-      RING.top = Math.max(m, RING.top - .06, 50);              /* follows how loud the song is right now */
-      const lo = RING.top - 40;
-      for (let i = 0; i < NB; i++) RING.aim[i] = Math.pow(Math.max(0, Math.min(1, (+v[i] - lo) / 40)), 1.5);
-    }
-  } else if (!live) RING.aim.fill(0);
-  let moving = false;
-  for (let i = 0; i < NB; i++) {
-    const b = RING.bars[i], a = RING.aim[i];
-    RING.bars[i] = b + (a - b) * (a > b ? .55 : .13);
-    if (RING.bars[i] >= RING.peak[i]) { RING.peak[i] = RING.bars[i]; RING.fall[i] = 0; }
-    else { RING.fall[i] += .0007; RING.peak[i] = Math.max(0, RING.peak[i] - RING.fall[i]); }
-    if (RING.bars[i] > .004 || RING.peak[i] > .004) moving = true;
+/* the same drawing code, run by the page itself (an older WebView, or the thread failed) */
+function ringLocal(src, fresh) {
+  pollStop();
+  if (RW.w && RW.w.terminate) { try { RW.w.terminate(); } catch (e) {} }
+  let c = $("#ring");
+  if (fresh) {                       /* a canvas handed to a thread can't be drawn on here: a new one */
+    const n = document.createElement("canvas"); n.id = "ring"; n.setAttribute("aria-hidden", "true"); c.replaceWith(n); c = n;
   }
-  stepColors(t);
-  drawRing();
-  /* paused and settled: stop drawing until something changes */
-  RING.still = !live && !moving && !colTo ? RING.still + 1 : 0;
-  if (RING.still > 20) { RING.on = false; cancelAnimationFrame(RING.raf); try { N.vizStop(); } catch (e) {} }
+  try {
+    const env = {requestAnimationFrame: f => requestAnimationFrame(f), postMessage: m => ringMsg(m)};
+    const handle = new Function("self", src + "\nreturn handle;")(env);
+    RW.w = {postMessage: m => handle(m)}; RW.local = true;
+    handle({t: "init", canvas: c});
+  } catch (e) { RW.w = {postMessage: () => {}}; }
+  if (fresh) { ringPx = 0; RW.live = null; sizeRing(); RW.w.postMessage({t: "col", pair: COL}); setTimeout(ringWake, 0); }
 }
+function pollStart() {
+  if (RW.poll) return;
+  RW.poll = setInterval(() => {
+    let s = ""; try { s = N.viz(); } catch (e) {}
+    if (s === "x") {                                          /* no sound slices right now: try again in 5 s */
+      RING.off = true; pollStop(); RW.live = false; RW.w.postMessage({t: "live", on: false});
+      setTimeout(() => { RING.off = false; ringWake(); }, 5000);
+    } else if (s) RW.w.postMessage({t: "v", v: s});
+  }, 30);
+}
+function pollStop() { if (RW.poll) { clearInterval(RW.poll); RW.poll = 0; } }
+function ringStart() {
+  vizOK = !!N && N.micAllowed();
+  ringThread(); sizeRing();
+  const live = vizOK && !!ST.playing && !RING.off && ringVisible() && !calm.matches;
+  if (live !== RW.live) { RW.live = live; RW.w.postMessage({t: "live", on: live}); }
+  if (live) pollStart(); else pollStop();
+}
+function ringStop() {
+  pollStop();
+  if (RW.w) { RW.live = null; RW.w.postMessage({t: "halt"}); }
+  try { N && N.vizStop(); } catch (e) {}
+}
+function ringWake() { if (ringVisible()) ringStart(); }
 let ringPx = 0;
 function sizeRing() {
-  const c = $("#ring"), css = $("#disc").offsetWidth * 1.28, dpr = Math.min(2, devicePixelRatio || 1), px = Math.round(css * dpr);
-  if (px && px !== ringPx) { c.width = c.height = ringPx = px; }
+  if (!RW.w) return;
+  /* on its own thread, drawn at up to 2 pixels per screen point - the thin strands stay sharp
+     (the thread itself steps down if the phone can't keep up). Drawn on the page itself (old
+     WebViews only): up to 1.3, to spare the page */
+  const css = $("#disc").offsetWidth * RING_K, dpr = Math.min(RW.local ? 1.3 : 2, devicePixelRatio || 1), px = Math.round(css * dpr);
+  if (px && px !== ringPx) { ringPx = px; RW.w.postMessage({t: "size", px, k: RING_K}); }
 }
-function drawRing() {
-  const c = $("#ring"); if (!ringPx) sizeRing(); if (!ringPx) return;
-  const x = c.getContext("2d"), Z = ringPx, cx = Z / 2, S = Z / 1.28;      /* S = the disc, in canvas pixels */
-  const r0 = S * .305, room = S * (.5 - .305) * 1.12, base = S * .012;
-  const w = Math.max(1.5, 2 * Math.PI * r0 / (NB * 2) * .6);
-  x.clearRect(0, 0, Z, Z);
-  const g = x.createLinearGradient(0, cx - S * .56, 0, cx + S * .56);
-  g.addColorStop(0, rgb(COL[0])); g.addColorStop(1, rgb(COL[1]));
-  const bars = new Path2D(), caps = new Path2D();
-  for (let i = 0; i < NB; i++) {
-    const off = (i + .5) / NB * Math.PI;                        /* bass at the top, both sides mirrored */
-    const len = base + RING.bars[i] * room, pk = r0 + base + RING.peak[i] * room + w * 1.6;
-    for (const a of [-Math.PI / 2 - off, -Math.PI / 2 + off]) {
-      const cs = Math.cos(a), sn = Math.sin(a);
-      bars.moveTo(cx + cs * r0, cx + sn * r0); bars.lineTo(cx + cs * (r0 + len), cx + sn * (r0 + len));
-      if (RING.peak[i] > .03) { caps.moveTo(cx + cs * pk, cx + sn * pk); caps.lineTo(cx + cs * (pk + w * .5), cx + sn * (pk + w * .5)); }
-    }
-  }
-  x.lineCap = "round"; x.strokeStyle = g;
-  x.globalAlpha = .22; x.lineWidth = w * 2.8; x.stroke(bars);   /* soft glow */
-  x.globalAlpha = .95; x.lineWidth = w; x.stroke(bars);
-  x.globalAlpha = .6; x.stroke(caps);
-  let bass = 0; for (let i = 0; i < 6; i++) bass += RING.bars[i] / 6;
-  x.globalAlpha = .3 + .55 * bass; x.lineWidth = Math.max(1.5, S * .004);  /* the rim brightens on the beat */
-  x.beginPath(); x.arc(cx, cx, S * .5 - x.lineWidth, 0, 2 * Math.PI); x.stroke();
-  if (bass > .05) { x.globalAlpha = .16 * bass; x.lineWidth = S * .03; x.stroke(); }
-  x.globalAlpha = 1;
-}
+function drawRing() { if (!RW.w) return; if (!ringPx) sizeRing(); RW.w.postMessage({t: "draw"}); }
+ringThread();                    /* before anything is drawn on the ring here (a canvas drawn on can't be handed over) */
 if (window.ResizeObserver) new ResizeObserver(() => { ringPx = 0; sizeRing(); drawRing(); }).observe($("#disc"));
 document.addEventListener("visibilitychange", () => { if (document.hidden) ringStop(); else ringWake(); });
 
 /* the ring needs Android's "record audio" permission: asked once, with the reason */
 function nowShown() {
-  if (cur && (!LYR.data || LYR.data.key !== keyOf(cur))) wantLyrics(cur);
-  else if (cur && (LYR.data.status === "busy" || LYR.data.status === "offline") && !LYR.retry.t) lyrRetryNow(true);
-  else if (LYR.open) showLyrics();
-  ringStart();
-  if (N && !N.micAllowed() && !load("mm_ring_asked")) setTimeout(() => { if ($("#now").classList.contains("show")) $("#msheet").classList.remove("hidden"); }, 500);
+  /* the lyrics too wait until the player is up (an old song's words are cleared at once) */
+  const stale = cur && (!LYR.data || LYR.data.key !== keyOf(cur));
+  if (stale && LYR.open) $("#lyr").innerHTML = "";
+  clearTimeout(nowShown.t);
+  nowSliding = true;
+  nowShown.t = setTimeout(() => {
+    nowSliding = false;
+    if (!$("#now").classList.contains("show")) return;
+    document.body.classList.add("nowup");                 /* the list underneath rests */
+    if (cur && (!LYR.data || LYR.data.key !== keyOf(cur))) wantLyrics(cur);
+    else if (cur && (LYR.data.status === "busy" || LYR.data.status === "offline") && !LYR.retry.t) lyrRetryNow(true);
+    else if (LYR.open) showLyrics();
+    ringStart();
+    idle(() => { drawStars(); if (GX.pal) galaxyFor(GX.pal); }, 800);   /* /the stars and the galaxy (nothing if already drawn) */
+    if (N && !N.micAllowed() && !load("mm_ring_asked")) setTimeout(() => { if ($("#now").classList.contains("show")) $("#msheet").classList.remove("hidden"); }, 250);
+  }, 320);
 }
 let micAskedAt = 0;
 $("#mGo").onclick = () => { store("mm_ring_asked", true); $("#msheet").classList.add("hidden"); micAskedAt = performance.now(); N.askMic(); };
@@ -1634,11 +2585,6 @@ window.onLyrics = d => {
   if (o && o.key === d.key && o.status === d.status && o.synced === d.synced && o.plain === d.plain && o.src === d.src) return;
   if (cur && keyOf(cur) === d.key) useLyrics(d);
 };
-/*
- * the lyrics library busy or out
- * of reach shows "Looking for lyrics..." like any search, and is asked again
- * quietly (15 s, 30 s, 1 min, then every 2 minutes) while this song plays.
- */
 const LWAIT = [15, 30, 60, 120];
 LYR.retry = {key: null, n: 0, t: 0, at: 0};
 function lyrRetryPlan(d) {
@@ -1721,6 +2667,7 @@ function showLyrics() {
   const msg = (a, b, more) => '<div class="lmsg">' + a + (b ? '<small>' + b + '</small>' : '') + (more || '') + '</div>';
   const FROM = {lrclib: "Lyrics from LRCLIB, a free lyrics library.", file: "Lyrics from the song file.",
     desc: "From the video's description.", cc: "From the video's captions.", auto: "YouTube's automatic captions - some words may be off.",
+    heard: "Written by your phone from the song itself - some words may be off.",
     other: "Lyrics of " + esc(d.fromTrack || "another version") + (d.fromArtist ? " by " + esc(d.fromArtist) : "") +
       " (LRCLIB) - another version of this song, so some words may differ."};
   const foot = '<div class="lfoot">' + (FROM[d.src] || "") + (d.synced ? "" : " Not timed.") + (d.inFile ? " Saved in the song file." : "") + '<br><button class="lfix">Wrong? Search by name</button></div>';
@@ -1883,7 +2830,7 @@ function showWrong(folder, r) {
   else if (r.error) $("#wSub").textContent = r.error;
   else if (!bad.length) $("#wSub").textContent = "All good - " + nSongs(r.checked) + " checked, each one plays the song it shows." + rest;
   else $("#wSub").textContent = (bad.length === 1 ? "1 song plays" : bad.length + " songs play") + " a different song than the one shown" +
-    (r.checked ? " (out of " + r.checked.toLocaleString() + " checked)" : "") + ". Fix downloads each song again with its own audio and moves the wrong files to .mismatched in your music folder - a file whose real song is unknown stays, under Hidden songs. Nothing is deleted." + rest;
+    (r.checked ? " (out of " + r.checked.toLocaleString() + " checked)" : "") + ". Fix downloads each song again with its own audio and moves the wrong files to your music folder / .mismatched - a file whose real song is unknown stays, under Hidden songs. Nothing is deleted." + rest;
   $("#wList").innerHTML = bad.map(b => '<div class="wrow"><b>' + esc(b.shown) + '</b><span>' +
     esc(b.real ? "actually plays: " + b.real : "actually plays a different song (" + mmss(b.actual) + " long, should be " + mmss(b.expected) + ")") + '</span></div>').join("");
 }
@@ -1969,6 +2916,7 @@ window.onRestored = async (res, info) => {
   if (!N) { $("#pls").innerHTML = '<li class="empty">Open MY MUSIC from its app icon.</li>'; return; }
   try { await getLib(); } catch (e) { $("#pls").innerHTML = '<li class="empty">Could not read the library. Close MY MUSIC and open it again.</li>'; return; }
   history.replaceState({d: 0}, "", location.hash === "#/now" ? "#/" : (location.hash || "#/"));
+  VIEWS[0] = location.hash || "#/";
   route();
   ask();
   try { const s = N.takeShared(); if (s) onShared(s); } catch (e) {}

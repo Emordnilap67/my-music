@@ -14,18 +14,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Songs on their way into a playlist. When a playlist is
- * shared, every song it will get is listed here at once, so the playlist
- * shows in MY MUSIC straight away with all of them; each one drops off
- * when it is in the folder (the real song shows instead). Kept in
- * pending.json so a wait for YouTube survives the app closing.
- *
- *   { "Chill": { "link": "...", "want": "Chill", "title": "Chill Mix",
- *                     "retry": 0 | when to try again (ms), "note": "...",
- *                     "items": [ {"id","t","a","d","s": "w" waiting | "x" can't, "e": why} ] },
- *     "?PLxxxx":    { ... a new playlist still waiting for its name ... } }
- */
 final class Pending {
     private static JSONObject all;
 

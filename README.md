@@ -101,8 +101,22 @@ which covers almost every phone made since 2017.
   background by itself. One song playing the wrong thing: long-press it >
   **Plays the wrong song**, pick the right video, and it replaces the audio
   (the wrong file is kept, hidden).
-- **Moving ring:** the bars around the record move with the music, in colours
-  taken from each song's picture.
+- **New songs by themselves:** every playlist you shared from YouTube is
+  checked for new songs every 6 hours (and when you tap **Update library**);
+  anything you add to the YouTube playlist comes in on its own. Songs on
+  your phone are never removed.
+- **Shuffle that never repeats:** a shuffle plays every song in the playlist
+  once before any song comes round again - even across restarts - and two
+  copies of the same song count as one.
+- **The player:** a black record inside a visualizer that dances to the song:
+  the bass warps the outer waves into a new shape on every beat, the voice
+  ripples the inner ones, and the high notes make the cloud of stars around
+  it drift and twinkle. A spiral galaxy turns slowly behind it, and a glow
+  low behind the buttons throbs on the beat. Every colour comes from the
+  song's own picture (up to five of them), and the whole look fades to the
+  next song's.
+- **Smooth:** the visualizer runs on a thread of its own, so taps, Back and
+  scrolling stay instant while it plays.
 - **The song playing now glows** in the playlist, with moving bars on its
   picture.
 - **Sort the way Spotify does:** Recently played, Most played, Recently
@@ -112,7 +126,8 @@ which covers almost every phone made since 2017.
   - shuffle and repeat; Play and Shuffle use the whole playlist even while
     you're searching it;
   - a neon home-screen widget in each song's own colours, with a progress
-    bar, from a one-row strip up to a big card; plus controls in the
+    bar you can tap to jump through the song, from a one-row strip up to a
+    big card; plus controls in the
     notification and on the lock screen;
   - long "Artist - Song" names show just the song, with the artist below;
   - share a song's file, or add it to another playlist;

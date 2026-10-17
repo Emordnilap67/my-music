@@ -5,17 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-/**
- * writes
- * lyrics into an MP3's own ID3 tag (a USLT frame), so they travel with the
- * file - a new phone, the tablet, any other music player. Timed lyrics go
- * in as LRC text ("[01:02.30] words"), which MY MUSIC and most players read.
- *
- * Everything else in the tag is copied byte for byte (picture, title,
- * artist, the YouTube link). The sound after the tag is not touched. A
- * tag this does not fully understand is left alone (null). Plain Java so it
- * can be tested.
- */
 final class Tagger {
     private static final Charset LATIN1 = Charset.forName("ISO-8859-1");
     private static final Charset UTF8 = Charset.forName("UTF-8");
@@ -100,7 +89,7 @@ final class Tagger {
         return out.toByteArray();
     }
 
-    /** one USLT frame: v2.4 as UTF-8, v2.3 as UTF-16 (2.3 has no UTF-8) */
+    /** one USLT frame: .4 as UTF-8, .3 as UTF-16 (2.3 has no UTF-8) */
     private static byte[] uslt(String text, int ver) {
         ByteArrayOutputStream b = new ByteArrayOutputStream();
         if (ver == 4) {

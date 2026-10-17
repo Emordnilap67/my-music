@@ -13,12 +13,6 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Set;
 
-/**
- * Which YouTube video each song file came from, so a backup can list
- * them and a new phone can fetch them again. Read once from the file's
- * tags (yt-dlp writes the link there), then kept: ids.json
- *   {"/storage/emulated/0/Music/MY MUSIC/Chill/Artist - Song.mp3": ["videoid" or "", file size]}
- */
 final class Ids {
     private static JSONObject all;
     private static boolean dirty;

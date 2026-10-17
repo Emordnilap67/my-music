@@ -20,33 +20,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-/**
- * "Wrong audio" check. Songs saved by title only can collide: when two
- * songs in a playlist have the same title ("Free" by one artist, "Free" by
- * another), a downloader can find "Free.mp3" already there, skip the
- * download and still write the second song's name, artist, picture and
- * link into the first song's file. The app shows one song and plays the
- * other.
- *
- * The check: every file's tags name a YouTube video; the YouTube playlist
- * says how long that video is; the file's own audio says how long it
- * really is. More than 3 seconds apart = the wrong audio. Usually the
- * audio is the other song with the same title - found by its length.
- * The fix moves those files out of the playlist (.mismatched in the music folder -
- * nothing is deleted) and downloads both songs again, each into its own
- * correctly named file.
- *
- * Every song is checked, not only those in the YouTube playlist:
- *   - the playlist read is checked against the count the page states and
- *     read again (up to 3 times, keeping what each read found) when short;
- *   - every length YouTube gives is kept (Lengths) - asked once, ever;
- *   - songs whose video is not in the playlist are looked up one by one,
- *     a few per run (40 by hand, 25 in the background) so YouTube does not
- *     pause the phone; the rest are done by the background check later;
- *   - the sheet shows what it is doing as it goes, no "about a minute";
- *   - YouTube pausing the phone is not an error: what could be checked is
- *     checked, and the background check carries on later by itself.
- */
 final class Mismatch {
     private static final Pattern ID = Pattern.compile("^[A-Za-z0-9_-]{11}$");
     static final String AWAY = ".mismatched";
@@ -115,7 +88,7 @@ final class Mismatch {
      * what every read found is kept - YouTube sometimes sends a short list.
      */
     static Read listing(Context c, String link, Progress p) throws Exception {
-        if (!Ytdl.available(c)) throw new Exception("The downloader is missing from this install - get the APK from the Releases page");
+        if (!Ytdl.available(c)) throw new Exception("The downloader is missing - run music build again");
         Ytdl.init(c);
         Read all = new Read();
         for (int round = 1; round <= 3; round++) {
@@ -343,7 +316,7 @@ final class Mismatch {
             boolean askLink = listId == null && need.size() > ASK_LINK_OVER;
             // 3. the songs that are not in the playlist, one by one - a few this run, the rest later
             if (!held && !askLink && !need.isEmpty()) {
-                if (!Ytdl.available(c)) throw new Exception("The downloader is missing from this install - get the APK from the Releases page");
+                if (!Ytdl.available(c)) throw new Exception("The downloader is missing - run music build again");
                 held = lookup(c, need, single, p);
                 need = unknownIds(c, songs, now);
             }
@@ -462,7 +435,7 @@ final class Mismatch {
             Backup.write(store(c), all.toString().getBytes("UTF-8"));
             DownloadService.start(c, Backup.IDS + folder, folder);
             int n = todo.size();
-            return "Fixing " + n + (n == 1 ? " song" : " songs") + ": the wrong files went to " + AWAY + " in your music folder"
+            return "Fixing " + n + (n == 1 ? " song" : " songs") + ": the wrong files went to your music folder / " + AWAY
                     + (hide.isEmpty() ? "" : " (" + hide.size() + " whose real song is unknown stay, under Hidden songs)")
                     + " - nothing deleted. Downloading " + fetch.size() + (fetch.size() == 1 ? " song" : " songs")
                     + " again, each with its own audio";
@@ -514,19 +487,10 @@ final class Mismatch {
 
     // ------------------------------------------------------------------ by itself
 
-    private static final java.util.concurrent.ExecutorService AUTO = java.util.concurrent.Executors.newSingleThreadExecutor();
+    private static final java.util.concurrent.ExecutorService AUTO = java.util.concurrent.Executors.newSingleThreadExecutor(Low.THREADS);
     private static volatile boolean autoRunning;
     private static final long AUTO_GAP_MS = 6L * 3600 * 1000, RECHECK_MS = 7L * 24 * 3600 * 1000;
 
-    /**
-     * nobody has to tap anything. When the app opens, the
-     * playlists are checked (each at most once a week, looked at every 6
-     * hours, in the background) and any song playing the wrong audio is
-     * fixed straight away - only those songs are fetched again.
-     * every playlist, not only ones with a known link (lengths already
-     * known need no YouTube at all), and a playlist with songs still left
-     * to look up is carried on at the next look instead of waiting a week.
-     */
     static void auto(Context c) {
         final Context a = c.getApplicationContext();
         if (autoRunning || Importer.tree(a) == null || !Ytdl.available(a) || Library.get(a).playlists.isEmpty()) return;
@@ -550,7 +514,7 @@ final class Mismatch {
                         if (bad != null && bad.length() > 0) {
                             String msg = fix(a, folder);
                             MainActivity.tell(msg);
-                            io.github.emordnilap67.mymusic.Progress.announce(a, msg, null);   // the class, not Mismatch.Progress
+                            io.github.emordnilap67.mymusic.Progress.announce(a, msg, null);
                         }
                         // all of it known now (or nothing more to learn without a link): rest a week
                         if (r.optInt("left") == 0 || r.optBoolean("needLink")) p.edit().putLong(k, System.currentTimeMillis()).apply();
@@ -564,13 +528,6 @@ final class Mismatch {
         });
     }
 
-    /**
-     * "Plays the wrong song" (one song, picked by hand): the YouTube video
-     * the listener picks is downloaded into this song's place under the SAME file
-     * name (so its plays, heart and queue spot stay), and the wrong file is
-     * kept, renamed "Wrong audio - ..." and hidden - it may be the only copy
-     * of whatever song it really is.
-     */
     static String replace(Context c, Library.Song s, String newId, String t, String a, String secs) {
         try {
             Uri tree = Importer.tree(c);
@@ -598,7 +555,6 @@ final class Mismatch {
         }
     }
 
-    /** the last check's wrong songs, for the page: {"Playlist": {at, bad: [...]}} */
     static String json(Context c) {
         JSONObject all = readAll(c);
         java.util.Iterator<String> it = all.keys();

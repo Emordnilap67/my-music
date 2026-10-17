@@ -69,6 +69,8 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     static final String A_STOP = "io.github.emordnilap67.mymusic.STOP";
     static final String A_SHUF = "io.github.emordnilap67.mymusic.SHUFFLE";
     static final String A_REP = "io.github.emordnilap67.mymusic.REPEAT";
+    /** a tap on the widget's bar - "permille" = where, in thousandths of the song */
+    static final String A_SEEK = "io.github.emordnilap67.mymusic.SEEK";
     static final int NID = 67;
 
     /** do something with the player on the main thread, starting it if needed */
@@ -223,6 +225,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         else if (A_PREV.equals(a)) prev();
         else if (A_SHUF.equals(a)) setShuffle(!q.shuffle);
         else if (A_REP.equals(a)) setRepeat("off".equals(q.repeat) ? "all" : "all".equals(q.repeat) ? "one" : "off");
+        else if (A_SEEK.equals(a)) seekPart(i.getIntExtra("permille", 0));
         else if (A_STOP.equals(a)) {
             pause();
             stopForeground(true);
@@ -272,6 +275,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     void setQueue(List<String> keys, int index, boolean shuffle) {
         q.set(keys, index, shuffle);
+        describe();
         saveQueue();
         String k = q.current();
         if (k != null) load(k, 0, true);
@@ -335,7 +339,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
     void next(boolean auto) {
+        int r0 = q.rounds;
         String k = q.next(auto);
+        if (q.rounds != r0) saveQueue();      // a new round of shuffle - saved, so a restart carries on with it
         if (k == null) {                       // the end of the list, repeat off
             wantPlay = false;
             if (prepared) {
@@ -364,6 +370,22 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         if (prepared) mp.seekTo(Math.max(0, ms));
         else seekOnPrepare = Math.max(0, ms);
         changed();
+    }
+
+    /**
+     * the widget's bar was tapped - jump to that part of the song,
+     * playing or paused (it stays paused). If the player was closed, the
+     * song is opened at that spot without starting it.
+     */
+    void seekPart(int permille) {
+        String k = q.current();
+        if (k == null) return;
+        int dur = duration();
+        if (dur <= 0) return;
+        int ms = (int) Math.min(dur - 1000L, (long) dur * Math.max(0, Math.min(1000, permille)) / 1000L);
+        ms = Math.max(0, ms);
+        if (prepared || preparing) seek(ms);
+        else load(k, ms, false);
     }
 
     void setShuffle(boolean on) {
@@ -410,6 +432,19 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private void load(String key, int at, boolean play) {
         MAIN.removeCallbacks(skip);
         Library.Song s = Library.get(this).byKey.get(key);
+        if (s != null) {                      // heard in this shuffle pass
+            q.markHeard(key);
+            final List<String> h = new ArrayList<>(q.heard);
+            try {
+                bg.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        writeList("heard.txt", h);
+                    }
+                });
+            } catch (Exception ignored) {     // closing down
+            }
+        }
         wantPlay = play;
         if (s == null) {
             if (mp != null) mp.reset();
@@ -780,6 +815,38 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                 .apply();
     }
 
+    /**
+     * each song's tidied name + artist and length, worked out in the
+     * background (2,600 names take a moment), so shuffle can tell two
+     * files of one song apart from two songs.
+     */
+    private void describe() {
+        final List<String> keys = new ArrayList<>(q.base);
+        final Library lib = Library.get(this);
+        if (bg.isShutdown()) return;
+        bg.execute(new Runnable() {
+            @Override
+            public void run() {
+                for (String k : keys) {
+                    if (q.knows(k)) continue;
+                    Library.Song s = lib.byKey.get(k);
+                    if (s == null) continue;
+                    try {
+                        q.info(k, tag(s.title, s.artist), s.durMs);
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        });
+    }
+
+    /** "the same song" - its tidied name and first artist */
+    static String tag(String title, String artist) {
+        LyricsQuery lq = LyricsQuery.forLyrics(title, artist);
+        String t = LyricsQuery.key(lq.track);
+        return t.isEmpty() ? "" : t + "|" + LyricsQuery.key(LyricsQuery.firstArtist(lq.artist));
+    }
+
     private void saveQueue() {
         writeList("base.txt", q.base);
         writeList("order.txt", q.order);
@@ -796,11 +863,14 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         q.order.addAll(readList("order.txt"));
         q.upNext.clear();
         q.upNext.addAll(readList("upnext.txt"));
+        q.heard.clear();
+        q.heard.addAll(readList("heard.txt"));
         String cur = prefs.getString("cur", "");
         String ex = prefs.getString("extra", "");
         q.extra = ex.isEmpty() ? null : ex;
         q.i = prefs.getInt("i", -1);
         q.keepOnly(Library.get(this).byKey.keySet(), prefs.getString("lcur", cur));
+        describe();
         String k = q.current();
         if (k != null) load(k, k.equals(cur) ? prefs.getInt("pos", 0) : 0, false);
         else changed();

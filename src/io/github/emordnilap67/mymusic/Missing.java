@@ -12,13 +12,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.List;
 
-/**
- * Songs a playlist could not get because they are gone from YouTube
- * (removed, private, blocked), kept so "Find another copy" can look for a
- * different upload of the same song. Only songs whose names YouTube still
- * shows are kept. missing.json:
- *   { "Chill": [ {"id", "t" title, "a" artist, "d" seconds, "e" why}, ... ] }
- */
 final class Missing {
     private static JSONObject all;
 
@@ -156,7 +149,7 @@ final class Missing {
         return n;
     }
 
-    private static final java.util.concurrent.ExecutorService BG = java.util.concurrent.Executors.newSingleThreadExecutor();
+    private static final java.util.concurrent.ExecutorService BG = java.util.concurrent.Executors.newSingleThreadExecutor(Low.THREADS);
     private static volatile Object prunedFor;
 
     /** prune once per library read, off the page's thread (it can take a moment on 2,500 songs) */

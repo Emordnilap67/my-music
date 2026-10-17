@@ -21,44 +21,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
-/**
- * Lyrics. In order:
- *   1. LRCLIB (lrclib.net), a free lyrics library - mostly timed lines.
- *      A lyric channel's upload ("Tony Z - On Your Own" by the channel)
- *      is read as artist - song first.
- *   2. lyrics already inside the song file
- *   3. LRCLIB again, allowing a lyric video's longer intro/outro (shown
- *      untimed, since the timing would be off)
- *   4. the words pasted in the video's description (the file keeps it)
- *   5. another version in LRCLIB - the original of a remix, the song a
- *      cover ("I Don't Like Monday (134 Bpm)") is of - untimed
- *   6. the video's own captions, through the built-in yt-dlp (25 s at most)
- * Each answer is kept on the phone: found lyrics for good, "none" for a
- * few days (then asked again, in case someone added them).
- *
- * When LRCLIB is busy (it sometimes is, for hours): nothing is kept as
- * "none". The page never says the library is busy - it keeps "Looking for
- * lyrics..." and asks again quietly. A busy answer is asked three more
- * times here first (about 9 s), and lyrics found elsewhere while it was
- * busy carry "recheck" to the page, which asks once more two minutes later
- * and swaps in the library's timed lyrics when they come.
- *
- * Lyrics found here are also written into the song's MP3 by Embed, so the
- * file carries them everywhere. forFile() says which lyrics that is.
- */
 final class Lyrics {
     interface Done {
         void got(String json);
     }
 
-    private static final ExecutorService BG = Executors.newSingleThreadExecutor();
+    private static final ExecutorService BG = Executors.newSingleThreadExecutor(Low.THREADS);
     private static final String API = "https://lrclib.net/api/";
-    private static final String AGENT = "MY MUSIC/4.0 (open-source Android music player)";
+    private static final String AGENT = "MY MUSIC/5.0 (open-source Android music player)";
     private static final long RETRY_NONE_MS = 3L * 24 * 3600 * 1000;
     private static final long RETRY_SOON_MS = 6L * 3600 * 1000;
     /** captions found while the library was busy: look in the library again after this */
     private static final long RECHECK_MS = 2L * 60 * 1000;
-    /** machine-made lyrics (YouTube's automatic captions): ask the library again after this */
+    /** machine-made lyrics (the phone's own, YouTube's automatic captions): ask the library again after this */
     private static final long MACHINE_RECHECK_MS = 7L * 24 * 3600 * 1000;
     /**
      * answers kept before this version are asked again: "none" from the
@@ -131,7 +106,10 @@ final class Lyrics {
      * they came from the file already)
      */
     static String forFile(Context c, Library.Song s) {
-        return fileText(read(cacheFile(c, s, query(c, s))));
+        JSONObject k = read(cacheFile(c, s, query(c, s)));
+        String t = fileText(k);
+        if (t != null || k != null && "ok".equals(k.optString("status")) && !"heard".equals(k.optString("src"))) return t;
+        return Heard.get(c, s);                                      // never played yet, but the phone has written its words
     }
 
     private static boolean found(String status) {
@@ -159,7 +137,8 @@ final class Lyrics {
             } else {
                 boolean keep = !"none".equals(st)
                         || kept.optInt("v") >= V && age < (kept.optBoolean("soon") ? RETRY_SOON_MS : RETRY_NONE_MS);
-                boolean machine = "auto".equals(ksrc);
+                if (keep && "none".equals(st) && Heard.get(c, s) != null) keep = false;     // the phone has written some since
+                boolean machine = "heard".equals(ksrc) || "auto".equals(ksrc);
                 boolean recheck = "ok".equals(st)
                         && (kept.optBoolean("recheck") && age > RECHECK_MS || "auto".equals(ksrc) && kept.optInt("v") < V
                         || machine && age > MACHINE_RECHECK_MS);
@@ -197,6 +176,14 @@ final class Lyrics {
                 if (synced != null || plain != null) status = "ok";
             }
             src = "lrclib";
+        }
+        if (!found(status)) {
+            String h = Heard.get(c, s);
+            if (h != null) {
+                synced = h;
+                status = "ok";
+                src = "heard";
+            }
         }
         // 2: lyrics already in the file; 4: the video's description
         Id3.Tags tags = null;
@@ -307,14 +294,14 @@ final class Lyrics {
 
     /**
      * lyrics found while the library was busy (or YouTube's automatic
-     * captions, now and then): show them now, then look in the library
+     * captions from before ): show them now, then look in the library
      * once more and send its lyrics if it has them for this very song.
      */
     private static String upgrade(Context c, String key, File f, JSONObject kept, List<LyricsQuery> asks, double secs,
                                   LyricsQuery likely, Done done) throws Exception {
         done.got(pageOf(c, key, kept, likely));
         String was = kept.optString("src", "");
-        boolean captions = "auto".equals(was) || "cc".equals(was);
+        boolean captions = "auto".equals(was) || "cc".equals(was) || "heard".equals(was);
         Map<String, String> memo = new HashMap<>();
         JSONObject hit = null;
         boolean loose = false;
@@ -377,7 +364,7 @@ final class Lyrics {
         if (q.track.isEmpty()) return null;
         String firstArtist = q.simpleArtist.isEmpty() ? q.artist : q.simpleArtist;
         if (!q.artist.isEmpty() && net) {
-            // exact asks: as tagged, then the barest form
+            // exact asks: as tagged, then the barest form ("I Don't like Monday" by Piccadilly Corner)
             String[][] exact = {{q.track, q.artist}, {q.simpleTrack, firstArtist}};
             for (int i = 0; i < exact.length; i++) {
                 if (i == 1 && exact[1][0].equals(exact[0][0]) && exact[1][1].equals(exact[0][1])) break;

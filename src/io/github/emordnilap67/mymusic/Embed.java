@@ -28,28 +28,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * lyrics MY MUSIC
- * finds are written INTO the song's MP3 (Tagger), so they go wherever the
- * file goes and never need the internet again.
- *
- * - Done in the background, one song at a time, never the song that is
- *   playing or paused (its file is open) - that one waits for the next song.
- * - The file is rewritten in place (same name, same file), so plays, heart,
- *   queue spot and Recently added stay as they were.
- * - Safe: the old file is copied into the app first; the new one is checked
- *   (same sound byte for byte, the lyrics read back) before and after it is
- *   written, and put back from the copy if anything is off - also after a
- *   crash, on the next start.
- * - Not written: YouTube's automatic captions (machine-made, often wrong)
- *   and lyrics that came from the file in the first place.
- * - Once after the update, every song whose lyrics were already found gets
- *   them too (a few seconds a song, in the background).
- * - Lyrics found again later (a fix by name, the library's timed ones
- *   replacing captions) replace the ones in the file.
- */
 final class Embed {
-    private static final ExecutorService BG = Executors.newSingleThreadExecutor();
+    private static final ExecutorService BG = Executors.newSingleThreadExecutor(Low.THREADS);
     private static final AtomicBoolean QUEUED = new AtomicBoolean();
     private static final Object LOCK = new Object();
     private static volatile String writing;
@@ -131,6 +111,16 @@ final class Embed {
         dropPending(c, gone);
         if (all) {
             for (Library.Pl p : lib.playlists) for (Library.Song s : p.songs) if (!want.contains(s.key)) list.add(s);
+        } else {
+            Set<String> seen = new java.util.HashSet<>(want);
+            for (String k : Heard.keys(c)) {
+                Library.Song s = lib.byKey.get(k);
+                boolean has;
+                synchronized (Embed.class) {
+                    has = done(c).has(k);
+                }
+                if (s != null && !has && seen.add(k)) list.add(s);
+            }
         }
         if (list.isEmpty()) {
             if (all) prefs.edit().putBoolean(ALL_DONE, true).apply();

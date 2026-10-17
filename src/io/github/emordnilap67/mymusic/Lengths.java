@@ -10,18 +10,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-/**
- * how long each YouTube video is, as YouTube says - every one
- * the app has ever seen, from playlist reads, single look-ups and downloads.
- * A video's length never changes, so it is asked once and kept. This is
- * what lets the wrong-audio check finish every song: songs not in the
- * YouTube playlist are looked up one by one (a few at a time), and from
- * then on the check needs YouTube only for songs it has never seen.
- *
- * yt_lengths.json: {"videoid": ["title", "channel", "seconds"]}, and for a
- * video YouTube says is gone: ["", "", "-1", "when (ms)"] - asked again
- * after 90 days, in case it was only YouTube being busy.
- */
 final class Lengths {
     private static final long GONE_MS = 90L * 24 * 3600 * 1000;
     private static Map<String, String[]> all;

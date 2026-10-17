@@ -1,10 +1,5 @@
 package io.github.emordnilap67.mymusic;
 
-/**
- * The moving ring's numbers: a slice of the song's own sound
- * (8-bit, from Android's Visualizer) -> how loud each of BANDS pitch bands
- * is, bass first. Plain Java, no Android, so it can be tested anywhere.
- */
 final class Spectrum {
     static final int BANDS = 64;
     static final float LO_HZ = 38f, HI_HZ = 15000f;

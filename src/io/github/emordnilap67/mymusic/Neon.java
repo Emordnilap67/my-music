@@ -1,13 +1,6 @@
 package io.github.emordnilap67.mymusic;
 
-/**
- * the widget's two neon colours come from the song's picture,
- * worked out exactly like the page's palette() / vivid() in index.html, so
- * the widget and the player screen glow in the same colours. Plain Java
- * (ARGB ints) so it can be tested.
- */
 final class Neon {
-    /** the colours of the picture he sent (no song, or a picture with no colour in it) */
     static final int PINK = 0xFFE040FB, BLUE = 0xFF3B9BFF;
 
     private Neon() {}
@@ -138,12 +131,6 @@ final class Neon {
         return rgb(o[0], o[1], o[2]);
     }
 
-    /**
-     * the widget's two ends (left, right): the picture's two colours, but
-     * when they are nearly the same (a one-colour picture) the right end is
-     * turned 45 degrees round the wheel, so the edge still glows from one
-     * colour into another (pink into blue).
-     */
     static int[] ends(int[] p) {
         double d = Math.abs(hue(p[0]) - hue(p[1]));
         if (Math.min(d, 360 - d) >= 35) return p;

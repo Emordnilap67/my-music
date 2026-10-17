@@ -5,11 +5,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-/**
- * Lyrics from a YouTube video's description. Lyric-video
- * channels usually paste the words under the links, hashtags and credits;
- * this finds that block and leaves the rest. Plain Java so it can be tested.
- */
 final class DescLyrics {
     private DescLyrics() {}
 
