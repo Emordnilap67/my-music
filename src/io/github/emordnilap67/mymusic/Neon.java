@@ -52,7 +52,7 @@ final class Neon {
 
     /**
      * two lively colours from the picture's pixels (ARGB, about 32 x 32):
-     * {left colour, right colour}. A grey or dark picture gives MY MUSIC's
+     * {left colour, right colour}. A grey or dark picture gives Carmen Musicum's
      * own pink and blue.
      */
     static int[] palette(int[] px) {

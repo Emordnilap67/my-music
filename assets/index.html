@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>MY MUSIC</title>
+<title>Repertorium</title>
 <style>
 /* fonts live inside the app (fetched once when it is built); if they are
    missing, Georgia / the phone's own font stand in */
@@ -31,7 +31,7 @@ img{display:block}
 .home{padding:20px 20px 24px;max-width:640px;margin:0 auto}
 .hero{text-align:center}
 .disc0{display:block;width:96px;height:96px;margin:28px auto 22px;filter:drop-shadow(0 0 18px rgba(124,77,255,.45))}
-.mark{font-family:var(--display);font-weight:700;font-size:clamp(40px,12vw,60px);letter-spacing:.08em;line-height:1;margin:0;
+.mark{font-family:var(--display);font-weight:700;font-size:clamp(30px,10.6vw,58px);letter-spacing:.05em;white-space:nowrap;line-height:1;margin:0;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .tag{margin:12px 0 0;font-size:12px;letter-spacing:.28em;text-transform:uppercase;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -65,6 +65,12 @@ img{display:block}
 .count{color:var(--mist);font-size:13px}
 .search{width:100%;margin-top:10px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--ink);font:inherit}
 .search::placeholder{color:var(--mist)}
+/* 5.1: the search on the home screen - every song of every playlist */
+.hq{margin:0 0 6px}
+.hfound{margin:10px 2px 2px;color:var(--mist);font-size:13px;letter-spacing:.04em}
+#hres .song{padding-left:0;padding-right:0}
+#hres{min-height:100vh}
+.hq{scroll-margin-top:12px}
 .tools{display:flex;align-items:center;gap:10px;margin-top:10px}
 .pill{border-radius:999px;padding:9px 18px;font-weight:600}
 .pill.main{background:var(--grad);color:#07050d}
@@ -446,10 +452,12 @@ button,a,input,.song,.pl{touch-action:manipulation}
       <circle cx="50" cy="50" r="17" fill="url(#g0)"/>
       <circle cx="50" cy="50" r="3" fill="#000"/>
     </svg>
-    <h1 class="mark">MY MUSIC</h1>
+    <h1 class="mark">Repertorium</h1>
     <p class="tag">Curated sound. Endless mood.</p>
   </header>
   <div class="rule"></div>
+  <input id="hq" class="search hq" type="search" placeholder="Search every playlist" autocomplete="off" enterkeyhint="search">
+  <div id="hres" class="hidden"><p id="hfound" class="hfound"></p><ul id="hsongs2" class="songs"></ul></div>
   <ul id="pls" class="pls"></ul>
   <div id="dls" aria-live="polite"></div>
   <div class="homefoot">
@@ -516,7 +524,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="shAdd" class="srow">Add to another playlist<small>Copies the song into the playlists you pick.</small></button>
     <button id="shShare" class="srow">Share song<small>Sends the song file - Messages, Drive, Bluetooth, anything.</small></button>
     <button id="shWrong" class="srow">Plays the wrong song<small>Pick the right one on YouTube - its audio goes in this song's place. The wrong file is kept under Hidden songs.</small></button>
-    <button id="shHide" class="srow">Hide from MY MUSIC<small>The file stays on the phone. Bring it back from Hidden songs.</small></button>
+    <button id="shHide" class="srow">Hide from Carmen Musicum<small>The file stays on the phone. Bring it back from Hidden songs.</small></button>
     <button id="shDel" class="srow danger">Delete from phone<small>Gone for good. Android asks you to confirm first.</small></button>
     <button id="shCancel" class="srow">Cancel</button>
   </div>
@@ -548,7 +556,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
   <div class="sheetcard">
     <b id="mTitle">Moving ring</b>
     <span>The ring around the disc moves with the music, in each song's own colours.</span>
-    <p class="mnote">Android calls this "Record audio". MY MUSIC only reads its own sound - it never turns on the microphone.</p>
+    <p class="mnote">Android calls this "Record audio". Carmen Musicum only reads its own sound - it never turns on the microphone.</p>
     <button id="mGo" class="pill main wide">Turn on the ring</button>
     <button id="mNo" class="srow">Not now</button>
   </div>
@@ -562,9 +570,9 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="kRestore" class="srow hidden">Restore<small id="kRestoreSub"></small></button>
     <button id="kPick" class="srow">Restore from a file<small>Pick a backup.zip anywhere on the phone.</small></button>
     <button id="kBack" class="srow hidden">Get songs back<small id="kBackSub"></small></button>
-    <button id="kAllow" class="srow hidden">Allow folder and back up<small>Starts this phone's own backups in your music folder / MY MUSIC backup.</small></button>
+    <button id="kAllow" class="srow hidden">Allow folder and back up<small>Starts this phone's own backups in your music folder / Carmen Musicum backup.</small></button>
     <button id="kAnyway" class="srow hidden">Back up anyway<small>Replaces it - the one there now stays as backup (previous).zip until the next backup.</small></button>
-    <p class="mnote">New phone: copy your whole music folder over, open its MY MUSIC backup folder in Files and tap MY MUSIC.apk to install, tap Music folder and pick the folder you copied, then come here and tap Restore.</p>
+    <p class="mnote">New phone: copy your whole music folder over, open its Carmen Musicum backup folder in Files and tap Carmen Musicum.apk to install, tap Music folder and pick the folder you copied, then come here and tap Restore.</p>
     <button id="kCancel" class="srow">Close</button>
   </div>
 </div>
@@ -634,7 +642,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
 <div id="bsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="bTitle">
   <div class="sheetcard">
     <b id="bTitle">This link is a song in a playlist</b><span>What should come in?</span>
-    <button id="bAll" class="srow">The whole playlist<small>Adds the playlist to MY MUSIC with all its songs.</small></button>
+    <button id="bAll" class="srow">The whole playlist<small>Adds the playlist to Carmen Musicum with all its songs.</small></button>
     <button id="bOne" class="srow">Just this song<small id="bOneTo"></small></button>
     <button id="bCancel" class="srow">Cancel</button>
   </div>
@@ -1345,7 +1353,7 @@ function renderHome() {
   $(".homefoot").classList.toggle("hidden", !!N && !N.hasPermission());
   if (N && !N.hasPermission()) {
     homeSig = "";
-    ul.innerHTML = '<li class="empty">MY MUSIC needs your permission to read the songs on your phone.<br><br>' +
+    ul.innerHTML = '<li class="empty">Carmen Musicum needs your permission to read the songs on your phone.<br><br>' +
       '<button class="pill main" id="allow">Allow</button></li>';
     $("#allow").onclick = () => N.askPermission();
   } else if (!LIB.playlists.length) {
@@ -1370,9 +1378,57 @@ function renderHome() {
   }
   let fold = ""; try { fold = N ? N.folder() : ""; } catch (e) {}
   $("#made").textContent = (fold ? fold + " - " : "") + (LIB.made ? "updated " + LIB.made.slice(5).replace("-", "/") : "");
+  if ($("#hq").value.trim()) homeSearch();
   const nh = (LIB.hidden || []).length, hb = $("#hiddenBtn");
   hb.classList.toggle("hidden", !nh); hb.textContent = "Hidden songs (" + nh + ")";
 }
+/*
+ * 5.1: the search on the home screen. Type and every playlist is searched at once -
+ * song name, artist, file name, every word has to be there. The playlists step
+ * aside while it shows results. Tap a song: it plays inside its own playlist (in
+ * that playlist's order), so the next song is the next one there. Long-press: the
+ * usual song menu. Names that start with what you typed come first.
+ */
+let HQ = [], hqT = 0;
+function homeSearch() {
+  const raw = $("#hq").value.trim(), q = raw.toLowerCase(), box = $("#hres"), pls = $("#pls");
+  if (!q) { box.classList.add("hidden"); pls.classList.remove("hidden"); HQ = []; $("#hsongs2").innerHTML = ""; return; }
+  pls.classList.add("hidden"); box.classList.remove("hidden");
+  const words = q.split(/\s+/), rank = s => { const t = showName(s).toLowerCase(); return t.startsWith(q) ? 0 : t.includes(q) ? 1 : (s.artist || "").toLowerCase().includes(q) ? 2 : 3; };
+  const hits = [];
+  for (const p of LIB.playlists) for (const s of p.songs) if (words.every(w => s.k.includes(w))) hits.push(s);
+  hits.sort((a, b) => rank(a) - rank(b) || COLL.compare(showName(a), showName(b)) || COLL.compare(a.p, b.p));
+  HQ = hits.slice(0, 300);
+  const n = hits.length;
+  $("#hfound").textContent = n ? (n === 1 ? "1 song" : n.toLocaleString() + " songs") + (n > HQ.length ? " - first " + HQ.length + " shown" : "") : "";
+  $("#hsongs2").innerHTML = n ? HQ.map((s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '"><div class="th">' + (cur === s ? EQ : '') +
+    '<img loading="lazy" alt="" src="' + artUrl(s.p, s.file) + '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' +
+    esc(s.artist || "Unknown artist") + ' <em class="frm">&middot; ' + esc(s.p) + '</em></span></div>' +
+    (FAV.has(keyOf(s)) ? '<i class="fv" aria-label="Favorite">' + HEART + '</i>' : '') + '<time>' + side(s) + '</time></li>').join("")
+    : '<li class="empty">No song in any playlist matches "' + esc(raw) + '".</li>';
+}
+$("#hq").addEventListener("input", () => { clearTimeout(hqT); hqT = setTimeout(homeSearch, 120); });
+/* the keyboard covers the bottom half: the search box moves up to the top while you type */
+$("#hq").addEventListener("focus", () => setTimeout(() => { $("#hres").classList.remove("hidden"); $("#hq").scrollIntoView({block: "start", behavior: "smooth"}); }, 200));
+$("#hq").addEventListener("blur", () => { if (!$("#hq").value.trim()) $("#hres").classList.add("hidden"); });
+$("#hq").addEventListener("keydown", e => { if (e.key === "Enter") { e.target.blur(); homeSearch(); } });
+let hlpT = null, hlpDone = false, hlpX = 0, hlpY = 0;
+$("#hsongs2").addEventListener("pointerdown", e => {
+  const li = e.target.closest(".song"); if (!li || li.dataset.i === undefined) return;
+  hlpDone = false; hlpX = e.clientX; hlpY = e.clientY; clearTimeout(hlpT);
+  hlpT = setTimeout(() => { hlpDone = true; openSheet(HQ[+li.dataset.i]); }, 550);
+});
+$("#hsongs2").addEventListener("pointermove", e => { if (Math.abs(e.clientX - hlpX) + Math.abs(e.clientY - hlpY) > 12) clearTimeout(hlpT); });
+["pointerup", "pointercancel", "pointerleave"].forEach(ev => $("#hsongs2").addEventListener(ev, () => clearTimeout(hlpT)));
+$("#hsongs2").addEventListener("contextmenu", e => e.preventDefault());
+$("#hsongs2").addEventListener("click", e => {
+  if (hlpDone) { hlpDone = false; return; }
+  const li = e.target.closest(".song"); if (!li) return;
+  const s = HQ[+li.dataset.i]; if (!s) return;
+  const pl = LIB.playlists.find(p => p.name === s.p), all = pl ? sortedNow(pl) : [s], i = all.indexOf(s);
+  $("#hq").blur();
+  if (i < 0) playList([s], 0, false); else playList(all, i, !!ST.shuffle);
+});
 $("#hiddenBtn").onclick = () => go("#/hidden");
 $("#hback").onclick = () => goBack("#/");
 function renderHidden() {
@@ -1626,7 +1682,7 @@ function renderPend() {
   const w = waiting(e), bad = e.items.length - w;
   const open = pendOpen[PL.name] ?? (PL.songs.length < 30);
   const now = DLS.some(d => d.folder.toLowerCase() === PL.name.toLowerCase());
-  const status = e.retry > Date.now() ? "YouTube paused downloads - MY MUSIC tries again at " + clock(e.retry)
+  const status = e.retry > Date.now() ? "YouTube paused downloads - Carmen Musicum tries again at " + clock(e.retry)
     : now ? "Downloading now - each song shows up here when it's in" : "Starting...";
   const row = x => '<li class="song soon' + (x.s === "x" ? " bad" : "") + '"><div class="th"></div><div class="tx"><b>' + esc(x.t || "Song") +
     '</b><span>' + esc(x.s === "x" ? "Can't download: " + (x.e || "not available") : (x.a || "On the way")) + '</span></div><time>' + (x.d ? mmss(x.d) : "") + '</time></li>';
@@ -1941,8 +1997,8 @@ $("#aPhone").onclick = () => {
   closeAdd(); N.importSongs(to);
 };
 $("#addBtn").onclick = () => openAdd("");
-/* Share > MY MUSIC, straight in, no questions:
-   - a playlist becomes a playlist in MY MUSIC (named after it - or, if one here already has its songs,
+/* Share > Carmen Musicum, straight in, no questions:
+   - a playlist becomes a playlist in Carmen Musicum (named after it - or, if one here already has its songs,
      that one fills up); every song is listed at once and fills in as it downloads
    - a song goes into the playlist used last
    - a song played from a playlist: asks once - the whole playlist, or just the song */
@@ -1994,7 +2050,7 @@ function renderDls() {
   const now = Date.now();
   const runs = DLS.map(d => {
     const busy = d.phase === "reading" || !d.total, pct = d.total ? Math.min(100, d.done * 100 / d.total) : 0;
-    const what = d.folder === "New playlist" ? "Adding a playlist to MY MUSIC" : "Downloading into " + esc(d.folder);
+    const what = d.folder === "New playlist" ? "Adding a playlist to Carmen Musicum" : "Downloading into " + esc(d.folder);
     return '<div class="dl"><b>' + what + '</b>' +
       '<div class="bar' + (busy ? ' busy' : '') + '"><i style="width:' + (busy ? '' : pct.toFixed(1) + '%') + '"></i></div>' +
       '<div class="row"><span>' + (busy ? esc(d.text || 'Reading the playlist...') : d.done.toLocaleString() + ' of ' + nSongs(d.total)) +
@@ -2004,9 +2060,9 @@ function renderDls() {
   /* waiting out YouTube's pause: it carries on by itself */
   const waits = Object.keys(PENDING).filter(k => (PENDING[k].retry || 0) > now && !DLS.some(d => d.folder.toLowerCase() === k.toLowerCase())).map(k => {
     const e = PENDING[k], w = waiting(e);
-    return '<div class="dl"><b>' + (k.startsWith("?") ? "A playlist for MY MUSIC" : esc(k)) + '</b>' +
+    return '<div class="dl"><b>' + (k.startsWith("?") ? "A playlist for Carmen Musicum" : esc(k)) + '</b>' +
       '<div class="row"><span>' + (w ? nSongs(w) + " still to come" : "Waiting") + '</span><button class="ghost dlstop">Stop</button></div>' +
-      '<div class="note">' + esc(e.note || "YouTube paused downloads") + ' - MY MUSIC tries again at ' + clock(e.retry) + ' by itself.</div></div>';
+      '<div class="note">' + esc(e.note || "YouTube paused downloads") + ' - Carmen Musicum tries again at ' + clock(e.retry) + ' by itself.</div></div>';
   });
   $("#dls").innerHTML = runs.concat(waits).join("");
 }
@@ -2129,7 +2185,9 @@ function goBack(fallback) {
 }
 function popDone() { popFor = null; clearTimeout(popT); if (goNext) { const h = goNext; goNext = null; go(h); } }
 /* the phone's own Back button (MainActivity asks the page first): "1" = the page stepped back */
-window.appBack = () => { if (popFor !== null) return "1"; if (history.state && history.state.d > 0) { goBack("#/"); return "1"; } return "0"; };
+window.appBack = () => { if (popFor !== null) return "1";
+  if (!$("#home").classList.contains("hidden") && !$("#now").classList.contains("show") && $("#hq").value) { $("#hq").value = ""; $("#hq").blur(); homeSearch(); return "1"; }
+  if (history.state && history.state.d > 0) { goBack("#/"); return "1"; } return "0"; };
 let miniAt = 0;
 $("#mini").addEventListener("pointerdown", e => {
   if (e.button > 0 || e.target.closest("#mplay,#mnext") || !cur) return;
@@ -2214,7 +2272,7 @@ const mix = (a, b, k) => a.map((v, j) => v + (b[j] - v) * k);
 let COL = [BRAND[0].slice(), BRAND[1].slice()], colFrom = null, colTo = null, colAt = 0;
 const waveColor = i => rgb(mix(COL[0], COL[1], i / (BARS - 1)));
 
-/* two lively colours from the song's picture (falls back to MY MUSIC's own) */
+/* two lively colours from the song's picture (falls back to Carmen Musicum's own) */
 function hsl2rgb(h, s, l) {
   const k = n => (n + h * 12) % 12, a = s * Math.min(l, 1 - l);
   return [0, 8, 4].map(n => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1))));
@@ -2564,7 +2622,7 @@ $("#disc").addEventListener("click", () => { if (N && !N.micAllowed()) $("#mshee
 window.onMic = (ok, forever) => {
   if (ok) { RING.off = false; ringStart(); toast("The ring is on"); return; }
   if (forever && performance.now() - micAskedAt < 1200) {                  /* Android did not even ask: it was turned down before */
-    toast("Allow Microphone for MY MUSIC in Settings - it is only used for the ring"); N.openSettings();
+    toast("Allow Microphone for Carmen Musicum in Settings - it is only used for the ring"); N.openSettings();
   } else toast("The ring stays still - tap the disc to turn it on later");
 };
 
@@ -2825,8 +2883,8 @@ function showWrong(folder, r) {
     (r.gone ? " " + (r.gone === 1 ? "1 song's YouTube video was taken down, so there is no length to check it against - the song itself is fine and still plays."
       : r.gone.toLocaleString() + " songs' YouTube videos were taken down, so there is no length to check them against - the songs themselves are fine and still play.") : "");
   if (r.needLink && r.many) $("#wSub").textContent = (bad.length ? (bad.length === 1 ? "1 song plays" : bad.length + " songs play") + " the wrong audio so far. " : "") +
-    r.many.toLocaleString() + " songs are new to MY MUSIC - paste this playlist's YouTube link once (Share in YouTube, Copy link) and it reads them all at once.";
-  else if (r.needLink) $("#wSub").textContent = (r.error ? r.error + ". " : "") + "MY MUSIC doesn't know this playlist's YouTube link yet. Paste it once (Share in YouTube, Copy link).";
+    r.many.toLocaleString() + " songs are new to Carmen Musicum - paste this playlist's YouTube link once (Share in YouTube, Copy link) and it reads them all at once.";
+  else if (r.needLink) $("#wSub").textContent = (r.error ? r.error + ". " : "") + "Carmen Musicum doesn't know this playlist's YouTube link yet. Paste it once (Share in YouTube, Copy link).";
   else if (r.error) $("#wSub").textContent = r.error;
   else if (!bad.length) $("#wSub").textContent = "All good - " + nSongs(r.checked) + " checked, each one plays the song it shows." + rest;
   else $("#wSub").textContent = (bad.length === 1 ? "1 song plays" : bad.length + " songs play") + " a different song than the one shown" +
@@ -2860,18 +2918,18 @@ function renderKit(k) {
   kitMain = KIT.hold === "foreign" ? "found" : fresh ? "pick" : "backup";
   if (KIT.running) sub.innerHTML = "<b>Backing up...</b>";
   else if (KIT.hold === "foreign") sub.innerHTML = "<b>There's a backup from another phone here</b>, made " + esc(when(KIT.found)) +
-    (KIT.foundSongs ? " with " + nSongs(KIT.foundSongs) : "") + ". Restore it first - MY MUSIC won't replace it until you do.";
-  else if (KIT.hold === "fewer") sub.innerHTML = "<b>The backup has " + nSongs(KIT.foundSongs) + "</b> - far more than this phone has now, so MY MUSIC isn't replacing it. Get songs back first.";
-  else if (fresh) sub.innerHTML = "New phone? Restore your backup first. Backups live in your music folder / MY MUSIC backup, so they travel with your songs.";
-  else if (!KIT.tree) sub.innerHTML = "Backups go in your music folder / MY MUSIC backup. Allow the folder once and they keep themselves up to date.";
+    (KIT.foundSongs ? " with " + nSongs(KIT.foundSongs) : "") + ". Restore it first - Carmen Musicum won't replace it until you do.";
+  else if (KIT.hold === "fewer") sub.innerHTML = "<b>The backup has " + nSongs(KIT.foundSongs) + "</b> - far more than this phone has now, so Carmen Musicum isn't replacing it. Get songs back first.";
+  else if (fresh) sub.innerHTML = "New phone? Restore your backup first. Backups live in your music folder / Carmen Musicum backup, so they travel with your songs.";
+  else if (!KIT.tree) sub.innerHTML = "Backups go in your music folder / Carmen Musicum backup. Allow the folder once and they keep themselves up to date.";
   else if (KIT.last) sub.innerHTML = "<b>Last backup: " + esc(when(KIT.last)) + "</b> - " + nSongs(KIT.songs) + " in " + KIT.playlists +
-    (KIT.playlists === 1 ? " playlist" : " playlists") + ", play counts and settings. It updates by itself when you close MY MUSIC.";
-  else sub.innerHTML = "No backup yet. Tap Back up now - after that it updates by itself when you close MY MUSIC.";
+    (KIT.playlists === 1 ? " playlist" : " playlists") + ", play counts and settings. It updates by itself when you close Carmen Musicum.";
+  else sub.innerHTML = "No backup yet. Tap Back up now - after that it updates by itself when you close Carmen Musicum.";
   $("#kNow").textContent = kitMain === "found" ? "Restore it" : kitMain === "pick" ? "Restore from a backup" : KIT.tree ? "Back up now" : "Allow folder and back up";
   $("#kAllow").classList.toggle("hidden", kitMain !== "pick");
   $("#kAnyway").classList.toggle("hidden", !KIT.hold || !KIT.tree);
   $("#kRestore").classList.toggle("hidden", !KIT.found || kitMain === "found");
-  $("#kRestoreSub").textContent = KIT.found ? "The backup in your music folder / MY MUSIC backup, from " + when(KIT.found) + "." : "";
+  $("#kRestoreSub").textContent = KIT.found ? "The backup in your music folder / Carmen Musicum backup, from " + when(KIT.found) + "." : "";
   const b = KIT.back;
   $("#kBack").classList.toggle("hidden", !b || !b.songs);
   if (b && b.songs) $("#kBackSub").textContent = nSongs(b.songs) + " in " + b.playlists + (b.playlists === 1 ? " playlist aren't" : " playlists aren't") +
@@ -2913,8 +2971,8 @@ window.onRestored = async (res, info) => {
 
 (async () => {
   syncPlay();
-  if (!N) { $("#pls").innerHTML = '<li class="empty">Open MY MUSIC from its app icon.</li>'; return; }
-  try { await getLib(); } catch (e) { $("#pls").innerHTML = '<li class="empty">Could not read the library. Close MY MUSIC and open it again.</li>'; return; }
+  if (!N) { $("#pls").innerHTML = '<li class="empty">Open Carmen Musicum from its app icon.</li>'; return; }
+  try { await getLib(); } catch (e) { $("#pls").innerHTML = '<li class="empty">Could not read the library. Close Carmen Musicum and open it again.</li>'; return; }
   history.replaceState({d: 0}, "", location.hash === "#/now" ? "#/" : (location.hash || "#/"));
   VIEWS[0] = location.hash || "#/";
   route();

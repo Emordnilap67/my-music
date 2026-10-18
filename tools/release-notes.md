@@ -1,13 +1,7 @@
-**New in 5.0:**
+**New in 5.1:**
 
-- **A new player:** a black record inside a visualizer that dances to each song - the bass warps the outer waves on every beat, the voice ripples the inner ones, and the high notes make a cloud of stars drift and twinkle
-- **A galaxy** turns slowly behind it, and the song's colours **glow behind the buttons**, throbbing on the beat
-- **Up to five colours** from each song's picture, fading smoothly from song to song
-- **New songs by themselves:** shared YouTube playlists are checked every 6 hours and new songs come in on their own
-- **Shuffle never repeats** a song until the whole playlist has played, even after a restart
-- **Faster:** the visualizer runs on its own thread; Back, Sort and opening the player are instant
-- **Widget:** tap the progress bar to jump through the song
-- Fixes: the player opening blank after starting a song from the widget; Back needing several presses
+- **MY MUSIC is now Carmen Musicum.** Inside, the home screen says **Repertorium**. It updates the app you have - nothing to move, and an existing `MY MUSIC backup` folder is renamed and kept
+- **Search every playlist at once:** a search box on the home screen finds any song in any playlist by name or artist; tap it to play it inside its own playlist, long-press for the song menu, Back clears the search
 
 **Install:** tap the `.apk` below on your phone, then **Install** (or **Update**).
 
@@ -18,6 +12,6 @@
 
 1. Allow Music and audio, and Notifications.
 2. Tap **Music folder** and pick or make a folder for your music.
-3. Share a YouTube or YouTube Music playlist to MY MUSIC.
+3. Share a YouTube or YouTube Music playlist to Carmen Musicum.
 
 You need Android 8+ on a 64-bit ARM phone.

@@ -30,12 +30,12 @@ final class Importer {
 
     private Importer() {}
 
-    /** the music folder's document id ("primary:Music/MY MUSIC"), "" until one is picked */
+    /** the music folder's document id ("primary:Music/Carmen Musicum"), "" until one is picked */
     static String rootDoc(Context c) {
         return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("doc", "");
     }
 
-    /** where that is on the phone: "/storage/emulated/0/Music/MY MUSIC" */
+    /** where that is on the phone: "/storage/emulated/0/Music/Carmen Musicum" */
     static String pathOf(String doc) {
         int k = doc.indexOf(':');
         if (k < 0) return null;
@@ -45,7 +45,7 @@ final class Importer {
         return rel.isEmpty() ? base : base + "/" + rel;
     }
 
-    /** a short name for the music folder, for the screen ("Music/MY MUSIC") */
+    /** a short name for the music folder, for the screen ("Music/Carmen Musicum") */
     static String label(Context c) {
         String d = rootDoc(c);
         int k = d.indexOf(':');
@@ -149,7 +149,7 @@ final class Importer {
         try {
             String rootId = DocumentsContract.getTreeDocumentId(tree);
             for (String[] ch : children(c.getContentResolver(), tree, rootId)) {
-                if (ch[1] != null && !ch[1].startsWith(".") && !ch[1].equalsIgnoreCase(Backup.DIR)
+                if (ch[1] != null && !ch[1].startsWith(".") && !ch[1].equalsIgnoreCase(Backup.DIR) && !ch[1].equalsIgnoreCase(Backup.OLD_DIR)
                         && DocumentsContract.Document.MIME_TYPE_DIR.equals(ch[2]))
                     out.add(new String[]{ch[0], ch[1]});
             }
@@ -261,7 +261,7 @@ final class Importer {
             } finally {
                 o.close();
             }
-            // "primary:Music/MY MUSIC/Chill/Artist - Song.mp3" -> the real path
+            // "primary:Music/Carmen Musicum/Chill/Artist - Song.mp3" -> the real path
             String id = DocumentsContract.getDocumentId(dst);
             int colon = id.indexOf(':');
             return android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + id.substring(colon + 1);

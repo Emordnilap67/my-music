@@ -61,10 +61,10 @@ final class Library {
 
     private static volatile String chosenRoot;
 
-    /** the music folder (picked in the app); Music/MY MUSIC until one is picked */
+    /** the music folder (picked in the app); Music/Carmen Musicum until one is picked */
     static String rootPath() {
         String r = chosenRoot;
-        return r != null ? r : new File(Environment.getExternalStorageDirectory(), "Music/MY MUSIC").getAbsolutePath();
+        return r != null ? r : new File(Environment.getExternalStorageDirectory(), "Music/Carmen Musicum").getAbsolutePath();
     }
 
     private static void useRoot(Context c) {

@@ -33,22 +33,24 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * The new-phone kit. MY MUSIC keeps a backup of everything
+ * The new-phone kit. Carmen Musicum keeps a backup of everything
  * that is not a song - play counts, hidden songs, favourites, playlist pictures, which
  * YouTube playlist goes where, songs gone from YouTube, lyrics fixes, the
  * sort order - plus a list of every song and the YouTube video it came
- * from, in your music folder / MY MUSIC backup. It refreshes by itself when the
+ * from, in your music folder / Carmen Musicum backup. It refreshes by itself when the
  * app is closed (when something changed), keeps the one before it, and
  * puts a copy of the app there too. Copy the music folder to a new phone,
- * install MY MUSIC.apk from that folder, tap Restore - and if the songs
+ * install Carmen Musicum.apk from that folder, tap Restore - and if the songs
  * did not come along, Get songs back downloads them again.
  */
 final class Backup {
-    static final String DIR = "MY MUSIC backup";
+    static final String DIR = "Carmen Musicum backup";
+    /** 5.1: the app is Carmen Musicum now; a backup folder from before keeps working (renamed once) */
+    static final String OLD_DIR = "MY MUSIC backup";
     /** a download job that fetches the songs a backup lists ("mmids:" + playlist) */
     static final String IDS = "mmids:";
     static final String ZIP = "backup.zip", PREV = "backup (previous).zip", NEW = "backup new.zip";
-    static final String APK = "MY MUSIC.apk", README = "How to restore.txt";
+    static final String APK = "Carmen Musicum.apk", README = "How to restore.txt";
     private static final int FORMAT = 1;
     private static final long AUTO_GAP_MS = 10L * 60 * 1000;
     private static final String[] FILES = {"plays.json", "hidden.txt", "favorites.txt", "missing.json", "dead.json", "lyrics_fix.json"};
@@ -108,6 +110,7 @@ final class Backup {
         Map<String, byte[]> files = collect(c, counts);
         String hash = sha1(files);
         SharedPreferences p = prefs(c);
+        renameOld(c, tree);
         String dirId = Importer.folderId(c, tree, DIR);
         if (dirId == null) return "Could not make the folder " + DIR + " in your music folder";
         ContentResolver r = c.getContentResolver();
@@ -309,9 +312,9 @@ final class Backup {
     }
 
     static String readme() {
-        return "MY MUSIC - how to get everything back on a new phone\n"
+        return "Carmen Musicum - how to get everything back on a new phone\n"
                 + "\n"
-                + "MY MUSIC makes this folder and updates it by itself when you close the\n"
+                + "Carmen Musicum makes this folder and updates it by itself when you close the\n"
                 + "app. It lives inside your music folder so it travels with your songs.\n"
                 + "\n"
                 + "  backup.zip              play counts, favourites, hidden songs,\n"
@@ -320,22 +323,22 @@ final class Backup {
                 + "                          sort order - and\n"
                 + "                          a list of every song and its YouTube video\n"
                 + "  backup (previous).zip   the one before it, just in case\n"
-                + "  MY MUSIC.apk            the app itself\n"
+                + "  Carmen Musicum.apk            the app itself\n"
                 + "\n"
                 + "ON THE NEW PHONE\n"
                 + "1. Copy the whole music folder to the new phone (for example\n"
-                + "   Internal storage / Music / MY MUSIC).\n"
-                + "2. In Files, open its MY MUSIC backup folder and tap MY MUSIC.apk\n"
+                + "   Internal storage / Music / Carmen Musicum).\n"
+                + "2. In Files, open its Carmen Musicum backup folder and tap Carmen Musicum.apk\n"
                 + "   (or download the newest one from the app's Releases page).\n"
                 + "   If Android asks, allow installing from Files. Install.\n"
-                + "3. Open MY MUSIC, allow music, tap Music folder and pick the folder\n"
+                + "3. Open Carmen Musicum, allow music, tap Music folder and pick the folder\n"
                 + "   you copied over.\n"
                 + "4. On the home screen tap Backup, then Restore.\n"
                 + "5. If the songs did not come over, tap Get songs back in the same\n"
-                + "   place - MY MUSIC downloads them again from YouTube.\n";
+                + "   place - Carmen Musicum downloads them again from YouTube.\n";
     }
 
-    /** this install of MY MUSIC (a new phone gets a new one) */
+    /** this install of Carmen Musicum (a new phone gets a new one) */
     static synchronized String install(Context c) {
         SharedPreferences p = prefs(c);
         String id = p.getString("install", "");
@@ -377,8 +380,8 @@ final class Backup {
         JSONObject old = meta(r, DocumentsContract.buildDocumentUriUsingTree(tree, curZip[0]));
         if (old == null) return null;
         String why = holdReason(old, install(c), prefs(c).getString("adopted", ""), songsHere);
-        if ("foreign".equals(why)) return "There is a backup from another phone in your music folder / MY MUSIC backup - "
-                + "Restore it first. MY MUSIC won't replace it until you do.";
+        if ("foreign".equals(why)) return "There is a backup from another phone in your music folder / Carmen Musicum backup - "
+                + "Restore it first. Carmen Musicum won't replace it until you do.";
         if ("fewer".equals(why)) return "This phone has " + songsHere + " songs but the backup has " + old.optInt("songs")
                 + " - not replacing it. Get songs back first, or tap Back up anyway.";
         return null;
@@ -433,9 +436,25 @@ final class Backup {
         return b.append('}').toString();
     }
 
-    /** the backup in the music folder / MY MUSIC backup: {document uri, last modified, size}, or null */
+    /** a "Carmen Musicum backup" folder (from before 5.1) becomes the new backup folder, unless that exists already */
+    private static void renameOld(Context c, Uri tree) {
+        try {
+            ContentResolver r = c.getContentResolver();
+            String root = DocumentsContract.getTreeDocumentId(tree), oldId = null;
+            for (Map.Entry<String, String[]> e : children(r, tree, root).entrySet()) {
+                if (!DocumentsContract.Document.MIME_TYPE_DIR.equals(e.getValue()[3])) continue;
+                if (e.getKey().equals(DIR.toLowerCase(Locale.ROOT))) return;
+                if (e.getKey().equals(OLD_DIR.toLowerCase(Locale.ROOT))) oldId = e.getValue()[0];
+            }
+            if (oldId != null) DocumentsContract.renameDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, oldId), DIR);
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** the backup in the music folder / Carmen Musicum backup: {document uri, last modified, size}, or null */
     static String[] find(Context c, Uri tree) {
         ContentResolver r = c.getContentResolver();
+        renameOld(c, tree);
         String root = DocumentsContract.getTreeDocumentId(tree);
         String dirId = null;
         for (Map.Entry<String, String[]> e : children(r, tree, root).entrySet()) {
@@ -462,7 +481,7 @@ final class Backup {
         try {
             Map<String, byte[]> e = unzip(in);
             byte[] metaB = e.get("backup.json");
-            if (metaB == null) return "{\"ok\":false,\"msg\":\"That file is not a MY MUSIC backup\"}";
+            if (metaB == null) return "{\"ok\":false,\"msg\":\"That file is not a Carmen Musicum backup\"}";
             JSONObject meta = new JSONObject(new String(metaB, "UTF-8"));
             File dir = c.getFilesDir();
             List<String> said = new ArrayList<>();

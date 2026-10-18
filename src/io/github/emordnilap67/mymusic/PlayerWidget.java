@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class PlayerWidget extends AppWidgetProvider {
     // what every widget shows now (kept, so a resized widget can be drawn again)
-    private static String title = "MY MUSIC", artist = "Tap play to start", repeat = "off";
+    private static String title = "Repertorium", artist = "Tap play to start", repeat = "off";
     private static boolean playing, shuffle;
     private static Bitmap art;
     private static long posMs, durMs;

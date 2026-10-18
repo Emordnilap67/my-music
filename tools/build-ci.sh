@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Builds MY MUSIC's APK on GitHub (or any Linux PC with the Android SDK).
-#   bash tools/build-ci.sh            -> out/MyMusic-<version>.apk
+# Builds Carmen Musicum's APK on GitHub (or any Linux PC with the Android SDK).
+#   bash tools/build-ci.sh            -> out/CarmenMusicum-<version>.apk
 # Signing: KEYSTORE_B64 (base64 of a PKCS12 keystore, key alias "release")
 # and KEYSTORE_PASS from the repository's secrets. Without them a throwaway
 # key is made, and the APK says so in its file name.
@@ -21,7 +21,7 @@ echo "platform:    $PLAT"
 
 VC=$(sed -n 1p VERSION | tr -d '[:space:]')
 VN=$(sed -n 2p VERSION | tr -d '[:space:]')
-echo "MY MUSIC $VN (code $VC)"
+echo "Carmen Musicum $VN (code $VC)"
 
 B=build ; OUT=out
 rm -rf "$B" "$OUT" ; mkdir -p "$B/classes" "$B/lib" "$OUT"
@@ -65,7 +65,7 @@ javac -source 8 -target 8 -bootclasspath "$AJ" -Xlint:-options -nowarn -encoding
 # 6. pack, align, sign
 python3 tools/pack.py "$B/base.apk" "$B/classes.dex" "$B/unsigned.apk" "$B/lib"
 "$BT/zipalign" -f 4 "$B/unsigned.apk" "$B/aligned.apk"
-NAME="MyMusic-$VN"
+NAME="CarmenMusicum-$VN"
 if [ -n "${KEYSTORE_B64:-}" ] && [ -n "${KEYSTORE_PASS:-}" ]; then
   echo "$KEYSTORE_B64" | base64 -d > "$B/release.keystore"
   KS="$B/release.keystore" ; PASS="$KEYSTORE_PASS"
@@ -73,7 +73,7 @@ else
   echo "No signing secrets: using a throwaway key (updates of this APK need an uninstall first)"
   KS="$B/temp.keystore" ; PASS="temporary"
   keytool -genkeypair -keystore "$KS" -storetype PKCS12 -storepass "$PASS" -keypass "$PASS" -alias release \
-    -keyalg RSA -keysize 2048 -validity 36500 -dname "CN=MY MUSIC test build" >/dev/null
+    -keyalg RSA -keysize 2048 -validity 36500 -dname "CN=Carmen Musicum test build" >/dev/null
   NAME="$NAME-test-signed"
 fi
 "$BT/apksigner" sign --ks "$KS" --ks-pass "pass:$PASS" --key-pass "pass:$PASS" --ks-key-alias release \

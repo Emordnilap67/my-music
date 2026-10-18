@@ -1,17 +1,19 @@
-# MY MUSIC
+# Carmen Musicum
+
+*Formerly MY MUSIC. Inside the app it greets you as **Repertorium**.*
 
 A music player for Android for the songs on your own phone. Your playlists
 are plain folders, there's no account and no ads, and nothing streams. Add
 music by sharing a YouTube or YouTube Music link to the app, or copy in MP3s
 you already have.
 
-I made MY MUSIC, a free Android music player for the songs on your own phone
+I made Carmen Musicum, a free Android music player for the songs on your own phone
 
 I wanted a player with no playlist limits, no ads and no account, that keeps my music on my phone. So I built one.
 
 What it does:
 - Your playlists are just folders on your phone, so nothing is locked inside the app
-- Share a YouTube or YouTube Music playlist to MY MUSIC and it becomes a playlist in the app. Every song shows up straight away and fills in as it downloads (MP3 with cover art and tags)
+- Share a YouTube or YouTube Music playlist to Carmen Musicum and it becomes a playlist in the app. Every song shows up straight away and fills in as it downloads (MP3 with cover art and tags)
 - Share a single song and you pick which playlist it goes in
 - If YouTube slows the downloads down, it waits and carries on by itself
 - Timed lyrics: tap a line to jump to that part of the song
@@ -42,25 +44,28 @@ which covers almost every phone made since 2017.
 
 ## First run
 
-1. Allow **Music and audio**, so MY MUSIC can see your songs, and
+1. Allow **Music and audio**, so Carmen Musicum can see your songs, and
    **Notifications**, for the player controls and download progress.
 2. Tap **Music folder** and pick or make a folder for your music, for example
-   `Music/MY MUSIC`. Each folder inside it is a playlist.
-3. Tap **Add songs**, or share a link to MY MUSIC from YouTube or YouTube Music.
+   `Music/Carmen Musicum`. Each folder inside it is a playlist.
+3. Tap **Add songs**, or share a link to Carmen Musicum from YouTube or YouTube Music.
 
 ## What it does
 
+- **Search every playlist at once** (new in 5.1): type in the box on the home
+  screen and every song in every playlist that matches shows up, with the
+  playlist it's in. Tap one and it plays inside its own playlist.
 - **Playlists are folders.** Every folder of songs inside your music folder
   shows up as a playlist, so you can see and manage them in any file manager.
 - **Add songs from YouTube.** Share a playlist from YouTube or YouTube Music
-  and tap MY MUSIC:
+  and tap Carmen Musicum:
   - it becomes a playlist with the same name, and every song is listed at once;
   - each song turns playable as soon as it's in, saved as an MP3 with its
     cover picture and tags;
   - share a single song and you pick which playlist it goes in;
   - share a playlist again later and only the new songs come in.
 - **YouTube's speed limit:** YouTube only lets a few hundred songs an hour
-  through. When it pauses the downloads, MY MUSIC waits and carries on by
+  through. When it pauses the downloads, Carmen Musicum waits and carries on by
   itself.
 - **Songs already on your phone:** Add songs, then Pick songs on this phone.
 - **Songs gone from YouTube:** when a song in a shared playlist has been
@@ -70,11 +75,11 @@ which covers almost every phone made since 2017.
 - **Lyrics:** tap the speech bubble in the player. Timed lyrics light up word
   by word as they're sung, and you can tap a line to jump there. **Sooner**
   and **Later** nudge the timing for that song. They come from
-  [LRCLIB](https://lrclib.net); if it has nothing, MY MUSIC looks in the song
+  [LRCLIB](https://lrclib.net); if it has nothing, Carmen Musicum looks in the song
   file, the video's description and the video's captions (YouTube's automatic
   captions too). **Search by name** fixes a wrong match. If the library is
   slow, the lyrics panel just keeps looking - no error, no countdown.
-- **Lyrics saved in the song:** lyrics MY MUSIC finds are written into the
+- **Lyrics saved in the song:** lyrics Carmen Musicum finds are written into the
   MP3 itself (its own lyrics tag), in the background and never into the song
   that's playing. They go wherever the file goes - a new phone, a computer,
   another music player - and never need the internet again. The lyrics panel
@@ -85,8 +90,8 @@ which covers almost every phone made since 2017.
   player always shows what's **Up next**; tap it to see or change the queue.
 - **Favourites:** tap the heart in the player (or long-press a song). The
   heart filter in any playlist lists your favourites from every playlist.
-- **Backup and new phone:** tap **Backup** on the home screen. MY MUSIC keeps
-  a backup inside your music folder (`MY MUSIC backup`): play counts, hidden
+- **Backup and new phone:** tap **Backup** on the home screen. Carmen Musicum keeps
+  a backup inside your music folder (`Carmen Musicum backup` - a `MY MUSIC backup` folder from before 5.1 is renamed and kept): play counts, hidden
   songs, favourites, playlist pictures, which YouTube playlist goes where, lyrics fixes,
   your sort order and a list of every song, plus a copy of the app. It
   updates by itself when you close the app. On a new phone, copy the music
@@ -140,7 +145,7 @@ which covers almost every phone made since 2017.
 |---|---|
 | Music and audio | to read the songs on your phone |
 | Notifications | player controls and download progress |
-| Record audio | Android's name for letting an app read the sound it is playing itself, which the moving ring needs. MY MUSIC never opens the microphone. Say no and the ring stays still. |
+| Record audio | Android's name for letting an app read the sound it is playing itself, which the moving ring needs. Carmen Musicum never opens the microphone. Say no and the ring stays still. |
 | Alarms | to carry on downloading by itself after YouTube's pause |
 | Internet | downloads, lyrics and downloader updates |
 
@@ -162,7 +167,7 @@ repository secrets: `KEYSTORE_B64` (a PKCS12 keystore in base64, key alias
 
 ## Credits and licences
 
-MY MUSIC is free software under the **GNU GPL v3** (see `LICENSE`). It
+Carmen Musicum is free software under the **GNU GPL v3** (see `LICENSE`). It
 includes or downloads:
 
 - [youtubedl-android](https://github.com/JunkFood02/youtubedl-android)

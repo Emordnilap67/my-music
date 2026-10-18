@@ -348,7 +348,7 @@ public class DownloadService extends Service {
         progress(card, "reading", 0, 0, "Checking for a newer yt-dlp");
         Ytdl.maybeUpdate(this);
         Uri tree = Importer.tree(this);
-        if (tree == null) return "MY MUSIC needs a music folder first - tap Music folder on the home screen";
+        if (tree == null) return "Carmen Musicum needs a music folder first - tap Music folder on the home screen";
 
         link = link.trim().replace("music.youtube.com", "www.youtube.com");
         boolean restore = link.startsWith(Backup.IDS);           // "Get the songs back" after a new phone
@@ -423,7 +423,7 @@ public class DownloadService extends Service {
                     Pending.keep(this, pkey, link, wanted);
                     Pending.waitFor(this, pkey, at, "YouTube paused downloads");
                     Retry.schedule(this, at);
-                    return "YouTube paused downloads for now - MY MUSIC tries this link again at " + clock(at) + " by itself";
+                    return "YouTube paused downloads for now - Carmen Musicum tries this link again at " + clock(at) + " by itself";
                 }
             }
             return "Could not read that link" + (lastErr.isEmpty() ? "" : ": " + shorten(lastErr));
@@ -666,7 +666,7 @@ public class DownloadService extends Service {
             return finishText(folder, added, dupes + local, notSaved, gone, failed, true, null, 0, 0);
         }
         if (paused || limitNote != null || (blocked > 0 && left > 0)) {
-            // YouTube (or Android's daily limit) paused it: the rest waits and MY MUSIC tries again by itself
+            // YouTube (or Android's daily limit) paused it: the rest waits and Carmen Musicum tries again by itself
             long at = System.currentTimeMillis() + (limitNote != null ? 12 * WAIT_MS : WAIT_MS);
             Pending.waitFor(this, folder, at, limitNote != null ? limitNote : "YouTube paused downloads");
             Retry.schedule(this, at);

@@ -658,7 +658,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     void refreshWidget() {
         Library.Song s = Library.get(this).byKey.get(q.current());
         if (s == null) {
-            PlayerWidget.show(this, "MY MUSIC", "Tap play to start", false, null, q.shuffle, q.repeat, 0, 0);
+            PlayerWidget.show(this, "Repertorium", "Tap play to start", false, null, q.shuffle, q.repeat, 0, 0);
             return;
         }
         Bitmap small = null;
@@ -687,7 +687,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private Notification placeholder() {
         int small = getResources().getIdentifier("ic_stat", "drawable", getPackageName());
         if (small == 0) small = android.R.drawable.ic_media_play;
-        return new Notification.Builder(this, CH).setSmallIcon(small).setContentTitle("MY MUSIC")
+        return new Notification.Builder(this, CH).setSmallIcon(small).setContentTitle("Repertorium")
                 .setContentIntent(openApp()).build();
     }
 

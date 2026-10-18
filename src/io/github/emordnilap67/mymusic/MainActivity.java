@@ -342,7 +342,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         if (sharedLink != null) js("window.onShared&&onShared(" + Library.q(sharedLink) + ")");
     }
 
-    /** a link shared from YouTube / YouTube Music: "Share > MY MUSIC" */
+    /** a link shared from YouTube / YouTube Music: "Share > Carmen Musicum" */
     private void shared(Intent i) {
         if (i == null || !Intent.ACTION_SEND.equals(i.getAction())) return;
         String text = i.getStringExtra(Intent.EXTRA_TEXT);
@@ -397,7 +397,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
     private void askTree(String then) {
         afterTree = then;
-        js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like MY MUSIC inside Music), then Use this folder, then Allow") + ")");
+        js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like Carmen Musicum inside Music), then Use this folder, then Allow") + ")");
         try {
             Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(MainActivity.this));
             startActivityForResult(i, REQ_TREE);
@@ -499,7 +499,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             Uri u = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, s.id);
             PendingIntent pi = MediaStore.createDeleteRequest(getContentResolver(), Collections.singletonList(u));
             pendingDelete = s;
-            // Android shows its own "Allow MY MUSIC to delete this?" box
+            // Android shows its own "Allow Carmen Musicum to delete this?" box
             picking = true;
             startIntentSenderForResult(pi.getIntentSender(), REQ_DELETE, null, 0, 0, 0);
         } catch (Exception e) {
@@ -588,7 +588,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             if (dlLink != null) {                      // the folder was allowed for a download
                 DownloadService.start(this, dlLink, dlFolder);
                 js("window.onLibrary&&onLibrary(" + Library.q(dlFolder.isEmpty()
-                        ? "Adding this playlist to MY MUSIC - its songs show up as they come in"
+                        ? "Adding this playlist to Carmen Musicum - its songs show up as they come in"
                         : "Adding to " + dlFolder + " - songs show up as they come in") + ")");
                 dlLink = null;
                 return;
@@ -741,7 +741,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                         importNow(t);
                         return;
                     }
-                    js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like MY MUSIC inside Music), then Use this folder, then Allow") + ")");
+                    js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like Carmen Musicum inside Music), then Use this folder, then Allow") + ")");
                     Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                             .putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(MainActivity.this));
                     startActivityForResult(i, REQ_TREE);
@@ -759,7 +759,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 h.post(new Runnable() {
                     @Override
                     public void run() {
-                        js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like MY MUSIC inside Music), then Use this folder, then Allow") + ")");
+                        js("window.onLibrary&&onLibrary(" + Library.q("Pick a folder for your music (or make one, like Carmen Musicum inside Music), then Use this folder, then Allow") + ")");
                         Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                                 .putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(MainActivity.this));
                         startActivityForResult(i, REQ_TREE);
@@ -768,7 +768,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 return "";
             }
             DownloadService.start(MainActivity.this, link, folder);
-            return folder.isEmpty() ? "Adding this playlist to MY MUSIC - its songs show up as they come in"
+            return folder.isEmpty() ? "Adding this playlist to Carmen Musicum - its songs show up as they come in"
                     : "Adding to " + folder + " - songs show up as they come in";
         }
 
@@ -955,7 +955,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                     // Update library also checks each playlist's YouTube link for new songs
                     try {
                         String which = Sync.run(MainActivity.this);
-                        m += which.isEmpty() ? " - no YouTube playlist links yet: share a playlist into MY MUSIC once"
+                        m += which.isEmpty() ? " - no YouTube playlist links yet: share a playlist into Carmen Musicum once"
                                 : " - checking YouTube for new songs in " + which;
                     } catch (Exception ignored) {
                     }
@@ -989,7 +989,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 @Override
                 public void run() {
                     Library.setHidden(MainActivity.this, key, false);
-                    reread("Back in MY MUSIC", false);
+                    reread("Back in Carmen Musicum", false);
                 }
             }).start();
         }
@@ -1047,7 +1047,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 h.post(new Runnable() {
                     @Override
                     public void run() {
-                        js("window.onBusy&&onBusy(" + Library.q("Pick a folder for your music (or make one, like MY MUSIC inside Music), then Use this folder, then Allow") + ")");
+                        js("window.onBusy&&onBusy(" + Library.q("Pick a folder for your music (or make one, like Carmen Musicum inside Music), then Use this folder, then Allow") + ")");
                         Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                                 .putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(MainActivity.this));
                         startActivityForResult(i, REQ_TREE);
@@ -1204,7 +1204,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
-        /** "Music folder" on the home screen: pick (or make) the folder MY MUSIC reads */
+        /** "Music folder" on the home screen: pick (or make) the folder Carmen Musicum reads */
         @JavascriptInterface
         public void chooseFolder() {
             h.post(new Runnable() {

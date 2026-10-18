@@ -1,6 +1,6 @@
-# Builds MY MUSIC on GitHub. Pushing a tag like v1.0 publishes the APK on
+# Builds Carmen Musicum on GitHub. Pushing a tag like v1.0 publishes the APK on
 # the Releases page; "Run workflow" (Actions tab) builds one to try.
-name: Build MY MUSIC
+name: Build Carmen Musicum
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
       - name: Keep the APK with this run
         uses: actions/upload-artifact@v4
         with:
-          name: MyMusic-apk
+          name: CarmenMusicum-apk
           path: out/*.apk
 
       - name: Publish it on the Releases page
@@ -43,5 +43,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" out/*.apk --clobber
           else
-            gh release create "$TAG" out/*.apk --title "MY MUSIC ${TAG#v}" --notes-file tools/release-notes.md
+            gh release create "$TAG" out/*.apk --title "Carmen Musicum ${TAG#v}" --notes-file tools/release-notes.md
           fi

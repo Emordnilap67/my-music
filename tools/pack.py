@@ -1,4 +1,4 @@
-# MY MUSIC build helper: puts the app file together.
+# Carmen Musicum build helper: puts the app file together.
 #   python3 tools/pack.py base.apk classes.dex unsigned.apk [LIBDIR]
 # LIBDIR: the built-in downloader's lib*.so files -> lib/arm64-v8a/
 # base.apk comes from aapt2 (manifest, resources, the page). Android 11+

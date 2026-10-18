@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MY MUSIC widget v21 (Oct 9) - 7 x 3 (his) and bigger. Made by tests/v21/gen_layout.py: the neon card
+<!-- Carmen Musicum widget v21 (Oct 9) - 7 x 3 (his) and bigger. Made by tests/v21/gen_layout.py: the neon card
      from his picture. Every part is sized by weights from the widget's real size (no sizes
      from the launcher needed), the edge is nine pieces drawn in the song's colours
      (NeonArt.frame: corners keep their shape at any size), texts size themselves. -->
@@ -27,12 +27,12 @@
         android:paddingStart="28dp" android:paddingTop="27dp" android:paddingEnd="33dp" android:paddingBottom="13dp">
         <LinearLayout android:id="@+id/w_main" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="419" android:orientation="horizontal" android:baselineAligned="false">
             <ImageView android:id="@+id/w_art" android:layout_width="wrap_content" android:layout_height="match_parent"
-                android:adjustViewBounds="true" android:maxWidth="230dp" android:scaleType="fitCenter" android:src="@mipmap/ic_launcher_fg" android:contentDescription="Open MY MUSIC" />
+                android:adjustViewBounds="true" android:maxWidth="230dp" android:scaleType="fitCenter" android:src="@mipmap/ic_launcher_fg" android:contentDescription="Open Carmen Musicum" />
             <LinearLayout android:id="@+id/w_text" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
                 android:layout_marginStart="19dp" android:orientation="vertical">
                 <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="26" />
                 <TextView android:id="@+id/w_title" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="79"
-                    android:text="MY MUSIC" android:textColor="#FFFFFFFF" android:textSize="24sp" android:textStyle="bold" android:fontFamily="sans-serif"
+                    android:text="Repertorium" android:textColor="#FFFFFFFF" android:textSize="24sp" android:textStyle="bold" android:fontFamily="sans-serif"
                     android:maxLines="1" android:ellipsize="end" android:gravity="start|center_vertical"
                     android:autoSizeTextType="uniform" android:autoSizeMinTextSize="15sp" android:autoSizeMaxTextSize="44sp" android:autoSizeStepGranularity="1sp" />
                 <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="8" />

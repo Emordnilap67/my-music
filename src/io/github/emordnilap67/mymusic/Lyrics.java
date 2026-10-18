@@ -28,7 +28,7 @@ final class Lyrics {
 
     private static final ExecutorService BG = Executors.newSingleThreadExecutor(Low.THREADS);
     private static final String API = "https://lrclib.net/api/";
-    private static final String AGENT = "MY MUSIC/5.0 (open-source Android music player)";
+    private static final String AGENT = "CarmenMusicum/5.1 (open-source Android music player)";
     private static final long RETRY_NONE_MS = 3L * 24 * 3600 * 1000;
     private static final long RETRY_SOON_MS = 6L * 3600 * 1000;
     /** captions found while the library was busy: look in the library again after this */
