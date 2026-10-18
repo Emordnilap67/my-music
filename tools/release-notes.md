@@ -1,3 +1,9 @@
+**New in 5.3:**
+
+- **A new ring around the record:** the outer six-sided wave now turns steadily all the way round - slowly for calm songs, faster for busy ones - and every bass beat sends a fading echo of it outward, in time with the beat
+- **Audio bars:** a ring of bars outside it moves with the music - bass at the bottom, the voice at the sides, treble at the top - and little twinkling stars pop off the bars on the hits
+- **More stars, calmer details:** more twinkling stars in the cloud; the web and the sparkles are softer and easier on the eyes
+
 **New in 5.2:**
 
 - **Smoother song changes on the widget and in Android's media player:** they no longer flash the default purple-cyan for a moment - name, picture and colours change together

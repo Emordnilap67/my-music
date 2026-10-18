@@ -703,6 +703,14 @@ button,a,input,.song,.pl{touch-action:manipulation}
 <div id="toast" class="toast hidden" role="status"></div>
 
 <script type="text/plain" id="ringsrc">
+/* The ring around the record. The outer six-sided wave turns steadily (faster when the song is
+   busier) and each bass beat sends out a fading echo of it, in time with the beat; a ring of audio
+   bars outside it moves with the sound (bass at the bottom, voice at the sides, treble at the top),
+   with little stars popping off the bars; the inner wave moves with the voice; a cloud of twinkling
+   stars, a faint web and sparkles on the hi-hats. Runs on its own thread (Web Worker +
+   OffscreenCanvas), or on the page itself on an older WebView. Messages: init, size, live, v (a
+   reading), col (the song's two colours), halt, draw. */
+
 "use strict";
 const NB = 64;
 const bars = new Float32Array(NB), aim = new Float32Array(NB), peak = new Float32Array(NB), fall = new Float32Array(NB);
@@ -712,12 +720,10 @@ let live = false, top = 55, running = false, still = 0, last = 0, loud = 0, loop
 const mix = (a, b, k) => a.map((v, j) => v + (b[j] - v) * k);
 const rgb = c => "rgb(" + c.map(Math.round).join(",") + ")";
 const rgba = (c, a) => "rgba(" + c.map(Math.round).join(",") + "," + a + ")";
-/* the colours as drawn: a third less saturated than the song's ("too much saturation") */
+
 const tone = c => { const g = .3 * c[0] + .59 * c[1] + .11 * c[2]; return c.map(v => Math.max(0, Math.min(255, (g + (v - g) * .62) * .95))); };
 let TC = [tone(COL[0]), tone(COL[1])];
-/* the bass, from the raw readings (0..100 = -60..0 dB): its level now, its recent level, how loud
-   the bass is held, the last beat. BEATS = the last few beats (when, how hard): each one gives the
-   outer waves a new shape */
+
 let rawBass = 0, rawPrev = 0, rawAvg = -1, bassHold = 0, lastBeat = -1e9, clock = 0;
 const BEATS = [];
 /* the voice (bands 20-47, about 250 Hz - 3.4 kHz) and the other tones on top (bands 48-61, about
@@ -757,10 +763,7 @@ for (let m = 0; m <= M; m++) {
   TIP[m] = Math.pow(Math.max(0, 1 - d / .3), 2);                /* 1 on the horizontal axis, 0 by ~17 degrees: the pointed tips */
 }
 const LIM = 2.62;                                               /* nothing past here (the canvas edge is at K) */
-/* the waves: standing waves round the record (mirror images left and right), so they breathe in and
-   out rather than spin. Each: radius, its two waves (height), and what moves it - vg the voice
-   breathing, rg the voice ripples, pg the voice's shape, wg how far the beat's warp bends it - and how it is
-   drawn */
+
 const WAV = [];
 const WN = [2, 3, 4, 6, 8, 12], NW = WN.length;               /* the warp's simple shapes: cos(n x the angle from the top) */
 const WW = [1, 1, 1, 1, .7, .55];                               /* the busier ones (8, 12 bumps) a little gentler */
@@ -792,20 +795,16 @@ for (let i = 0; i < NODES.length; i++) {                       /* each point joi
 /* the particle cloud round the outside, thickest a little outside the outer ribbon; each speck
    drifts slowly one way or the other round the ring (dv) */
 const DUST = [];
-for (let i = 0; i < 2800; i++) {
+for (let i = 0; i < 3300; i++) {
   const u = rnd(), r = u < .78 ? 1.9 + .55 * Math.pow(rnd(), .9) : 1.6 + .95 * rnd();
-  DUST.push({a: rnd() * 6.283, r, s: rnd() < .06 ? .012 + .009 * rnd() : .0045 + .0045 * rnd(), tw: rnd() * 6.283, sp: .5 + 2.5 * rnd(),
+  DUST.push({a: rnd() * 6.283, r, s: rnd() < .11 ? .012 + .009 * rnd() : .0045 + .0045 * rnd(),
+    tw: rnd() * 6.283, sp: .5 + 2.5 * rnd(),
     dv: (rnd() - .5) * .09});
 }
 
-/* - the bass's WARP. WT = the shape the outer waves are heading for (how much of each simple
-   shape, in record radii), CW = where the particle cloud and the web are (they follow a little
-   slower), CWV = that, worked out round the ring once a frame. A beat picks the next shape: two of
-   the simple shapes, never the one just used, the six-fold one only ever sharpening the corners */
 const WCOS = WN.map(n => Float32Array.from(PSIA, p => Math.cos(n * p)));
 const WT = new Float32Array(NW), CA = new Float32Array(NW), CW = new Float32Array(NW), CWV = new Float32Array(M1);
-/* the dance. POSES = for each kind of song, its two poses (simple shape n, how much); a
-   beat that is due a new pose swaps to the other one, so the ring sways between them */
+
 const POSES = {
   bass:  [[[2, -1], [6, -.3]], [[2, .6], [4, .3]]],         /* deep heavy bass: wide, then tall - a sway */
   punch: [[[6, -1], [2, -.35]], [[6, .45], [4, -.5]]],      /* punchy kicks: sharp corners, then softened */
@@ -813,6 +812,10 @@ const POSES = {
   voice: [[[3, .8], [6, -.3]], [[4, .7], [2, .3]]],         /* carried by the voice: gentle, flowing */
   mix:   [[[2, .7], [4, -.4]], [[3, -.7], [6, -.35]]]       /* anything else */
 };
+let spin = 0, spinV = 0;
+const ECH = [], ECHO_MS = 800;
+const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(72);
+const TS = [];
 let nShape = 0, pose = 0, lastPoseAt = -1e9, ivMed = 470, subLean = 0, style = "mix", styleNext = "mix";
 /* what the song is like right now: bassSlow = the bass over the last ~2 s, bassPeak = how loud it
    is on the beats (close together = the bass is held, like an 808; far apart = separate punchy
@@ -843,6 +846,7 @@ const ripAt = d => { const p = Math.max(0, Math.min(RJ, (d - RD0) / (RD1 - RD0) 
    sparkle in each colour, and the haze of light behind the ribbons */
 const canvasOf = n => typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(n, n) : Object.assign(document.createElement("canvas"), {width: n, height: n});
 let SPR = null, STAR = null, HAZE = null, PICS = null, PICS_OLD = null, blendE = 1;
+
 function picsFor(cols) {
   const keep = TC; TC = [tone(cols[0]), tone(cols[1])];
   const p = {key: cols.map(c3 => c3.map(Math.round).join(",")).join("|") + K,
@@ -893,8 +897,8 @@ function handle(m) {
   else if (m.t === "live") { live = !!m.on; if (!live) { aim.fill(0); VA.fill(0); vAim = hAim = 0; rawAvg = midAvg = hiAvg = -1; } kick(); }
   else if (m.t === "v") { reading(m.v); kick(); }
   else if (m.t === "col") {
-    IV.length = 0; bassSlow = -1; hitRate = 0; style = styleNext = "mix";   /* a new song - learn what it is like afresh */
-    acc = cnt = warm = 0;                    /* a busy moment at the song change never counts as "too slow" */
+    IV.length = 0; bassSlow = -1; hitRate = 0; style = styleNext = "mix";
+    acc = cnt = warm = 0;
     if (running) { colFrom = COL.map(c => c.slice()); colTo = m.pair.map(c => c.slice()); colAt = performance.now(); blendE = 0; }
     else { COL = m.pair.map(c => c.slice()); colTo = null; draw(); }
   }
@@ -919,24 +923,22 @@ function reading(s) {
   if (midAvg < 0) midAvg = rm;
   if (hiAvg < 0) hiAvg = rh;
   const jump = rb - rawAvg, mj = rm - midAvg, hj = rh - hiAvg;
-  /* Android turns its capture up or down in steps, which lifts EVERY band together - that is
-     not a beat */
+
   const gainStep = mj > 4 && hj > 4 && Math.abs(jump - mj) < 3.5 && Math.abs(jump - hj) < 3.5;
   let sub = 0, kb = 0; for (let i = 0; i < 4; i++) sub += +v[i] / 4; for (let i = 4; i < 10; i++) kb += +v[i] / 6;
   subLean += (sub - kb - subLean) * .05;                          /* deep sub-bass vs punchy kick */
   if (bassSlow < 0) bassSlow = bassPeak = rb;
   bassSlow += (rb - bassSlow) * .015;
   hitRate *= .985;                                                /* ~2 s memory, in hits a second */
-  /* a beat: the bass (lowest 8 bands) jumping well above where it has just been, and still rising.
-     Measured on the raw numbers, so it works however loud the song is (tested in - kept) */
+
   if (jump > 6.5 && rb > rawPrev + 1 && rb > 30 && clock - lastBeat > 170 && !gainStep) {
     const bs = Math.min(1, .5 + (jump - 6.5) / 22) * (.85 + .3 * bassHold), iv = clock - lastBeat;
     if (iv > 200 && iv < 2000) { IV.push(iv); if (IV.length > 8) IV.shift(); const so = IV.slice().sort((a, b) => a - b); ivMed = so[so.length >> 1]; }
     BEATS.push({t: clock, s: bs}); lastBeat = clock;
-    self.postMessage({t: "beat", s: bs});                       /* the glow behind the buttons throbs */
+    self.postMessage({t: "beat", s: bs});
     bassPeak += (rb - bassPeak) * .25;
     if (BEATS.length > 4) BEATS.shift();
-    if (clock - lastPoseAt >= Math.max(380, .55 * ivMed)) newPose(bs);   /* a new pose at most every 0.38 s */
+    ECH.push({t: clock, s: bs, life: Math.max(320, Math.min(ECHO_MS, .9 * ivMed))}); if (ECH.length > 2) ECH.shift();
   }
   rawAvg += (rb - rawAvg) * .12;                                  /* the recent level: about the last quarter second */
   rawPrev = rb; rawBass = rb;
@@ -953,9 +955,9 @@ function reading(s) {
   hiTop = Math.max(rh, hiTop - .08, 25);
   hAim = Math.pow(Math.max(0, Math.min(1, (rh - hiTop + 24) / 24)), 1.2);
   if (hj > 4.5 && rh > hiPrev && rh > 20 && clock - lastHit > 70 && !gainStep) {
-    const st = Math.min(1, .35 + (hj - 4.5) / 14), n = Math.round(3 + 9 * st);
+    const st = Math.min(1, .35 + (hj - 4.5) / 14), n = Math.round(2 + 4 * st);
     for (let i = 0; i < n; i++) GL.push({a: rnd2() * 6.2832, r: 1.72 + .8 * Math.pow(rnd2(), .8), t: clock + 25 * rnd2(), s: st * (.6 + .4 * rnd2())});
-    if (GL.length > 70) GL.splice(0, GL.length - 70);
+    if (GL.length > 30) GL.splice(0, GL.length - 30);
     lastHit = clock; hitRate += .015 * 33;
   }
   hiAvg += (rh - hiAvg) * .2; hiPrev = rh;
@@ -995,12 +997,31 @@ function frame(t, id) {
     ripPh += dtS * (3 + 7 * vox);                                 /* the voice's ripples run faster when it is loud */
   }
   while (BEATS.length && clock - BEATS[0].t > 1200) BEATS.shift();
+  while (ECH.length && clock - ECH[0].t > ECH[0].life) ECH.shift();
+  while (TS.length && clock - TS[0].t > 1000) TS.shift();
+
+  for (let i = 0; i < NB; i++) {
+    const a = live ? aim[i] : 0;
+    BV[i] += (a - BV[i]) * Math.min(1, dt / (a > BV[i] ? 70 : 260));
+    BG[i] = Math.max(BV[i], .12, BG[i] * Math.exp(-dt / 4000));
+  }
+
+  let spinAim = 0;
+  if (live) {
+    const beatRate = IV.length >= 3 ? 1000 / ivMed : 0;              /* beats a second */
+    const bz = Math.max(0, Math.min(1, (beatRate - 1.2) / 1.8)), hz = Math.max(0, Math.min(1, hitRate / 9));
+    const bsy = Math.min(1, .6 * bz + .4 * hz);
+    spinAim = 2 * Math.PI / (26 - 19 * bsy);                         /* one turn in 26 s (calm) .. 7 s (busy) */
+  }
+  spinV += (spinAim - spinV) * Math.min(1, dt / (live ? 1600 : 700));
+  if (!live && spinV < .002) spinV = 0;
+  spin = (spin + spinV * dt / 1000) % (2 * Math.PI);
   /* the warp: each outer wave flows into the new shape (two soft steps, so it starts smoothly),
      the cloud a little slower; the shape eases back to plain when the beats stop */
   const wd = Math.exp(-dt / (live ? 2200 : 450));
   let wbusy = 0;
   for (let n = 0; n < NW; n++) { WT[n] *= wd; wbusy += Math.abs(WT[n]) + Math.abs(CW[n]); }
-  const morph = Math.max(170, Math.min(420, .4 * ivMed));          /* a new pose flows in over 40% of a beat */
+  const morph = Math.max(170, Math.min(420, .4 * ivMed));
   for (const W of WAV) if (W.wg) {
     const k = Math.min(1, dt / ((morph + Math.max(0, W.r0 - 1.54) * 250) / 4));
     for (let n = 0; n < NW; n++) { W.wa[n] += (WT[n] - W.wa[n]) * k; W.wc[n] += (W.wa[n] - W.wc[n]) * k; }
@@ -1017,7 +1038,8 @@ function frame(t, id) {
   draw();
   dtS = 0;
   /* paused and settled: stop until something changes (the calm picture stays on screen) */
-  const busy = BEATS.length || PK.length || GL.length || vox > .01 || hiLvl > .01 || wbusy > .003;
+  let bvBusy = 0; for (let i = 0; i < NB; i++) bvBusy += BV[i];
+  const busy = BEATS.length || PK.length || GL.length || ECH.length || TS.length || spinV > 0 || bvBusy > .05 || vox > .01 || hiLvl > .01 || wbusy > .003;
   still = !live && !moving && !colTo && !busy ? still + 1 : 0;
   if (still > 20) { running = false; last = 0; self.postMessage({t: "idle"}); return; }
   nextFrame(t2 => frame(t2, id));
@@ -1061,7 +1083,7 @@ function draw() {
   const tgt = colTo || COL, key = tgt.map(c3 => c3.map(Math.round).join(",")).join("|") + K;
   if (!PICS || PICS.key !== key) { PICS_OLD = colTo && PICS ? PICS : null; PICS = picsFor(tgt); }
   if (!colTo) { PICS_OLD = null; blendE = 1; }
-  TC = [tone(COL[0]), tone(COL[1])];                               /* just the two colours each frame - cheap */
+  TC = [tone(COL[0]), tone(COL[1])];
   const PS = PICS_OLD && blendE < .5 ? PICS_OLD : PICS;
   SPR = PS.SPR; STAR = PS.STAR; HAZE = PICS.HAZE;
   /* left = the song's first colour, right = its second; they meet at the top and bottom */
@@ -1079,16 +1101,18 @@ function draw() {
   const sp = new Path2D(), ax = new Path2D();
   for (let i = 0; i < SPOKES; i++) {
     const a = i / SPOKES * 2 * Math.PI, ca = Math.cos(a), sa = Math.sin(a);
-    const axis = i % (SPOKES / 4) === 0, r1 = (axis ? 2.5 : 2.25) + .8 * CWV[mOf(a)];
+    const axis = i % (SPOKES / 4) === 0, r1 = (axis ? 2.06 : 1.98) + .8 * CWV[mOf(a)];
     (axis ? ax : sp).moveTo(c + ca * R * 1.03, c + sa * R * 1.03);
     (axis ? ax : sp).lineTo(c + ca * R * r1, c + sa * R * r1);
   }
   x.strokeStyle = g2;
-  x.globalAlpha = .13 + .14 * hiLvl; x.lineWidth = px1; x.stroke(sp);
-  x.globalAlpha = .42 + .3 * hit; x.lineWidth = px1 * 1.4; x.stroke(ax);
+  x.globalAlpha = .07 + .07 * hiLvl; x.lineWidth = px1; x.stroke(sp);
+  x.globalAlpha = .24 + .12 * hit; x.lineWidth = px1 * 1.3; x.stroke(ax);
 
   /* 2. the waves */
-  const ptsOf = (W, off) => {
+  const sc0 = Math.cos(spin), sn0 = Math.sin(spin);
+  const ptsOf = (W, off, grow) => {
+    const turn = W.r0 >= 1.6, cs = turn ? sc0 : 1, sn = turn ? sn0 : 0, g = grow || 1;
     const p = new Path2D(), q1 = W.p1 + W.w1 * phase, q2 = W.p2 + W.w2 * phase;
     const b1 = W.a1 * (.8 + .2 * Math.cos(q1)) * (1 + 3 * off), b2 = W.a2 * Math.cos(q2) * (1 + 12 * off);
     const lift = W.vg * vox;                                        /* the voice's breath: all the way round */
@@ -1098,15 +1122,16 @@ function draw() {
       let r = W.r0 + off + b1 * C6[m] + b2 * C12[m] + lift + wv;
       if (W.rg) r += W.rg * ripAt(DS[m] + W.lag) * (1 - .7 * TIP[m]) + W.pg * VP[m];
       r += (tipR + wv - r) * TIP[m] * W.tip;                         /* drawn to the tip at the left and right (the tips warp too) */
-      r = Math.min(LIM, Math.max(1.04, r));
-      const px = c + CT[m] * r * R, py = c + ST[m] * r * R;
+      r = Math.min(LIM, Math.max(1.04, r) * g);
+      const cx = CT[m] * cs - ST[m] * sn, cy = ST[m] * cs + CT[m] * sn;
+      const px = c + cx * r * R, py = c + cy * r * R;
       if (m === 0) p.moveTo(px, py); else p.lineTo(px, py);
     }
     return p;
   };
   for (const W of WAV) {
     if (W.kind === "ribbon") {
-      const outer = W.wg > 0, wide = outer ? 1 + .12 * bassHold : 1 + .3 * vox, lit = outer ? 1 + .25 * hit : 1 + .25 * vox;
+      const outer = W.wg > 0, wide = outer ? 1 : 1 + .3 * vox, lit = outer ? 1 + .12 * hit : 1 + .25 * vox;
       const core = ptsOf(W, 0);
       x.strokeStyle = g0;
       x.globalAlpha = .18 * lit; x.lineWidth = R * .26 * wide; x.stroke(core);   /* the soft glowing band */
@@ -1124,6 +1149,46 @@ function draw() {
     }
   }
 
+  const OUTW = WAV[1];
+  for (const E of ECH) {
+    const k = (clock - E.t) / E.life; if (k < 0 || k >= 1) continue;
+    const e = 1 - Math.pow(1 - k, 2.4), fade = Math.pow(1 - k, 1.6) * (.6 + .4 * E.s);   /* brightest as the beat lands */
+    const p = ptsOf(OUTW, 0, 1.02 + .18 * e);                       /* out to just inside the bars */
+    x.strokeStyle = g0; x.globalAlpha = .16 * fade; x.lineWidth = R * (.07 * (1 - k) + .02); x.stroke(p);   /* its soft glow */
+    x.strokeStyle = g4; x.globalAlpha = .5 * fade; x.lineWidth = Math.max(px1, R * .014 * (1 - .5 * k)); x.stroke(p);   /* its line */
+  }
+
+  {
+    const NBR = 36, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();
+    for (let j = 0; j < NBR; j++) {
+      const band = Math.min(48, Math.round(1 + j * 47 / (NBR - 1)));   /* up to about 9 kHz - the very top is mostly empty */
+      const lv = .3 * BV[band] + .7 * Math.min(1, BV[band] / BG[band]);
+      const L = .02 + len * Math.pow(lv, 1.15);
+      const psi = Math.PI * (1 - (j + .5) / NBR);                     /* bottom (j = 0) .. top */
+      for (const sd of [-1, 1]) {
+        const ca = sd * Math.sin(psi), sa = -Math.cos(psi);
+        const x0 = c + ca * base * R, y0 = c + sa * base * R, x1 = c + ca * (base + L) * R, y1 = c + sa * (base + L) * R;
+        bp.moveTo(x0, y0); bp.lineTo(x1, y1);
+        if (lv > .3) { gp.moveTo(x0, y0); gp.lineTo(x1, y1); }
+
+        const bi = j * 2 + (sd > 0 ? 1 : 0), jump = lv - BPREV[bi]; BPREV[bi] = lv;
+        if (dtS && jump > .12 && lv > .45 && TS.length < 40 && rnd2() < .55)
+          TS.push({ca, sa, r: base + L + .02, t: clock, v: .25 + .35 * rnd2(), s: .6 + .5 * lv, tw: rnd2() * 6.283});
+      }
+    }
+    x.strokeStyle = g0; x.globalAlpha = .15; x.lineWidth = R * .065; x.stroke(gp);   /* a soft glow on the taller ones */
+    x.strokeStyle = g2; x.globalAlpha = .75; x.lineWidth = R * .024; x.stroke(bp);
+    x.strokeStyle = g4; x.globalAlpha = .35; x.lineWidth = Math.max(px1, R * .008); x.stroke(bp);   /* a bright core */
+    /* the stars off the tips: they float out, twinkle and fade */
+    for (const T of TS) {
+      const age = (clock - T.t) / 1000; if (age < 0) continue;
+      const r = Math.min(LIM + .05, T.r + T.v * age), px = c + T.ca * r * R, py = c + T.sa * r * R;
+      const tw = .65 + .35 * Math.sin(T.tw + age * 14), e = (age < .08 ? age / .08 : 1) * Math.pow(1 - age, 1.4);
+      const sz = R * .05 * T.s * (.8 + .3 * tw);
+      x.globalAlpha = Math.min(.85, e * tw); x.drawImage(STAR[px < c ? 0 : 1], px - sz, py - sz, sz * 2, sz * 2);
+    }
+  }
+
   /* 3. the threads joining points round the outside: they glow with the highs and follow the warp */
   const npos = NODES.map(N => {
     const a = N.a + .015 * Math.sin(N.wa + phase * N.ws), r = Math.min(LIM, N.r + CWV[mOf(a)]);
@@ -1131,13 +1196,13 @@ function draw() {
   });
   const th = new Path2D();
   for (const [i, j] of EDGES) { th.moveTo(npos[i][0], npos[i][1]); th.lineTo(npos[j][0], npos[j][1]); }
-  x.strokeStyle = g2; x.globalAlpha = .22 + .2 * hiLvl; x.lineWidth = px1; x.stroke(th);
+  x.strokeStyle = g2; x.globalAlpha = .11 + .09 * hiLvl; x.lineWidth = px1; x.stroke(th);
 
   /* 4. points of light: the web's points (brighter with the highs), and the ends of the
         horizontal axis (they flash on the beat) */
   const pts = [];
-  NODES.forEach((N, i) => pts.push(npos[i][0], npos[i][1], (N.br ? 3.2 : 1.6) * px1 * 1.6 * (1 + .3 * hiLvl), (N.br ? .8 : .42) + .3 * hiLvl));
-  for (const sx of [-1, 1]) for (const rr of [1.03, 1.6, 2.5]) {
+  NODES.forEach((N, i) => pts.push(npos[i][0], npos[i][1], (N.br ? 2.8 : 1.5) * px1 * 1.6 * (1 + .2 * hiLvl), (N.br ? .48 : .24) + .14 * hiLvl));
+  for (const sx of [-1, 1]) for (const rr of [1.03, 1.6]) {
     const wv = rr > 1.5 ? CWV[sx > 0 ? 0 : M / 2] * (rr > 2 ? 1 : .8) : 0;
     pts.push(c + sx * (rr + wv) * R, c, (rr > 1.5 ? 6 : 4) * px1 * (1 + .35 * hit), .7 + .3 * hit);
   }
@@ -1161,6 +1226,7 @@ function draw() {
     if (d.s > .01) { big.push(px, py, sz * 3, al); continue; }
     dl[px < c ? 0 : 1][al > .7 ? 2 : al > .4 ? 1 : 0].rect(px - sz, py - sz, sz * 2, sz * 2);
   }
+
   for (let sd = 0; sd < 2; sd++) for (let i = 0; i < 3; i++) {
     x.fillStyle = rgb(mix(TC[sd], [255, 255, 255], i === 2 ? .62 : .32)); x.globalAlpha = .55 + .22 * i; x.fill(dl[sd][i]);
   }
@@ -1175,15 +1241,15 @@ function draw() {
     const age = clock - G.t; if (age < 0) continue;
     const e = age < 45 ? age / 45 : Math.exp(-(age - 45) / 110); if (e < .03) continue;
     const r = Math.min(LIM, G.r + CWV[mOf(G.a)]), px = c + Math.cos(G.a) * r * R, py = c + Math.sin(G.a) * r * R;
-    const s = R * (.06 + .06 * G.s) * (.7 + .3 * e);
-    x.globalAlpha = Math.min(.9, e * (.5 + .4 * G.s));
+    const s = R * (.045 + .04 * G.s) * (.7 + .3 * e);
+    x.globalAlpha = Math.min(.6, e * (.32 + .28 * G.s));
     x.drawImage(STAR[px < c ? 0 : 1], px - s, py - s, s * 2, s * 2);
   }
 
   /* 7. last, BEHIND everything drawn: the soft haze (it breathes with the voice and the bass) */
   x.globalCompositeOperation = "destination-over";
   const ha = Math.min(1, .72 + .14 * vox + .14 * bassHold);
-  if (PICS_OLD && blendE < 1) {                                     /* the old song's haze fades into the new one's */
+  if (PICS_OLD && blendE < 1) {
     x.globalAlpha = ha * blendE; x.drawImage(PICS.HAZE, 0, 0, Z, Z);
     x.globalAlpha = Math.min(1, ha * (1 - blendE) / Math.max(.05, 1 - ha * blendE)); x.drawImage(PICS_OLD.HAZE, 0, 0, Z, Z);
   } else { x.globalAlpha = ha; x.drawImage(HAZE, 0, 0, Z, Z); }
