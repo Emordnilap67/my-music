@@ -1,3 +1,7 @@
+**New in 5.2:**
+
+- **Smoother song changes on the widget and in Android's media player:** they no longer flash the default purple-cyan for a moment - name, picture and colours change together
+
 **New in 5.1:**
 
 - **MY MUSIC is now Carmen Musicum.** Inside, the home screen says **Repertorium**. It updates the app you have - nothing to move, and an existing `MY MUSIC backup` folder is renamed and kept

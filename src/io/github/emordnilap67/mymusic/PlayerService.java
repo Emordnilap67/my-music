@@ -116,6 +116,26 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private SharedPreferences prefs;
     private Bitmap art;
     private String artKey, note = "";
+    /* 5.2: changing songs on the widget flashed the default purple-cyan for a moment
+       before the new song's colours: a new song's picture is read on the
+       background thread, and the widget and Android's media player were redrawn before it
+       was there - with no picture, so with the default colours. Now they keep showing the
+       last song until the new picture is ready (a few hundredths of a second, 0.7 s at the
+       most) and then change once: name, picture and colours together. */
+    private String artWait;
+    private final Runnable artLate = new Runnable() {
+        @Override
+        public void run() {
+            if (artWait == null) return;
+            artWait = null;
+            changed();
+        }
+    };
+
+    /** the current song's picture is still being read: hold the widget and the media player */
+    private boolean holdArt(Library.Song s) {
+        return s != null && artWait != null && s.key.equals(artWait);
+    }
 
     private final BroadcastReceiver noisy = new BroadcastReceiver() {
         @Override
@@ -620,7 +640,10 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                                 : loading ? PlaybackState.STATE_BUFFERING : PlaybackState.STATE_PAUSED,
                         position(), playing ? 1f : 0f, SystemClock.elapsedRealtime())
                 .build());
-        if (s != null) {
+        boolean held = holdArt(s) && foreground;          // the last song stays up until the picture is ready
+        if (s != null && held) {
+            // nothing to redraw yet - the media player, the notification and the widget wait for the picture
+        } else if (s != null) {
             session.setMetadata(meta(s));
             boolean hold = everPlayed && (resumeOnGain
                     || SystemClock.elapsedRealtime() - pausedAt < HOLD_MS);
@@ -648,7 +671,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             stopForeground(true);
             foreground = false;
         }
-        refreshWidget();
+        if (!held) refreshWidget();
         Listener l = listener;
         if (l != null) l.onState(stateJson());
         note = "";
@@ -657,6 +680,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     /** the home-screen widget catches up */
     void refreshWidget() {
         Library.Song s = Library.get(this).byKey.get(q.current());
+        if (holdArt(s)) return;                          // drawn once the picture is ready (artLate at the latest)
         if (s == null) {
             PlayerWidget.show(this, "Repertorium", "Tap play to start", false, null, q.shuffle, q.repeat, 0, 0);
             return;
@@ -736,6 +760,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         artKey = null;
         final Context c = this;
         if (bg.isShutdown()) return;
+        artWait = s.key;
+        MAIN.removeCallbacks(artLate);
+        MAIN.postDelayed(artLate, 700);
         bg.execute(new Runnable() {
             @Override
             public void run() {
@@ -744,10 +771,17 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                     @Override
                     public void run() {
                         if (instance != PlayerService.this) return;      // closed meanwhile
+                        boolean waited = s.key.equals(artWait);
+                        if (waited) {
+                            artWait = null;
+                            MAIN.removeCallbacks(artLate);
+                        }
                         if (b != null && s.key.equals(q.current())) {
                             art = b;
                             artKey = s.key;
                             changed();
+                        } else if (waited) {
+                            changed();                                   // no picture in this song: show it as it is
                         }
                     }
                 });
