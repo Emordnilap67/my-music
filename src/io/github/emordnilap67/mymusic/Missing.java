@@ -97,6 +97,7 @@ final class Missing {
         } catch (Exception ignored) {
         }
         save(c);
+        AutoCopy.soon(c);                     // another copy of each, by itself where it is clearly the same song
     }
 
     /** found another copy, or let it go ("*" = all of this playlist's) */
@@ -161,6 +162,7 @@ final class Missing {
             @Override
             public void run() {
                 pruneLocal(c.getApplicationContext());       // saves and tells the page if anything went
+                AutoCopy.soon(c);                            // any still gone get another copy by themselves
             }
         });
     }
@@ -176,6 +178,22 @@ final class Missing {
         if (a != null) for (int i = 0; i < a.length(); i++) {
             JSONObject o = a.optJSONObject(i);
             if (o != null) out.add(o.optString("id"));
+        }
+        return out;
+    }
+
+    /** every song on the list, as {folder, id, title, artist, seconds} */
+    static synchronized List<String[]> entries(Context c) {
+        List<String[]> out = new java.util.ArrayList<>();
+        java.util.Iterator<String> it = all(c).keys();
+        while (it.hasNext()) {
+            String folder = it.next();
+            JSONArray a = all(c).optJSONArray(folder);
+            if (a == null) continue;
+            for (int i = 0; i < a.length(); i++) {
+                JSONObject o = a.optJSONObject(i);
+                if (o != null) out.add(new String[]{folder, o.optString("id"), o.optString("t"), o.optString("a"), String.valueOf(o.optLong("d"))});
+            }
         }
         return out;
     }

@@ -377,6 +377,108 @@ final class Importer {
         return m.toString();
     }
 
+
+    /** a playlist folder's document id, only if it is there (never made) */
+    private static String findFolder(Context c, Uri tree, String folder) {
+        for (String[] ch : children(c.getContentResolver(), tree, DocumentsContract.getTreeDocumentId(tree))) {
+            if (folder.equalsIgnoreCase(ch[1]) && DocumentsContract.Document.MIME_TYPE_DIR.equals(ch[2])) return ch[0];
+        }
+        return null;
+    }
+
+    /**
+     * The song's own file goes into the other playlist (Android moves it -
+     * nothing is copied, nothing asks), and its plays and heart go with it. Returns {message, new key or null}.
+     */
+    static String[] moveSong(Context c, Uri tree, Library.Song s, String folder) {
+        ContentResolver r = c.getContentResolver();
+        if (folder.equalsIgnoreCase(s.pl)) return new String[]{"It is already in " + folder, null};
+        String from = findFolder(c, tree, s.pl), to = folderId(c, tree, folder);
+        String doc = from == null ? null : names(c, tree, from).get(s.file.toLowerCase());
+        if (to == null || doc == null) return new String[]{"Could not move " + s.title, null};
+        String oldKey = s.pl + "/" + s.file, newKey = folder + "/" + s.file;
+        List<String> paths = new ArrayList<>();
+        paths.add(s.path);
+        if (has(names(c, tree, to), s.file)) {
+            // the same song is in that playlist already: this copy just leaves this one
+            try {
+                if (!DocumentsContract.deleteDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, doc)))
+                    return new String[]{"Could not move " + s.title, null};
+            } catch (Exception e) {
+                return new String[]{"Could not move " + s.title, null};
+            }
+            scan(c, paths);
+            Plays.move(c, oldKey, newKey);
+            if (Favs.has(c, oldKey)) {
+                Favs.set(c, oldKey, false);
+                Favs.set(c, newKey, true);
+            }
+            Library.load(c);
+            return new String[]{s.title + " was in " + folder + " already - taken out of " + s.pl, newKey};
+        }
+        Uri moved = null;
+        try {
+            moved = DocumentsContract.moveDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, doc),
+                    DocumentsContract.buildDocumentUriUsingTree(tree, from), DocumentsContract.buildDocumentUriUsingTree(tree, to));
+        } catch (Exception ignored) {
+        }
+        String now;
+        if (moved != null) {
+            now = pathOf(DocumentsContract.getDocumentId(moved));
+            newKey = folder + "/" + now.substring(now.lastIndexOf('/') + 1);
+        } else {
+            // this phone will not move it: copy, then take the old one away
+            try {
+                now = write(r, tree, to, new java.io.FileInputStream(s.path), s.file,
+                        s.file.toLowerCase().endsWith(".mp3") ? "audio/mpeg" : "audio/*");
+            } catch (Exception e) {
+                now = null;
+            }
+            if (now == null) return new String[]{"Could not move " + s.title, null};
+            newKey = folder + "/" + now.substring(now.lastIndexOf('/') + 1);
+            try {
+                DocumentsContract.deleteDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, doc));
+            } catch (Exception ignored) {
+            }
+        }
+        paths.add(now);
+        scan(c, paths);
+        Plays.move(c, oldKey, newKey);
+        if (Favs.has(c, oldKey)) {
+            Favs.set(c, oldKey, false);
+            Favs.set(c, newKey, true);
+        }
+        Library.load(c);
+        return new String[]{"Moved " + s.title + " to " + folder, newKey};
+    }
+
+    /**
+     * * the playlist folder and the songs still in it go. Songs moved or copied elsewhere are not in it any more.
+     */
+    static String deletePlaylist(Context c, Uri tree, String folder) {
+        if (folder == null || folder.trim().isEmpty() || folder.contains("/") || folder.startsWith(".")
+                || folder.equalsIgnoreCase(Backup.DIR)) return "That is not a playlist";
+        String id = findFolder(c, tree, folder);
+        if (id == null) return "Could not find " + folder;
+        List<String> paths = new ArrayList<>();
+        Library lib = Library.get(c);
+        for (Library.Pl p : lib.playlists) if (p.name.equalsIgnoreCase(folder)) for (Library.Song s : p.songs) paths.add(s.path);
+        for (Library.Song s : lib.hiddenSongs) if (folder.equalsIgnoreCase(s.pl)) paths.add(s.path);
+        boolean ok;
+        try {
+            ok = DocumentsContract.deleteDocument(c.getContentResolver(), DocumentsContract.buildDocumentUriUsingTree(tree, id));
+        } catch (Exception e) {
+            ok = false;
+        }
+        if (!ok) return "Could not delete " + folder;
+        scan(c, paths);                                   // Android forgets the files
+        Sync.forget(c, folder);
+        Missing.remove(c, folder, "*");
+        Covers.reset(c, folder);
+        Library.load(c);
+        return "Deleted " + folder + (paths.isEmpty() ? "" : " and its " + paths.size() + (paths.size() == 1 ? " song" : " songs"));
+    }
+
     private static String join(List<String> a) {
         if (a.size() == 1) return a.get(0);
         StringBuilder b = new StringBuilder();

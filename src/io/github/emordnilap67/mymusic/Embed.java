@@ -134,7 +134,7 @@ final class Embed {
         int wrote = 0;
         for (Library.Song s : list) {
             String cur = c.getSharedPreferences("player", Context.MODE_PRIVATE).getString("cur", "");
-            if (s.key.equals(cur)) {                   // open in the player: after it (the next song starts a pass)
+            if (s.key.equals(cur) || PlayerService.isOpen(s.key)) {   // open in the player (or fading out, or opened ahead): after it
                 later.add(s.key);
                 continue;
             }

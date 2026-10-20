@@ -1,7 +1,34 @@
 package io.github.emordnilap67.mymusic;
 
+/**
+ * The widget's two colours come from the song's picture,
+ * worked out exactly like the page's palette() / onBlack() in index.html, so
+ * the widget and the player screen glow in the same colours. Plain Java
+ * (ARGB ints) so it can be tested.
+ */
 final class Neon {
-    static final int PINK = 0xFFE040FB, BLUE = 0xFF3B9BFF;
+    /**
+     * Carmen Musicum's own colours, left to right - purple, magenta, blue,
+     * light blue, green (no song, or a picture with no colour in it). PINK / BLUE = the two
+     * ends; anything drawn from one end to the other runs through all five (NeonArt.across).
+     */
+    static final int[] DEF5 = {0xFF9646FF, 0xFFE13CC8, 0xFF3C64FF, 0xFF3CBEFF, 0xFF32DC8C};
+    static final int PINK = DEF5[0], BLUE = DEF5[4];
+
+    /** where the colours sit along the gradient - the purple and the green equally wide */
+    static final float[] POS = {0f, .06f, .27f, .48f, .66f, .84f, 1f};
+
+    /** the default's colours at POS when a .. b is the default pair (or a lightened copy of it), else null */
+    static int[] stops(int a, int b) {
+        for (double k : new double[]{0, 0.12, (double) NeonArt.CORE, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5}) {
+            if (a == light(PINK, k) && b == light(BLUE, k)) {
+                int[] at = {0, 0, 1, 2, 3, 4, 4}, o = new int[at.length];
+                for (int i = 0; i < o.length; i++) o[i] = light(DEF5[at[i]], k);
+                return o;
+            }
+        }
+        return null;
+    }
 
     private Neon() {}
 
@@ -38,78 +65,127 @@ final class Neon {
         return out;
     }
 
-    /** brighter and more saturated, like a neon tube (page: vivid) */
-    static int vivid(double[] c) {
+    /** {hue 0..1, saturation, lightness} (page: hslOf) */
+    static double[] hslOf(double[] c) {
         double r = c[0] / 255, g = c[1] / 255, b = c[2] / 255;
         double mx = Math.max(r, Math.max(g, b)), mn = Math.min(r, Math.min(g, b)), d = mx - mn;
         double h = 0;
         if (d != 0) h = (mx == r ? ((g - b) / d) % 6 : mx == g ? (b - r) / d + 2 : (r - g) / d + 4) / 6;
         if (h < 0) h += 1;
         double l = (mx + mn) / 2, s = d != 0 ? d / (1 - Math.abs(2 * l - 1)) : 0;
-        double[] o = hsl2rgb(h, Math.max(s, .68), Math.min(.7, Math.max(.58, l)));
-        return rgb(o[0], o[1], o[2]);
+        return new double[]{h, Math.min(1, s), l};
+    }
+
+    static final double LMIN = .48, LMAX = .82;
+
+    /**
+     * the picture's own colour, only lifted (or dimmed) as far as it must be
+     * to show on black, and a very strong colour eased a little (page: onBlack)
+     */
+    static double[] shown(double[] c) {
+        double[] q = hslOf(c);
+        double s = q[1] > .85 ? .85 + (q[1] - .85) * .5 : q[1];
+        return hsl2rgb(q[0], s, Math.min(LMAX, Math.max(LMIN, q[2])));
+    }
+
+    /** a shade of the same colour: lighter if it is darkish, darker if it is light (page: shade) */
+    static double[] shade(double[] c, double k) {
+        double[] q = hslOf(c);
+        return hsl2rgb(q[0], q[1], Math.min(.9, Math.max(.4, q[2] < .65 ? q[2] + k : q[2] - k)));
+    }
+
+    /** how different two colours look (page: cdist) */
+    static double cdist(double[] a, double[] b) {
+        double rm = (a[0] + b[0]) / 2, dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
+        return Math.sqrt((2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db);
+    }
+
+    private static int[] near(int k) {
+        int r = k >> 6, g = (k >> 3) & 7, b = k & 7, n = 0;
+        int[] o = new int[6];
+        if (r > 0) o[n++] = k - 64;
+        if (r < 7) o[n++] = k + 64;
+        if (g > 0) o[n++] = k - 8;
+        if (g < 7) o[n++] = k + 8;
+        if (b > 0) o[n++] = k - 1;
+        if (b < 7) o[n++] = k + 1;
+        return java.util.Arrays.copyOf(o, n);
     }
 
     /**
-     * two lively colours from the picture's pixels (ARGB, about 32 x 32):
-     * {left colour, right colour}. A grey or dark picture gives Carmen Musicum's
-     * own pink and blue.
+     * The song's colours from the round
+     * part of its picture that shows on the disc, as they really are - every colour
+     * counts (only near-black is skipped), grouped in 512 groups and averaged from
+     * the real pixels. {left, right, up to three more}. Same as the page's palette().
+     * px = ARGB, square (about 32 x 32).
      */
-    static int[] palette(int[] px) {
-        final int B = 24;
-        double[] w = new double[B];
-        double[][] sum = new double[B][3];
-        for (int p : px) {
-            if (((p >>> 24) & 255) < 128) continue;                 // see-through: not part of the picture
-            int R = r(p), G = g(p), Bl = b(p);
-            double r = R / 255.0, g = G / 255.0, b = Bl / 255.0;
-            double mx = Math.max(r, Math.max(g, b)), mn = Math.min(r, Math.min(g, b)), d = mx - mn;
-            double s = mx != 0 ? d / mx : 0;
-            if (mx < .2 || s < .22) continue;                       // too dark or too grey to be a colour
-            double h = (mx == r ? ((g - b) / d) % 6 : mx == g ? (b - r) / d + 2 : (r - g) / d + 4) / 6;
-            if (h < 0) h += 1;
-            int k = ((int) Math.floor(h * B)) % B;
-            double wt = s * s * mx;
-            w[k] += wt;
-            sum[k][0] += wt * R;
-            sum[k][1] += wt * G;
-            sum[k][2] += wt * Bl;
+    static double[][] colours(int[] px) {
+        int n = (int) Math.round(Math.sqrt(px.length));
+        final double[] W = new double[512];
+        double[] S = new double[1536];
+        double total = 0;
+        for (int y = 0; y < n; y++) for (int x = 0; x < n; x++) {
+            double dx = (x + .5) / n - .5, dy = (y + .5) / n - .5;
+            if (dx * dx + dy * dy > .25) continue;                   // outside the disc's circle
+            int p = px[y * n + x];
+            if (((p >>> 24) & 255) < 128) continue;                 // see-through
+            int R = r(p), G = g(p), B = b(p), mx = Math.max(R, Math.max(G, B)), mn = Math.min(R, Math.min(G, B));
+            if (mx < 26) continue;                                  // near black
+            double sat = (double) (mx - mn) / mx, wt = (.12 + 1.6 * sat * sat) * (.4 + .6 * mx / 255.0);
+            int k = ((R >> 5) << 6) | ((G >> 5) << 3) | (B >> 5);
+            W[k] += wt; S[k * 3] += wt * R; S[k * 3 + 1] += wt * G; S[k * 3 + 2] += wt * B; total += wt;
         }
-        int first = -1, second = -1;
-        for (int i = 0; i < B; i++) if (w[i] != 0 && (first < 0 || score(w, i) > score(w, first))) first = i;
-        if (first < 0 || score(w, first) < 1.5) return new int[]{PINK, BLUE};
-        for (int i = 0; i < B; i++) {
-            int dist = Math.min(Math.abs(i - first), B - Math.abs(i - first));
-            // a second colour: well apart in hue, and the further apart the better
-            if (dist >= 3 && w[i] != 0 && score(w, i) >= .1 * score(w, first)) {
-                if (second < 0) { second = i; continue; }
-                int d2 = Math.min(Math.abs(second - first), B - Math.abs(second - first));
-                if (score(w, i) * (.5 + dist / 12.0) > score(w, second) * (.5 + d2 / 12.0)) second = i;
+        if (total == 0) return fill(new double[][]{{150, 150, 158}, {205, 205, 212}});
+        final double[] sc = new double[512];
+        java.util.List<Integer> ks = new java.util.ArrayList<>();
+        for (int k = 0; k < 512; k++) if (W[k] != 0) {
+            double t = W[k];
+            for (int j : near(k)) t += .5 * W[j];
+            sc[k] = t;
+            ks.add(k);
+        }
+        // no lambda: the phone's build (android-33.jar) has no LambdaMetafactory
+        java.util.Collections.sort(ks, new java.util.Comparator<Integer>() {
+            @Override
+            public int compare(Integer p, Integer q) {
+                return sc[q] != sc[p] ? Double.compare(sc[q], sc[p]) : p - q;
             }
+        });
+        java.util.List<double[]> cand = new java.util.ArrayList<>();
+        for (int i = 0; i < ks.size(); i++) {
+            int k = ks.get(i);
+            if (i > 0 && sc[k] < .03 * total) continue;
+            double w = W[k];
+            double[] c = {S[k * 3], S[k * 3 + 1], S[k * 3 + 2]};
+            for (int j : near(k)) { w += .5 * W[j]; c[0] += .5 * S[j * 3]; c[1] += .5 * S[j * 3 + 1]; c[2] += .5 * S[j * 3 + 2]; }
+            cand.add(shown(new double[]{c[0] / w, c[1] / w, c[2] / w}));
         }
-        int a = colourOf(w, sum, first);
-        if (second >= 0) return new int[]{a, colourOf(w, sum, second)};
-        int l = mix(a, 0xFFFFFFFF, .35);                              // one-colour picture: a lighter partner
-        return new int[]{a, vivid(new double[]{r(l), g(l), Math.min(255, b(l) + 40)})};
+        java.util.List<double[]> out = new java.util.ArrayList<>();
+        out.add(cand.get(0));
+        double[] two = null;
+        for (double[] c : cand) if (cdist(c, out.get(0)) >= 110) { two = c; break; }
+        out.add(two != null ? two : shade(out.get(0), .18));
+        for (double[] c : cand) {
+            if (out.size() >= 5) break;
+            boolean far = true;
+            for (double[] o : out) if (cdist(o, c) < 75) { far = false; break; }
+            if (far) out.add(c);
+        }
+        return fill(out.toArray(new double[0][]));
     }
 
-    private static double score(double[] w, int i) {
-        int B = w.length;
-        return w[i] + .5 * (w[(i + B - 1) % B] + w[(i + 1) % B]);
+    private static double[][] fill(double[][] cols) {
+        java.util.List<double[]> out = new java.util.ArrayList<>(java.util.Arrays.asList(cols));
+        if (out.size() < 3) out.add(shade(out.get(0), .12));
+        if (out.size() < 4) out.add(shade(out.get(1), .12));
+        return out.toArray(new double[0][]);
     }
 
-    private static int colourOf(double[] w, double[][] sum, int i) {
-        int B = w.length;
-        int[] z = {(i + B - 1) % B, i, (i + 1) % B};
-        double W = 0;
-        for (int j : z) W += w[j];
-        double[] c = new double[3];
-        for (int ch = 0; ch < 3; ch++) {
-            double t = 0;
-            for (int j : z) t += sum[j][ch];
-            c[ch] = t / W;
-        }
-        return vivid(c);
+    /** the widget's two colours {left, right} */
+    static int[] palette(int[] px) {
+        if (px == null || px.length == 0) return new int[]{PINK, BLUE};
+        double[][] c = colours(px);
+        return new int[]{rgb(c[0][0], c[0][1], c[0][2]), rgb(c[1][0], c[1][1], c[1][2])};
     }
 
     /** hue in degrees (0-360) */
@@ -131,10 +207,13 @@ final class Neon {
         return rgb(o[0], o[1], o[2]);
     }
 
+    /**
+     * the widget's two ends (left, right): the picture's own two colours. a
+     * one-colour picture keeps its own colour and a shade of it - no colour that
+     * is not in the picture is made up any more.
+     */
     static int[] ends(int[] p) {
-        double d = Math.abs(hue(p[0]) - hue(p[1]));
-        if (Math.min(d, 360 - d) >= 35) return p;
-        return new int[]{p[0], turn(p[0], -45)};
+        return p;
     }
 
     /** towards white (the bright core of a neon line) */

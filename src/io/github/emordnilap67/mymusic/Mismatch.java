@@ -88,7 +88,7 @@ final class Mismatch {
      * what every read found is kept - YouTube sometimes sends a short list.
      */
     static Read listing(Context c, String link, Progress p) throws Exception {
-        if (!Ytdl.available(c)) throw new Exception("The downloader is missing - run music build again");
+        if (!Ytdl.available(c)) throw new Exception("The downloader is missing from this install - get the APK from the Releases page");
         Ytdl.init(c);
         Read all = new Read();
         for (int round = 1; round <= 3; round++) {
@@ -316,7 +316,7 @@ final class Mismatch {
             boolean askLink = listId == null && need.size() > ASK_LINK_OVER;
             // 3. the songs that are not in the playlist, one by one - a few this run, the rest later
             if (!held && !askLink && !need.isEmpty()) {
-                if (!Ytdl.available(c)) throw new Exception("The downloader is missing - run music build again");
+                if (!Ytdl.available(c)) throw new Exception("The downloader is missing from this install - get the APK from the Releases page");
                 held = lookup(c, need, single, p);
                 need = unknownIds(c, songs, now);
             }

@@ -8,6 +8,35 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * The play order. Plain Java on purpose (no Android parts), so it can be
+ * tested anywhere. A song is named by its key: "Playlist/File.mp3".
+ *
+ * One shuffle never repeats a file, but three things brought
+ * songs back long before the whole playlist had played:
+ *   1. every tap on a song, Play / Shuffle, or shuffle off and on made a
+ *      brand-new shuffle - everything heard so far went back in the draw;
+ *   2. two files of one song (two uploads of it) both played in one pass;
+ *   3. after a full round, the new round was not saved, so a restart went
+ *      back to the old round's order.
+ * Now shuffle remembers what has been heard (kept across new shuffles and
+ * restarts): songs not heard yet come first, the heard ones only after all
+ * of the playlist has played, and then a new pass starts. A second copy of
+ * a song (same name and artist, length within 3 s) is skipped in a pass
+ * once the first has played. Remixes and sped-up versions are not copies:
+ * their length differs.
+ *
+ * *   1. once a list had been cut down (Android's media index read while busy
+ *      gave only part of the library, and the player dropped every song it
+ *      did not see), it stayed cut down - shuffle went round the same few
+ *      songs. The player now keeps songs still on the phone (PlayerService),
+ *      and a list that is a whole playlist (src) follows that playlist: songs
+ *      it lacks - new downloads too - join it (grow).
+ *   2. after shuffle was turned off and on, the songs already heard were put
+ *      at the end of the new order and played again before the pass ended.
+ *      With repeat on, a song already heard in the pass is now never played
+ *      again in it: once only those are left, a new pass starts.
+ */
 final class Queue {
     /** the order the songs were picked in (the list as sorted on screen) */
     final List<String> base = new ArrayList<>();
@@ -40,6 +69,29 @@ final class Queue {
     private final List<String> played = new ArrayList<>();
     /** goes up each time a shuffle starts over after the whole list (the player saves the new order) */
     int rounds;
+    /** the playlist this list is all of (it follows that playlist), or null (favourites, one song, ...) */
+    String src;
+    /** the furthest place Next has reached in this order - songs before it were played on purpose (Previous) */
+    private int far = -1;
+
+    /** a song moved to another playlist (its key changed) keeps its place everywhere in the list */
+    void rename(String from, String to) {
+        swap(base, from, to);
+        swap(order, from, to);
+        swap(upNext, from, to);
+        swap(played, from, to);
+        if (round2 != null) swap(round2, from, to);
+        if (from.equals(extra)) extra = to;
+        if (heard.remove(from)) heard.add(to);
+        String t = tags.remove(from);
+        if (t != null) tags.put(to, t);
+        Long l = lens.remove(from);
+        if (l != null) lens.put(to, l);
+    }
+
+    private static void swap(List<String> l, String a, String b) {
+        for (int k = 0; k < l.size(); k++) if (a.equals(l.get(k))) l.set(k, b);
+    }
 
     /** what a song is, for copies: its tidied name + artist, and its length */
     void info(String key, String tag, long ms) {
@@ -118,6 +170,35 @@ final class Queue {
             order.addAll(base);
             i = start;
         }
+        far = i;
+    }
+
+    /**
+     * songs of the whole playlist (all) that the list lacks join it - in
+     * shuffle at random places among the songs still to come, otherwise at the
+     * end. Returns how many joined.
+     */
+    int grow(List<String> all) {
+        Set<String> have = new HashSet<>(base);
+        List<String> add = new ArrayList<>();
+        for (String k : all) if (have.add(k)) add.add(k);
+        if (add.isEmpty()) return 0;
+        base.addAll(add);
+        round2 = null;
+        if (shuffle) {
+            Collections.shuffle(add, rnd);
+            int from = Math.max(0, Math.min(order.size(), i + 1));
+            for (String k : add) order.add(from + rnd.nextInt(order.size() - from + 1), k);
+        } else {
+            order.addAll(add);
+        }
+        if (i < 0) i = 0;
+        return add.size();
+    }
+
+    /** shuffle with repeat on - a song already heard in this pass is passed over (place j of order) */
+    private boolean spent(int j, String k) {
+        return shuffle && !"off".equals(repeat) && j > far && heard.contains(k);
     }
 
     /** base in random order; first (if given) stays at the front */
@@ -176,6 +257,8 @@ final class Queue {
             i++;
             // a second copy of a song already played in this pass is passed over (in shuffle)
             if (shuffle && copyOfAny(current(), played)) continue;
+            if (spent(i, current())) continue;                   // heard already in this pass
+            far = Math.max(far, i);
             return current();
         }
         if (!"off".equals(repeat)) {
@@ -189,6 +272,7 @@ final class Queue {
                 rounds++;
             }
             i = 0;
+            far = 0;
             return current();
         }
         return null;
@@ -211,7 +295,7 @@ final class Queue {
      */
     List<String> upcoming(int n) {
         List<String> out = new ArrayList<>(upNext.subList(0, Math.min(n, upNext.size())));
-        List<String> src = order;
+        List<String> src = this.order;
         int j = i + 1;
         boolean wrapped = false;
         List<String> seen = new ArrayList<>(played);
@@ -219,6 +303,7 @@ final class Queue {
             if (j >= 0 && j < src.size()) {
                 String k = src.get(j++);
                 if (shuffle && !wrapped && copyOfAny(k, seen)) continue;     // next() passes it over too
+                if (!wrapped && spent(j - 1, k)) continue;                    // so does this
                 out.add(k);
                 seen.add(k);
                 continue;
@@ -253,6 +338,7 @@ final class Queue {
         order.clear();
         order.addAll(a);
         i = on ? 0 : Math.max(0, order.indexOf(cur));
+        far = i;
     }
 
     void setRepeat(String r) {
@@ -270,5 +356,6 @@ final class Queue {
         if (extra != null && !known.contains(extra)) extra = null;
         i = cur == null ? -1 : order.indexOf(cur);
         if (i < 0) i = order.isEmpty() ? -1 : 0;
+        far = i;
     }
 }

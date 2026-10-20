@@ -12,9 +12,11 @@
 @font-face{font-family:"Outfit";src:url(/fonts/Outfit.ttf) format("truetype");font-weight:100 900;font-display:swap}
 :root{
   --void:#000000; --ink:#F2EEFF; --mist:#9C95B9; --line:#221C35; --raise:#0E0B17;
-  --orchid:#CF49FF; --violet:#7976FF; --cyan:#0FEBFF;
-  --grad:linear-gradient(90deg,var(--orchid),var(--violet) 55%,var(--cyan));
-  --pc1:rgb(207,73,255);--pc2:rgb(15,235,255);      /* the playing song's colours (set from its picture) */
+  /* Carmen Musicum's own colours, left to right: purple, magenta, blue,
+     light blue, green (was purple -> cyan). One smooth blend through all five. */
+  --orchid:#9646FF; --magenta:#E13CC8; --violet:#3C64FF; --cyan:#3CBEFF; --green:#32DC8C;
+  --grad:linear-gradient(90deg,var(--orchid),var(--orchid) 6%,var(--magenta) 27%,var(--violet) 48%,var(--cyan) 66%,var(--green) 84%,var(--green));   /* green as wide as purple */
+  --pc1:rgb(150,70,255);--pc2:rgb(50,220,140);      /* the playing song's colours (set from its picture) */
   --body:"Outfit",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --display:"Cinzel",Georgia,"Times New Roman",serif;
   --bar:68px;
@@ -194,7 +196,7 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
   padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw}
 .song,.pl{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .plart{flex:none;width:84px;height:84px;border-radius:16px;overflow:hidden;background:var(--raise);
-  box-shadow:0 0 0 1.5px var(--violet),0 0 18px -4px var(--orchid),0 0 22px -6px var(--cyan)}
+  box-shadow:0 0 0 1.5px var(--r1,var(--violet)),0 0 18px -4px var(--r2,var(--orchid)),0 0 22px -6px var(--r3,var(--cyan))}   /* --r1..3 per playlist (PL_RING) */
 .plart img{width:100%;height:100%;object-fit:cover}
 .song .pill{flex:none;padding:7px 14px;font-size:14px}
 .sheet{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
@@ -205,6 +207,75 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
 .srow{display:block;width:100%;text-align:left;padding:14px 4px;border-top:1px solid var(--line);font-size:16px}
 .srow small{display:block;color:var(--mist);font-size:13px;margin-top:2px}
 .srow.danger{color:#FF6B8B}
+/* Every home
+   button is filled like Add songs, each in its own two colours, with Add songs' dark text. Add songs
+   keeps all five. */
+.homefoot .ghost{--g1:#FF8A3D;--g2:#FFD23F;border:0;padding:10px 17px;color:#07050d;font-weight:700;
+  background:linear-gradient(90deg,var(--g1),var(--g2))}
+#scan{--g1:#32DC8C;--g2:#FFD23F}          /* Update library: green - yellow */
+#kBtn{--g1:#FF4D5E;--g2:#FF9A3C}          /* Backup: red - orange */
+#sndBtn{--g1:#FF4FD8;--g2:#8A3DFF}        /* Sound: pink - purple (was magenta - amber, too close to Backup) */
+#hiddenBtn{--g1:#5A6BFF;--g2:#FF5C8A}     /* Hidden songs: blue - pink-red */
+#folderBtn{--g1:#14D2C4;--g2:#3CBEFF}     /* Music folder: teal - light blue */
+/* The bar at the bottom wears the playing song's two colours (the same ones
+   the player takes from its picture, set in setColors), easing from one song's to the next. Its two
+   buttons are filled too, each in its own two colours. */
+.mini{background:linear-gradient(90deg,color-mix(in srgb,var(--c1) 38%,#090710),color-mix(in srgb,var(--c2) 38%,#090710));
+  border-top-color:color-mix(in srgb,var(--c1) 50%,var(--c2));transition:--c1 .8s ease,--c2 .8s ease}
+.mini .prog{background:linear-gradient(90deg,var(--c1),var(--c2))}
+footer.mini .ib{color:#07050d;background:linear-gradient(135deg,var(--g1),var(--g2))}
+#mplay{--g1:#FFD23F;--g2:#FF8A3D}         /* play / pause: yellow - orange */
+#mnext{--g1:#3CBEFF;--g2:#32DC8C}         /* next: light blue - green */
+footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
+/* Bold on every home button (Add songs too, so
+   they match) and a step bolder for the song's name in the bar */
+.homefoot .pill.main{font-weight:700}
+.dgo{background:linear-gradient(90deg,#E62B3B,#FF4D5E);color:#07050d;font-weight:700}   /* delete a playlist - red */
+/* Add songs violet - aqua, the cool one among the
+   warm home buttons; a playlist's Play red - hot pink. (Other main buttons keep Carmen Musicum's five.) */
+#addBtn{background:linear-gradient(90deg,#8A5CFF,#3CD6FF)}
+#playall{background:linear-gradient(90deg,#E62B3B,#FF4FA3);font-weight:700}   /* red - hot pink */
+.mini b{font-weight:600}
+/* the Sound sheet - switches, the crossfade slider, the equalizer's bands */
+#sndsheet .sheetcard{max-height:88vh;overflow-y:auto}
+.srow.sw{position:relative;padding-right:66px}
+.srow.sw::after{content:"";position:absolute;right:6px;top:50%;width:44px;height:26px;margin-top:-13px;border-radius:13px;background:var(--line);transition:background .2s}
+.srow.sw::before{content:"";position:absolute;right:27px;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%;background:var(--mist);z-index:1;transition:right .2s,background .2s}
+.srow.sw[aria-pressed="true"]::after{background:var(--grad)}
+.srow.sw[aria-pressed="true"]::before{right:9px;background:#fff}
+.srow.sw:disabled{opacity:.5}
+.sndx small{display:block;color:var(--mist);font-size:13px;margin-top:2px}
+.sndhd{display:flex;justify-content:space-between;align-items:baseline}
+.sndhd b{font-weight:600}
+#sndsheet input[type=range]{width:100%;margin:10px 0 6px;accent-color:var(--magenta)}
+/* Every slider here runs purple - magenta - blue - light blue - green, left to right;
+   the part past the knob is dimmed so you can see where it sits (--p, set by the page) */
+#sndsheet input[type=range]{-webkit-appearance:none;appearance:none;height:30px;background:transparent;--p:50%}
+#sndsheet input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;
+  background:linear-gradient(90deg,transparent var(--p),rgba(18,14,31,.66) var(--p)),var(--grad)}
+#sndsheet input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin-top:-9px;
+  border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(7,5,13,.55),0 0 12px rgba(255,255,255,.35)}
+#sndEqBox{padding:4px 4px 10px}
+#sndPre .chip.on{background:var(--grad);color:#07050d;border-color:transparent}
+.band{display:grid;grid-template-columns:62px 1fr 60px;align-items:center;gap:8px}
+.band span{color:var(--mist);font-size:13px}
+.band b{font-weight:500;font-size:14px;text-align:right}
+.band input[type=range]{margin:6px 0!important}
+/* the equalizer in plain words - Bass, Middle, Treble, each saying more or less */
+.sndsum{margin:4px 0 12px;font-size:15px;line-height:1.4}
+.sndsum b{font-weight:600}
+.tone{margin:4px 0 16px}
+.tonehd{display:flex;justify-content:space-between;align-items:baseline}
+.tonehd b{font-size:16px;font-weight:600}
+.tonev{font-size:14px;font-weight:600}
+.tonev.up{color:var(--green)}.tonev.down{color:#FF8FB0}.tonev.flat{color:var(--mist)}
+.tone small{display:block;color:var(--mist);font-size:13px;margin-top:2px}
+.tone input[type=range]{margin:8px 0 2px!important}
+.ends{display:flex;justify-content:space-between;color:var(--mist);font-size:12px}
+.sndadv{display:block;width:100%;text-align:left;padding:10px 0;color:var(--mist);font-size:14px}
+.sndadv::after{content:" \25BE"}
+.sndadv[aria-expanded="true"]::after{content:" \25B4"}
+.band small{display:block;font-size:11px;color:var(--mist)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
 .chip{border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px}
 .chip[aria-pressed="true"]{background:var(--grad);color:#07050D;border-color:transparent;font-weight:600}
@@ -251,8 +322,8 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
 @media (prefers-reduced-motion:reduce){.spin{animation:none}.now{transition:none}}
 
 /* ---------- each song's own colours, the moving ring, lyrics, add to playlist ---------- */
-@property --c1{syntax:"<color>";inherits:true;initial-value:#CF49FF}
-@property --c2{syntax:"<color>";inherits:true;initial-value:#0FEBFF}
+@property --c1{syntax:"<color>";inherits:true;initial-value:#9646FF}
+@property --c2{syntax:"<color>";inherits:true;initial-value:#32DC8C}
 .now{--grad:linear-gradient(90deg,var(--c1),var(--c2));transition:transform .32s ease;   /* the colours no longer animate across the whole player (it repainted every frame for 0.9 s at each song change) */
   background:radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--c1) 20%,#000) 0%,#000 62%)}
 .now .vinyl{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--c1) 60%,var(--c2)),0 0 26px -6px var(--c1),0 0 30px -8px var(--c2);
@@ -288,7 +359,16 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
 .info{position:relative;isolation:isolate}
 .infobg{position:absolute;left:-22px;right:-22px;top:-44px;bottom:-8px;z-index:-1;overflow:hidden;pointer-events:none;
   -webkit-mask-image:linear-gradient(180deg,transparent,#000 32%,#000 74%,transparent);mask-image:linear-gradient(180deg,transparent,#000 32%,#000 74%,transparent)}
-.ctrl,.upnext{position:relative;z-index:1}          /* the buttons always sit above it */
+.ctrl,.upnext{position:relative;z-index:1}
+/* They sit over layers that move or stop with the music (the glow behind the buttons, the galaxy's
+   turn, the background's drift); pausing or playing makes the phone's graphics re-sort its layers and
+   for one frame these were left out. Each now has a layer of its own that never changes. */
+.ctrl,.upnext{transform:translateZ(0);will-change:transform;backface-visibility:hidden}          /* the buttons always sit above it */
+/* The song's
+   picture, blurred once into a tiny image, with its two colours, fills the WHOLE player behind
+   everything - stronger than 's band behind the name. Darker towards the bottom so the
+   buttons stay clear. Cross-fades song to song; drifts slowly while playing (transform only -
+   the graphics chip moves it, nothing for the page to redraw). */
 .now{isolation:isolate}
 .nowbg{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .nowbg i{position:absolute;inset:-25%;opacity:0;transition:opacity 1.2s ease;background-size:cover;background-position:center;
@@ -466,6 +546,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="folderBtn" class="ghost">Music folder</button>
     <button id="hiddenBtn" class="ghost hidden">Hidden songs</button>
     <button id="kBtn" class="ghost">Backup</button>
+    <button id="sndBtn" class="ghost">Sound</button>
     <span id="made"></span>
   </div>
 </main>
@@ -521,11 +602,14 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="shFav" class="srow">Add to favorites<small>Hearts it in this playlist. Tap the heart button in the playlist to see just your favorites.</small></button>
     <button id="shNext" class="srow">Play next<small>Plays right after the song that's on now.</small></button>
     <button id="shQueue" class="srow">Add to queue<small>Plays after the songs already queued, then your playlist carries on.</small></button>
-    <button id="shAdd" class="srow">Add to another playlist<small>Copies the song into the playlists you pick.</small></button>
+    <button id="shMoveLast" class="srow hidden">Move to <span id="shMoveTo"></span><small>Where you moved the last song - one tap.</small></button>
+    <button id="shMove" class="srow">Move to another playlist<small>Takes it out of this playlist and puts it in the one you pick. Its plays and heart go with it.</small></button>
+    <button id="shAdd" class="srow">Add to another playlist<small>Copies the song into the playlists you pick. It stays here too.</small></button>
     <button id="shShare" class="srow">Share song<small>Sends the song file - Messages, Drive, Bluetooth, anything.</small></button>
+    <button id="shLyr" class="srow hidden">Wrong lyrics<small>Look the words up again by the song's name and artist - type them the way the song is really called.</small></button>
     <button id="shWrong" class="srow">Plays the wrong song<small>Pick the right one on YouTube - its audio goes in this song's place. The wrong file is kept under Hidden songs.</small></button>
     <button id="shHide" class="srow">Hide from Carmen Musicum<small>The file stays on the phone. Bring it back from Hidden songs.</small></button>
-    <button id="shDel" class="srow danger">Delete from phone<small>Gone for good. Android asks you to confirm first.</small></button>
+    <button id="shDel" class="srow danger">Delete from playlist<small>Deletes the song from this playlist for good. Android asks you to confirm first.</small></button>
     <button id="shCancel" class="srow">Cancel</button>
   </div>
 </div>
@@ -574,6 +658,27 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="kAnyway" class="srow hidden">Back up anyway<small>Replaces it - the one there now stays as backup (previous).zip until the next backup.</small></button>
     <p class="mnote">New phone: copy your whole music folder over, open its Carmen Musicum backup folder in Files and tap Carmen Musicum.apk to install, tap Music folder and pick the folder you copied, then come here and tap Restore.</p>
     <button id="kCancel" class="srow">Close</button>
+  </div>
+</div>
+
+<div id="sndsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="sndTitle">
+  <div class="sheetcard">
+    <b id="sndTitle">Sound</b>
+    <button id="sndLevel" class="srow sw" aria-pressed="true">Even out the volume<small id="sndLevelSub"></small></button>
+    <div class="srow sndx">
+      <div class="sndhd"><span>Crossfade</span><b id="sndXfV"></b></div>
+      <input id="sndXf" type="range" min="0" max="12" step="1" aria-label="Crossfade in seconds">
+      <small>Each song blends into the next, starting where its music ends - silence at the ends is skipped. Next and Previous blend quickly. 0 = off.</small>
+    </div>
+    <button id="sndEq" class="srow sw" aria-pressed="false">Equalizer<small id="sndEqSub"></small></button>
+    <div id="sndEqBox" class="hidden">
+      <p id="sndSum" class="sndsum"></p>
+      <div id="sndPre" class="chips"></div>
+      <div id="sndSimple"></div>
+      <button id="sndAdv" class="sndadv" aria-expanded="false">Every band, one by one (advanced)</button>
+      <div id="sndBands" class="hidden"></div>
+    </div>
+    <button id="sndClose" class="srow">Close</button>
   </div>
 </div>
 
@@ -654,7 +759,17 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="psCheck" class="srow">Check for wrong audio<small>Finds songs that play a different song than the one shown, and fixes them.</small></button>
     <button id="psPick" class="srow">Change picture<small>Pick any picture on your phone.</small></button>
     <button id="psReset" class="srow">Use the original picture</button>
+    <button id="psFollow" class="srow sw hidden" aria-pressed="true">Check YouTube for new songs<small id="psFollowSub"></small></button>
+    <button id="psDel" class="srow danger">Delete playlist<small>Deletes this playlist and the songs still in it from your phone. Songs you moved or copied to other playlists stay.</small></button>
     <button id="psCancel" class="srow">Cancel</button>
+  </div>
+</div>
+
+<div id="dsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="sheetcard">
+    <b id="dTitle"></b><span id="dSub"></span>
+    <button id="dGo" class="pill wide dgo">Delete</button>
+    <button id="dCancel" class="srow">Cancel</button>
   </div>
 </div>
 
@@ -715,15 +830,43 @@ button,a,input,.song,.pl{touch-action:manipulation}
 const NB = 64;
 const bars = new Float32Array(NB), aim = new Float32Array(NB), peak = new Float32Array(NB), fall = new Float32Array(NB);
 let cv = null, x = null, Z = 0, K = 2.7;                     /* K = how many times wider than the record the canvas is */
-let COL = [[150, 70, 255], [40, 170, 255]], colFrom = null, colTo = null, colAt = 0;
+/* the colours as seven stops left to right (P = where 0..1, C = the colour). A song's two
+   colours = its first up to 40%, blended at the middle, its second from 60% (as before); the
+   default = purple, magenta, blue, light blue, green evenly. CC = the six columns' colours for
+   the little lights (left half = the first colour, right half = the second, as before). A song
+   change blends every stop - where it sits and its colour - so they flow into each other. */
+const DEF5 = [[150, 70, 255], [225, 60, 200], [60, 100, 255], [60, 190, 255], [50, 220, 140]];
+const CU = [.1, .3, .45, .55, .7, .9];                          /* the six columns' middles */
+function sampleS(P, C, u) {
+  for (let i = 0; i < P.length - 1; i++) if (u <= P[i + 1]) { const w = P[i + 1] - P[i]; return mix(C[i], C[i + 1], w > 1e-6 ? Math.max(0, (u - P[i]) / w) : 1); }
+  return C[C.length - 1].slice();
+}
+function schemeOf(pair, stops) {
+  if (stops && stops.length >= 5) {                               /* the purple and the green equally wide */
+    const S = stops, P = [0, .06, .27, .48, .66, .84, 1], C = [S[0], S[0], S[1], S[2], S[3], S[4], S[4]].map(c => c.slice());
+    return {P, C, CC: CU.map(u => sampleS(P, C, u))};
+  }
+  const a = pair[0].slice(), b = pair[1].slice();
+  return {P: [0, .2, .4, .5, .6, .8, 1], C: [a, a, a, mix(a, b, .5), b, b, b], CC: [a, a, a, b, b, b]};
+}
+const mixS = (A, B, e) => ({P: A.P.map((p, i) => p + (B.P[i] - p) * e), C: A.C.map((c, i) => mix(c, B.C[i], e)), CC: A.CC.map((c, i) => mix(c, B.CC[i], e))});
+const toneS = S => ({P: S.P, C: S.C.map(tone), CC: S.CC.map(tone)});
+let SC = null, colFrom = null, colTo = null, colAt = 0;
 let live = false, top = 55, running = false, still = 0, last = 0, loud = 0, loopId = 0, phase = 0, twPh = 0;
 const mix = (a, b, k) => a.map((v, j) => v + (b[j] - v) * k);
 const rgb = c => "rgb(" + c.map(Math.round).join(",") + ")";
 const rgba = (c, a) => "rgba(" + c.map(Math.round).join(",") + "," + a + ")";
-
-const tone = c => { const g = .3 * c[0] + .59 * c[1] + .11 * c[2]; return c.map(v => Math.max(0, Math.min(255, (g + (v - g) * .62) * .95))); };
-let TC = [tone(COL[0]), tone(COL[1])];
-
+/* the colours as drawn: a third less saturated than the song's ("too much saturation") */
+/* the song's colours are now its picture's own (not pushed to neon first), so only a STRONG
+   colour is calmed here - a soft one (brown, pastel, grey) is drawn as it is */
+const tone = c => { const g = .3 * c[0] + .59 * c[1] + .11 * c[2], d = (Math.max(...c) - Math.min(...c)) / 255;
+  const k = d > .38 ? (.38 + (d - .38) * .2) / d : 1;
+  return c.map(v => Math.max(0, Math.min(255, (g + (v - g) * k) * .95))); };
+SC = schemeOf(null, DEF5);
+let TC = toneS(SC);
+/* the bass, from the raw readings (0..100 = -60..0 dB): its level now, its recent level, how loud
+   the bass is held, the last beat. BEATS = the last few beats (when, how hard): each one gives the
+   outer waves a new shape */
 let rawBass = 0, rawPrev = 0, rawAvg = -1, bassHold = 0, lastBeat = -1e9, clock = 0;
 const BEATS = [];
 /* the voice (bands 20-47, about 250 Hz - 3.4 kHz) and the other tones on top (bands 48-61, about
@@ -795,12 +938,13 @@ for (let i = 0; i < NODES.length; i++) {                       /* each point joi
 /* the particle cloud round the outside, thickest a little outside the outer ribbon; each speck
    drifts slowly one way or the other round the ring (dv) */
 const DUST = [];
-for (let i = 0; i < 3300; i++) {
+for (let i = 0; i < 4300; i++) {                                 /* more (was 2,800). 4,300 (was 3,300) */
   const u = rnd(), r = u < .78 ? 1.9 + .55 * Math.pow(rnd(), .9) : 1.6 + .95 * rnd();
   DUST.push({a: rnd() * 6.283, r, s: rnd() < .11 ? .012 + .009 * rnd() : .0045 + .0045 * rnd(),
     tw: rnd() * 6.283, sp: .5 + 2.5 * rnd(),
-    dv: (rnd() - .5) * .09});
+    dv: (rnd() - .5) * .09, esc: 0, ev: 0, back: 0});              /* esc = when it broke free, ev = how fast, back = when it came back */
 }
+let ESC = 0;                                                     /* how many specks are flying off right now */
 
 const WCOS = WN.map(n => Float32Array.from(PSIA, p => Math.cos(n * p)));
 const WT = new Float32Array(NW), CA = new Float32Array(NW), CW = new Float32Array(NW), CWV = new Float32Array(M1);
@@ -812,10 +956,21 @@ const POSES = {
   voice: [[[3, .8], [6, -.3]], [[4, .7], [2, .3]]],         /* carried by the voice: gentle, flowing */
   mix:   [[[2, .7], [4, -.4]], [[3, -.7], [6, -.35]]]       /* anything else */
 };
-let spin = 0, spinV = 0;
-const ECH = [], ECHO_MS = 800;
-const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(72);
-const TS = [];
+let spin = 0, spinV = 0;                                       /* the outer hexagon's turn (radians) and speed (radians a second) */
+/* the outer ring's hexagon <-> circle. shapeT = ms of music played (it stops when paused);
+   HEX = 1 a hexagon .. 0 round */
+const SH_HEX = 16000, SH_FADE = 7000, SH_ROUND = 10000, SH_ALL = 2 * SH_FADE + SH_HEX + SH_ROUND;
+let shapeT = 0, HEX = 1;
+function hexAt(t) {
+  const u = t % SH_ALL, ease = k => k * k * k * (k * (k * 6 - 15) + 10);   /* soft start, soft end */
+  if (u < SH_HEX) return 1;
+  if (u < SH_HEX + SH_FADE) return 1 - ease((u - SH_HEX) / SH_FADE);
+  if (u < SH_HEX + SH_FADE + SH_ROUND) return 0;
+  return ease((u - SH_HEX - SH_FADE - SH_ROUND) / SH_FADE);
+}
+const ECH = [], ECHO_MS = 800;                                  /* the echoes going out (when, how hard); each lasts just under a beat (800 ms at most) */
+const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(132);   /* 132 bars */
+const TS = [];                                                  /* stars popping off the bar tips (where, when, how fast) */   /* the audio bars - each band smoothed, and its own recent top */
 let nShape = 0, pose = 0, lastPoseAt = -1e9, ivMed = 470, subLean = 0, style = "mix", styleNext = "mix";
 /* what the song is like right now: bassSlow = the bass over the last ~2 s, bassPeak = how loud it
    is on the beats (close together = the bass is held, like an 808; far apart = separate punchy
@@ -846,11 +1001,16 @@ const ripAt = d => { const p = Math.max(0, Math.min(RJ, (d - RD0) / (RD1 - RD0) 
    sparkle in each colour, and the haze of light behind the ribbons */
 const canvasOf = n => typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(n, n) : Object.assign(document.createElement("canvas"), {width: n, height: n});
 let SPR = null, STAR = null, HAZE = null, PICS = null, PICS_OLD = null, blendE = 1;
-
+/* These pictures were made
+   again on EVERY frame of the 0.9 s colour change (the colours move a little each frame) - five
+   small canvases with gradients, 54 times over, right when the new song starts. Now they are
+   made ONCE for the new song's colours; during the change the old set fades into the new one. */
+const schemeKey = S => S.C.concat(S.CC).map(c3 => c3.map(Math.round).join(",")).join("|") + S.P.join(",") + K;
 function picsFor(cols) {
-  const keep = TC; TC = [tone(cols[0]), tone(cols[1])];
-  const p = {key: cols.map(c3 => c3.map(Math.round).join(",")).join("|") + K,
-    SPR: [glowPic(TC[0]), glowPic(TC[1])], STAR: [starPic(TC[0]), starPic(TC[1])], HAZE: hazePic()};
+  const keep = TC; TC = toneS(cols);                              /* a scheme; one picture per column */
+  const memo = {}, one = (f, c3) => { const k = f.name + c3.map(Math.round).join(","); return memo[k] || (memo[k] = f(c3)); };
+  const p = {key: schemeKey(cols),
+    SPR: TC.CC.map(c3 => one(glowPic, c3)), STAR: TC.CC.map(c3 => one(starPic, c3)), HAZE: hazePic()};
   TC = keep; return p;
 }
 function glowPic(col) {
@@ -879,8 +1039,7 @@ function starPic(col) {
 function hazePic() {
   const n = 200, c2 = canvasOf(n), g2 = c2.getContext("2d"), h = n / 2, r = n / K / 2;
   const lg = g2.createLinearGradient(h - r * 2, 0, h + r * 2, 0);
-  lg.addColorStop(0, rgb(TC[0])); lg.addColorStop(.4, rgb(TC[0])); lg.addColorStop(.5, rgb(mix(TC[0], TC[1], .5)));
-  lg.addColorStop(.6, rgb(TC[1])); lg.addColorStop(1, rgb(TC[1]));
+  TC.P.forEach((u, i) => lg.addColorStop(Math.max(0, Math.min(1, u)), rgb(TC.C[i])));   /* the five stops */
   g2.fillStyle = lg; g2.globalAlpha = .62; g2.fillRect(0, 0, n, n);
   g2.globalCompositeOperation = "destination-in"; g2.globalAlpha = 1;
   const hz = g2.createRadialGradient(h, h, 0, h, h, r * K), at = v => Math.min(1, v / K);
@@ -897,10 +1056,11 @@ function handle(m) {
   else if (m.t === "live") { live = !!m.on; if (!live) { aim.fill(0); VA.fill(0); vAim = hAim = 0; rawAvg = midAvg = hiAvg = -1; } kick(); }
   else if (m.t === "v") { reading(m.v); kick(); }
   else if (m.t === "col") {
-    IV.length = 0; bassSlow = -1; hitRate = 0; style = styleNext = "mix";
-    acc = cnt = warm = 0;
-    if (running) { colFrom = COL.map(c => c.slice()); colTo = m.pair.map(c => c.slice()); colAt = performance.now(); blendE = 0; }
-    else { COL = m.pair.map(c => c.slice()); colTo = null; draw(); }
+    IV.length = 0; bassSlow = -1; hitRate = 0; style = styleNext = "mix";   /* a new song - learn what it is like afresh */
+    acc = cnt = warm = 0;                    /* a busy moment at the song change never counts as "too slow" */
+    const ns = schemeOf(m.pair, m.stops);                           
+    if (running) { colFrom = SC; colTo = ns; colAt = performance.now(); blendE = 0; }
+    else { SC = ns; colTo = null; draw(); }
   }
   else if (m.t === "halt") { live = false; running = false; last = 0; }     /* player closed: stop drawing now */
   else if (m.t === "draw") draw();
@@ -935,7 +1095,12 @@ function reading(s) {
     const bs = Math.min(1, .5 + (jump - 6.5) / 22) * (.85 + .3 * bassHold), iv = clock - lastBeat;
     if (iv > 200 && iv < 2000) { IV.push(iv); if (IV.length > 8) IV.shift(); const so = IV.slice().sort((a, b) => a - b); ivMed = so[so.length >> 1]; }
     BEATS.push({t: clock, s: bs}); lastBeat = clock;
-    self.postMessage({t: "beat", s: bs});
+    /* each beat knocks a handful of specks loose - harder beats, more of them */
+    for (let n = Math.round(10 + 26 * bs); n > 0; n--) {
+      const d = DUST[(rnd2() * DUST.length) | 0];
+      if (!d.esc && !d.back && d.r > 1.85) { d.esc = clock; d.ev = .35 + .55 * rnd2(); ESC++; }
+    }
+    self.postMessage({t: "beat", s: bs});                       /* the glow behind the buttons throbs */
     bassPeak += (rb - bassPeak) * .25;
     if (BEATS.length > 4) BEATS.shift();
     ECH.push({t: clock, s: bs, life: Math.max(320, Math.min(ECHO_MS, .9 * ivMed))}); if (ECH.length > 2) ECH.shift();
@@ -998,8 +1163,8 @@ function frame(t, id) {
   }
   while (BEATS.length && clock - BEATS[0].t > 1200) BEATS.shift();
   while (ECH.length && clock - ECH[0].t > ECH[0].life) ECH.shift();
-  while (TS.length && clock - TS[0].t > 1000) TS.shift();
-
+  while (TS.length && clock - TS[0].t > 1400) TS.shift();      /* 1.4 s (was 1) - long enough to get away */
+  /* the audio bars - up quickly (70 ms), down slowly (260 ms); each band's own top falls back over a few seconds */
   for (let i = 0; i < NB; i++) {
     const a = live ? aim[i] : 0;
     BV[i] += (a - BV[i]) * Math.min(1, dt / (a > BV[i] ? 70 : 260));
@@ -1016,6 +1181,7 @@ function frame(t, id) {
   spinV += (spinAim - spinV) * Math.min(1, dt / (live ? 1600 : 700));
   if (!live && spinV < .002) spinV = 0;
   spin = (spin + spinV * dt / 1000) % (2 * Math.PI);
+  if (live) { shapeT += dt; HEX = hexAt(shapeT); }                 /* hexagon <-> circle, only while playing */
   /* the warp: each outer wave flows into the new shape (two soft steps, so it starts smoothly),
      the cloud a little slower; the shape eases back to plain when the beats stop */
   const wd = Math.exp(-dt / (live ? 2200 : 450));
@@ -1032,14 +1198,14 @@ function frame(t, id) {
   while (GL.length && clock - GL[0].t > 420) GL.shift();
   if (colTo) {
     const k = Math.min(1, (t - colAt) / 900), e = k * k * (3 - 2 * k);
-    COL = [mix(colFrom[0], colTo[0], e), mix(colFrom[1], colTo[1], e)]; blendE = e;
-    if (k >= 1) { colTo = null; blendE = 1; }
+    SC = mixS(colFrom, colTo, e); blendE = e;
+    if (k >= 1) { SC = colTo; colTo = null; blendE = 1; }
   }
   draw();
   dtS = 0;
   /* paused and settled: stop until something changes (the calm picture stays on screen) */
   let bvBusy = 0; for (let i = 0; i < NB; i++) bvBusy += BV[i];
-  const busy = BEATS.length || PK.length || GL.length || ECH.length || TS.length || spinV > 0 || bvBusy > .05 || vox > .01 || hiLvl > .01 || wbusy > .003;
+  const busy = BEATS.length || PK.length || GL.length || ECH.length || TS.length || ESC || spinV > 0 || bvBusy > .05 || vox > .01 || hiLvl > .01 || wbusy > .003;
   still = !live && !moving && !colTo && !busy ? still + 1 : 0;
   if (still > 20) { running = false; last = 0; self.postMessage({t: "idle"}); return; }
   nextFrame(t2 => frame(t2, id));
@@ -1080,18 +1246,19 @@ function draw() {
   x.clearRect(0, 0, Z, Z);
   x.globalCompositeOperation = "lighter";                          /* light adds up */
   x.lineCap = "round"; x.lineJoin = "round";
-  const tgt = colTo || COL, key = tgt.map(c3 => c3.map(Math.round).join(",")).join("|") + K;
+  const tgt = colTo || SC, key = schemeKey(tgt);
   if (!PICS || PICS.key !== key) { PICS_OLD = colTo && PICS ? PICS : null; PICS = picsFor(tgt); }
   if (!colTo) { PICS_OLD = null; blendE = 1; }
-  TC = [tone(COL[0]), tone(COL[1])];
+  TC = toneS(SC);                                                  /* just the colours each frame - cheap */
+  /* which of the six columns a spot is in (left .. right; the halves split at the middle) */
+  const gx0 = c - R * 2, w4 = R * 4;
+  const colOf = px => { const u = (px - gx0) / w4; return u < .2 ? 0 : u < .4 ? 1 : u < .5 ? 2 : u < .6 ? 3 : u < .8 ? 4 : 5; };
   const PS = PICS_OLD && blendE < .5 ? PICS_OLD : PICS;
   SPR = PS.SPR; STAR = PS.STAR; HAZE = PICS.HAZE;
   /* left = the song's first colour, right = its second; they meet at the top and bottom */
   const grad = k => {
-    const a = mix(TC[0], [255, 255, 255], k), b = mix(TC[1], [255, 255, 255], k);
     const g = x.createLinearGradient(c - R * 2, 0, c + R * 2, 0);
-    g.addColorStop(0, rgb(a)); g.addColorStop(.4, rgb(a)); g.addColorStop(.5, rgb(mix(a, b, .5)));
-    g.addColorStop(.6, rgb(b)); g.addColorStop(1, rgb(b));
+    TC.P.forEach((u, i) => g.addColorStop(Math.max(0, Math.min(1, u)), rgb(mix(TC.C[i], [255, 255, 255], k))));   /* five stops */
     return g;
   };
   const g0 = grad(0), g2 = grad(.25), g4 = grad(.45);
@@ -1117,11 +1284,15 @@ function draw() {
     const b1 = W.a1 * (.8 + .2 * Math.cos(q1)) * (1 + 3 * off), b2 = W.a2 * Math.cos(q2) * (1 + 12 * off);
     const lift = W.vg * vox;                                        /* the voice's breath: all the way round */
     const tipR = 1.9 + .04 * off * 10 + lift * .9;
+    /* the outer ring's six sides fade in and out (hx); round, the corners' breathing becomes
+       the whole ring puffing out and in evenly (puff), a touch wider so it keeps its size */
+    const hx = turn ? HEX : 1, rd = 1 - hx;
+    const puff = rd ? rd * (Math.abs(W.a1) * (.3 * Math.cos(q1) + .35) + Math.abs(b2) * .6 * Math.cos(q2 * .5)) : 0;
     for (let m = 0; m <= M; m++) {
       const wv = W.wg ? W.wv[m] : 0;                                /* the beat's warp (outer waves) */
-      let r = W.r0 + off + b1 * C6[m] + b2 * C12[m] + lift + wv;
+      let r = W.r0 + off + hx * (b1 * C6[m] + b2 * C12[m]) + puff + lift + wv;
       if (W.rg) r += W.rg * ripAt(DS[m] + W.lag) * (1 - .7 * TIP[m]) + W.pg * VP[m];
-      r += (tipR + wv - r) * TIP[m] * W.tip;                         /* drawn to the tip at the left and right (the tips warp too) */
+      r += (tipR + wv - r) * TIP[m] * W.tip * hx;                    /* drawn to the tip at the left and right (the tips warp too); not when round */
       r = Math.min(LIM, Math.max(1.04, r) * g);
       const cx = CT[m] * cs - ST[m] * sn, cy = ST[m] * cs + CT[m] * sn;
       const px = c + cx * r * R, py = c + cy * r * R;
@@ -1159,10 +1330,12 @@ function draw() {
   }
 
   {
-    const NBR = 36, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();
+    const NBR = 66, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();       /* taller (was .34). 66 a side */
     for (let j = 0; j < NBR; j++) {
-      const band = Math.min(48, Math.round(1 + j * 47 / (NBR - 1)));   /* up to about 9 kHz - the very top is mostly empty */
-      const lv = .3 * BV[band] + .7 * Math.min(1, BV[band] / BG[band]);
+      /* a bar between two bands reads between them, so neighbours rise and fall smoothly, not in steps */
+      const fb = Math.min(48, 1 + j * 47 / (NBR - 1)), b0 = Math.floor(fb), b1 = Math.min(48, b0 + 1), fr = fb - b0;   /* up to about 9 kHz - the very top is mostly empty */
+      const bv = BV[b0] + (BV[b1] - BV[b0]) * fr, bg = BG[b0] + (BG[b1] - BG[b0]) * fr;
+      const lv = .3 * bv + .7 * Math.min(1, bv / bg);
       const L = .02 + len * Math.pow(lv, 1.15);
       const psi = Math.PI * (1 - (j + .5) / NBR);                     /* bottom (j = 0) .. top */
       for (const sd of [-1, 1]) {
@@ -1172,7 +1345,7 @@ function draw() {
         if (lv > .3) { gp.moveTo(x0, y0); gp.lineTo(x1, y1); }
 
         const bi = j * 2 + (sd > 0 ? 1 : 0), jump = lv - BPREV[bi]; BPREV[bi] = lv;
-        if (dtS && jump > .12 && lv > .45 && TS.length < 40 && rnd2() < .55)
+        if (dtS && jump > .12 && lv > .45 && TS.length < 70 && rnd2() < .88 * 36 / NBR)   /* the same whatever the bar count. more (was .55, at most 40) */
           TS.push({ca, sa, r: base + L + .02, t: clock, v: .25 + .35 * rnd2(), s: .6 + .5 * lv, tw: rnd2() * 6.283});
       }
     }
@@ -1182,10 +1355,11 @@ function draw() {
     /* the stars off the tips: they float out, twinkle and fade */
     for (const T of TS) {
       const age = (clock - T.t) / 1000; if (age < 0) continue;
-      const r = Math.min(LIM + .05, T.r + T.v * age), px = c + T.ca * r * R, py = c + T.sa * r * R;
-      const tw = .65 + .35 * Math.sin(T.tw + age * 14), e = (age < .08 ? age / .08 : 1) * Math.pow(1 - age, 1.4);
+      /* they speed up and fly clean off the edge (they used to stop just inside it) */
+      const r = T.r + T.v * age + .7 * age * age, px = c + T.ca * r * R, py = c + T.sa * r * R;
+      const tw = .65 + .35 * Math.sin(T.tw + age * 14), e = (age < .08 ? age / .08 : 1) * Math.pow(Math.max(0, 1 - age / 1.4), 1.2) * Math.min(1, Math.max(0, (K - r) / .25));
       const sz = R * .05 * T.s * (.8 + .3 * tw);
-      x.globalAlpha = Math.min(.85, e * tw); x.drawImage(STAR[px < c ? 0 : 1], px - sz, py - sz, sz * 2, sz * 2);
+      x.globalAlpha = Math.min(.85, e * tw); x.drawImage(STAR[colOf(px)], px - sz, py - sz, sz * 2, sz * 2);
     }
   }
 
@@ -1208,32 +1382,49 @@ function draw() {
   }
   for (let i = 0; i < pts.length; i += 4) {
     const s = pts[i + 2] * 2.4; x.globalAlpha = Math.min(1, pts[i + 3]);
-    x.drawImage(SPR[pts[i] < c ? 0 : 1], pts[i] - s, pts[i + 1] - s, s * 2, s * 2);
+    x.drawImage(SPR[colOf(pts[i])], pts[i] - s, pts[i + 1] - s, s * 2, s * 2);
   }
 
   /* 5. the particle cloud round the outside: drifts slowly round (faster with the hats), shimmers
         and twinkles with the highs, takes the warp's shape and lights a little on the beat */
-  const dl = [[new Path2D(), new Path2D(), new Path2D()], [new Path2D(), new Path2D(), new Path2D()]], big = [];
+  const dl = Array.from({length: 6}, () => [new Path2D(), new Path2D(), new Path2D()]), big = [];   /* six columns */
+  const tr = Array.from({length: 6}, () => new Path2D());           /* the streaks behind the specks flying off */
   const drift = dtS * (.35 + 2.2 * hiLvl);
   for (const d of DUST) {
     if (drift) d.a += d.dv * drift;
     const tw = Math.sin(d.tw + twPh * d.sp * 2);
-    const r = Math.min(LIM, d.r + CWV[mOf(d.a)] + .03 * hiLvl * Math.sin(d.tw * 3 + twPh * d.sp * 3));
-    const al = Math.min(1, (.42 + .5 * hiLvl + .15 * hit) * (.6 + .4 * tw) * (r > 2.35 ? (LIM - r) / .27 : 1));
+    let r = Math.min(LIM, d.r + CWV[mOf(d.a)] + .03 * hiLvl * Math.sin(d.tw * 3 + twPh * d.sp * 3));
+    let al = Math.min(1, (.42 + .5 * hiLvl + .15 * hit) * (.6 + .4 * tw) * (r > 2.35 ? (LIM - r) / .27 : 1));
+    /* a speck knocked loose by a beat speeds straight out and off the edge, leaving a short
+       streak; once gone it fades back in at its old place, so the cloud never thins out */
+    let esc = 0;
+    if (d.esc) {
+      const age = (clock - d.esc) / 1000;
+      esc = d.ev + 1.6 * age; r += d.ev * age + .8 * age * age;
+      if (r >= K || age > 3) { d.esc = 0; d.back = clock; ESC--; continue; }
+      al = Math.min(1, (.55 + .3 * hiLvl) * (.75 + .25 * tw) * Math.min(1, (K - r) / .35));
+    } else if (d.back) {
+      const f = (clock - d.back) / 700;
+      if (f >= 1) d.back = 0; else al *= f;
+    }
     if (al < .08) continue;
     const ca = Math.cos(d.a), sa = Math.sin(d.a);
     const px = c + ca * r * R, py = c + sa * r * R, sz = Math.max(px1 * .6, d.s * R);
+    if (esc) { const tl = Math.min(.14, .05 * esc) * R; tr[colOf(px)].moveTo(px - ca * tl, py - sa * tl); tr[colOf(px)].lineTo(px, py); }
     if (d.s > .01) { big.push(px, py, sz * 3, al); continue; }
-    dl[px < c ? 0 : 1][al > .7 ? 2 : al > .4 ? 1 : 0].rect(px - sz, py - sz, sz * 2, sz * 2);
+    dl[colOf(px)][al > .7 ? 2 : al > .4 ? 1 : 0].rect(px - sz, py - sz, sz * 2, sz * 2);
   }
-
-  for (let sd = 0; sd < 2; sd++) for (let i = 0; i < 3; i++) {
-    x.fillStyle = rgb(mix(TC[sd], [255, 255, 255], i === 2 ? .62 : .32)); x.globalAlpha = .55 + .22 * i; x.fill(dl[sd][i]);
+  /* The brightest specks burn
+     nearly white like stars, the dimmer ones keep the song's colour */
+  for (let sd = 0; sd < 6; sd++) for (let i = 0; i < 3; i++) {
+    x.fillStyle = rgb(mix(TC.CC[sd], [255, 255, 255], i === 2 ? .62 : .32)); x.globalAlpha = .55 + .22 * i; x.fill(dl[sd][i]);
   }
+  x.lineWidth = Math.max(px1 * .8, R * .007);
+  for (let sd = 0; sd < 6; sd++) { x.strokeStyle = rgb(mix(TC.CC[sd], [255, 255, 255], .32)); x.globalAlpha = .4; x.stroke(tr[sd]); }   
   /* ...and the bigger ones are small four-point stars that twinkle (they swell a little as they brighten) */
   for (let i = 0; i < big.length; i += 4) {
     const al = big[i + 3], s = big[i + 2] * (1.05 + .55 * al); x.globalAlpha = Math.min(1, al * 1.05);
-    x.drawImage(STAR[big[i] < c ? 0 : 1], big[i] - s, big[i + 1] - s, s * 2, s * 2);
+    x.drawImage(STAR[colOf(big[i])], big[i] - s, big[i + 1] - s, s * 2, s * 2);
   }
 
   /* 6. the sparkles: a hit up top lights small four-point stars all round, here and there */
@@ -1243,7 +1434,7 @@ function draw() {
     const r = Math.min(LIM, G.r + CWV[mOf(G.a)]), px = c + Math.cos(G.a) * r * R, py = c + Math.sin(G.a) * r * R;
     const s = R * (.045 + .04 * G.s) * (.7 + .3 * e);
     x.globalAlpha = Math.min(.6, e * (.32 + .28 * G.s));
-    x.drawImage(STAR[px < c ? 0 : 1], px - s, py - s, s * 2, s * 2);
+    x.drawImage(STAR[colOf(px)], px - s, py - s, s * 2, s * 2);
   }
 
   /* 7. last, BEHIND everything drawn: the soft haze (it breathes with the voice and the bass) */
@@ -1433,9 +1624,15 @@ function renderHome() {
       ul.querySelectorAll(".pl p").forEach((el, i) => { const t = plSub(LIB.playlists[i]); if (el.textContent !== t) el.textContent = t; });
     } else {
       homeSig = sig;
+      /* A playlist's own
+         ring and glow round its picture - ring, then the two glows; any other playlist keeps the blue */
+      /* a playlist's own ring and glow round its picture, by its name in lower case: [ring, glow, glow].
+         Empty here - every playlist has the blue; add one like  "rock": ["#FF3B3B", "#E62B3B", "#FF6B5E"] */
+      const PL_RING = {};
       ul.innerHTML = LIB.playlists.map((p, i) => {
         const first = p.songs[0];
-        const pic = p.cover ? '<div class="plart"><img src="/cover?p=' + enc(p.name) + '&v=' + enc(p.cover) + '" alt=""></div>'
+        const ring = PL_RING[p.name.toLowerCase()], rs = ring ? ' style="--r1:' + ring[0] + ';--r2:' + ring[1] + ';--r3:' + ring[2] + '"' : '';
+        const pic = p.cover ? '<div class="plart"' + rs + '><img src="/cover?p=' + enc(p.name) + '&v=' + enc(p.cover) + '" alt=""></div>'
           : '<div class="vinyl"><div class="label">' + (first ? '<img loading="lazy" src="' + artUrl(p.name, first.file) +
             '" alt="" onerror="this.remove()">' : '') + '</div></div>';
         return '<li><button class="pl" data-i="' + i + '">' + pic + '<div><h2>' + esc(p.name) + '</h2><p>' + esc(plSub(p)) + '</p></div></button></li>';
@@ -1521,6 +1718,7 @@ $("#pls").addEventListener("pointerdown", e => {
   plT = setTimeout(() => {
     plDone = true; sheetPl = LIB.playlists[+b.dataset.i]; if (!sheetPl || !N) return;
     $("#psTitle").textContent = sheetPl.name; $("#psReset").classList.toggle("hidden", !sheetPl.custom);
+    psFollowFor(sheetPl.name);                     
     $("#psheet").classList.remove("hidden");
   }, 550);
 });
@@ -1534,8 +1732,34 @@ $("#psPick").onclick = () => { closePs(); if (sheetPl) N.pickCover(sheetPl.name)
 $("#lmore").onclick = () => {
   if (!PL || !N) return; sheetPl = PL;
   $("#psTitle").textContent = PL.name; $("#psReset").classList.toggle("hidden", !PL.custom);
+  /* the YouTube switch shows only on a playlist that came from a YouTube playlist (a Mix is never checked) */
+  psFollowFor(PL.name);
   $("#psheet").classList.remove("hidden");
 };
+function psFollowFor(name) {
+  let info = {}; try { info = JSON.parse(N.plInfo ? N.plInfo(name) : "{}"); } catch (e) {}
+  $("#psFollow").classList.toggle("hidden", !info.linked); psFollowShow(!!info.on);
+}
+function psFollowShow(on) {
+  $("#psFollow").setAttribute("aria-pressed", on);
+  $("#psFollowSub").textContent = on ? "On - new songs on its YouTube playlist come in by themselves (every 6 hours)."
+    : "Off - only the songs you put here. Nothing comes in from YouTube; the songs here stay as they are.";
+}
+$("#psFollow").onclick = () => { if (!sheetPl || !N) return; const on = $("#psFollow").getAttribute("aria-pressed") !== "true";
+  N.setFollow(sheetPl.name, on); psFollowShow(on); toast(on ? "Checking YouTube for " + sheetPl.name : sheetPl.name + " no longer checks YouTube"); };
+let delPl = null;
+$("#psDel").onclick = () => {
+  if (!sheetPl) return; delPl = sheetPl.name; closePs();
+  const n = (LIB.playlists.find(p => p.name === delPl) || {songs: []}).songs.length;
+  $("#dTitle").textContent = "Delete " + delPl + "?";
+  $("#dSub").textContent = n ? "Its " + n.toLocaleString() + (n === 1 ? " song is" : " songs are") + " deleted from your phone for good. Songs you already moved or copied to other playlists are safe." : "It has no songs left. The playlist goes.";
+  $("#dGo").textContent = n ? "Delete " + n.toLocaleString() + (n === 1 ? " song" : " songs") : "Delete playlist";
+  $("#dsheet").classList.remove("hidden");
+};
+const closeDel = () => { $("#dsheet").classList.add("hidden"); delPl = null; };
+$("#dCancel").onclick = closeDel;
+$("#dsheet").addEventListener("click", e => { if (e.target.id === "dsheet") closeDel(); });
+$("#dGo").onclick = () => { const name = delPl; closeDel(); if (!name || !N || !N.deletePlaylist) return; go("#/"); toast("Deleting " + name + "..."); N.deletePlaylist(name); };
 $("#psCheck").onclick = () => { closePs(); if (sheetPl) checkAudio(sheetPl.name, ""); };
 $("#psReset").onclick = () => { closePs(); if (sheetPl) N.resetCover(sheetPl.name); };
 $("#pls").addEventListener("click", e => {
@@ -1774,10 +1998,13 @@ function renderMiss() {
   const box = $("#miss"), list = PL ? missOf(PL.name) : [];
   if (!list.length || $("#q").value.trim()) { box.innerHTML = ""; return; }
   const open = !!missOpen[PL.name];
-  box.innerHTML = '<div class="pendhead"><div><b>' + (list.length === 1 ? "1 song is" : list.length + " songs are") + ' gone from YouTube</b>' +
-    '<span>Find another upload of each one, or let it go.</span></div><button class="ghost" id="missTog">' + (open ? "Hide" : "Show") + '</button></div>' +
+  /* It always does - these are songs on the YouTube playlist that never came onto the phone,
+     because YouTube would not give them out. Said so, instead of "gone from YouTube". */
+  box.innerHTML = '<div class="pendhead"><div><b>' + (list.length === 1 ? "1 song" : list.length + " songs") + ' never came onto your phone</b>' +
+    '<span>They are on this playlist\'s YouTube list, but YouTube wouldn\'t let them download. Carmen Musicum looks for another upload of each by itself; ' +
+    'pick one here, or let it go. Songs already on your phone are never affected.</span></div><button class="ghost" id="missTog">' + (open ? "Hide" : "Show") + '</button></div>' +
     (open ? '<ul class="songs">' + list.map((x, i) => '<li class="song gone" data-m="' + i + '"><div class="tx"><b>' + esc(x.t) + '</b><span>' +
-      esc((x.a ? x.a + " - " : "") + (x.e || "Gone from YouTube")) + '</span></div><button class="find">Find another copy</button>' +
+      esc((x.a ? x.a + " - " : "") + "YouTube: " + (x.e || "removed")) + '</span></div><button class="find">Find another copy</button>' +
       '<button class="drop" aria-label="Let it go">&times;</button></li>').join("") +
       '<li class="empty" style="padding:12px"><button class="ghost" id="missAll">Let them all go</button></li></ul>' : '');
 }
@@ -1921,11 +2148,13 @@ $("#rep").onclick = () => N && N.setRepeat(ST.repeat === "all" ? "one" : ST.repe
 
 /* ---------- now playing ---------- */
 const BARS = 48;
-/* played bars run orchid -> violet -> cyan, like the art */
+/* played bars run purple -> magenta -> blue -> light blue -> green */
 const BAR_COLORS = Array.from({length: BARS}, (_, i) => {
-  const t = i / (BARS - 1), A = [207, 73, 255], B = [121, 118, 255], C = [15, 235, 255];
-  const [x, y, k] = t < .55 ? [A, B, t / .55] : [B, C, (t - .55) / .45];
-  return "rgb(" + x.map((v, j) => Math.round(v + (y[j] - v) * k)).join(",") + ")";
+  const C = [[150, 70, 255], [150, 70, 255], [225, 60, 200], [60, 100, 255], [60, 190, 255], [50, 220, 140], [50, 220, 140]],
+    P = [0, .06, .27, .48, .66, .84, 1], u = i / (BARS - 1);
+  let j = 0; while (j < 5 && u > P[j + 1]) j++;
+  const k = P[j + 1] > P[j] ? (u - P[j]) / (P[j + 1] - P[j]) : 1, x = C[j], y = C[j + 1];
+  return "rgb(" + x.map((v, n) => Math.round(v + (y[n] - v) * k)).join(",") + ")";
 });
 function waveFor(s) {
   let h = 2166136261; for (const c of s.file) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
@@ -2143,6 +2372,11 @@ function openSheet(s) {
   if (!s || !N) return;
   sheetSong = s; $("#shTitle").textContent = showName(s); $("#shArtist").textContent = s.artist || "Unknown artist";
   $("#shFav").firstChild.textContent = isFav(s) ? "Remove from favorites" : "Add to favorites";
+  /* Wrong lyrics in this menu too, for the song that is playing */
+  $("#shLyr").classList.toggle("hidden", !(cur && keyOf(cur) === keyOf(s)));
+  /* one tap to move it where the last one went (going through a big playlist) */
+  const last = load("mm_movelast"), lastOk = last && last !== s.p && LIB.playlists.some(p => p.name === last);
+  $("#shMoveLast").classList.toggle("hidden", !lastOk); if (lastOk) $("#shMoveTo").textContent = last;
   $("#sheet").classList.remove("hidden");
 }
 function closeSheet() { $("#sheet").classList.add("hidden"); sheetSong = null; }
@@ -2151,7 +2385,12 @@ $("#sheet").addEventListener("click", e => { if (e.target.id === "sheet") closeS
 $("#shHide").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.hide(keyOf(s)); };
 $("#shDel").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.deleteSong(keyOf(s)); };
 $("#shAdd").onclick = () => { const s = sheetSong; closeSheet(); if (s) openAddTo(s); };
+/* The same picker as Add, one playlist at a time; the last one picked is remembered */
+const moveSong = (s, to) => { if (!s || !to || !N || !N.moveTo) return; store("mm_movelast", to); const r = N.moveTo(keyOf(s), to); if (r) toast(r); };
+$("#shMove").onclick = () => { const s = sheetSong; closeSheet(); if (s) openAddTo(s, true); };
+$("#shMoveLast").onclick = () => { const s = sheetSong; closeSheet(); moveSong(s, load("mm_movelast")); };
 $("#shShare").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.shareSong(keyOf(s)); };
+$("#shLyr").onclick = () => { closeSheet(); openLyricsFix(); };
 $("#shNext").onclick = () => { const s = sheetSong; closeSheet(); if (s) enqueue(s, true); };
 /* "Plays the wrong song": YouTube's matches for the name shown; the one tapped replaces this song's audio */
 $("#shWrong").onclick = () => {
@@ -2331,70 +2570,101 @@ window.onLibrary = async msg => {
 };
 let tt; function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.remove("hidden"); clearTimeout(tt); tt = setTimeout(() => t.classList.add("hidden"), 3200); }
 
-
-const BRAND = [[207, 73, 255], [15, 235, 255]];
+/* =====================================================================
+   Each song's own colours, the moving ring, lyrics,
+   add to another playlist
+   ===================================================================== */
+/* Carmen Musicum's own colours, left to right (a song with no picture, or no colour in its
+   picture, gets these): purple, magenta, blue, light blue, green. BRAND = its two ends. */
+const DEF5 = [[150, 70, 255], [225, 60, 200], [60, 100, 255], [60, 190, 255], [50, 220, 140]];
+const BRAND = [DEF5[0], DEF5[4]];
+const defPal = () => Object.assign(DEF5.map(c => c.slice()), {def: true});
 const rgb = c => "rgb(" + c.map(Math.round).join(",") + ")";
 const mix = (a, b, k) => a.map((v, j) => v + (b[j] - v) * k);
-let COL = [BRAND[0].slice(), BRAND[1].slice()], colFrom = null, colTo = null, colAt = 0;
-const waveColor = i => rgb(mix(COL[0], COL[1], i / (BARS - 1)));
+let COL = [BRAND[0].slice(), BRAND[1].slice()], STOPS = DEF5.map(c => c.slice()), colFrom = null, colTo = null, colAt = 0;
+/* where the five colours sit, left to right - the purple and the green each hold their own
+   colour for the same width at the two ends (DEF_C = the colour at each spot) */
+const DEF_P = [0, .06, .27, .48, .66, .84, 1], DEF_C = S => [S[0], S[0], S[1], S[2], S[3], S[4], S[4]];
+/* a spot 0..1 along the five colours */
+const along = (S, u) => { const C = DEF_C(S); u = Math.max(0, Math.min(1, u)); let j = 0; while (j < 5 && u > DEF_P[j + 1]) j++;
+  return mix(C[j], C[j + 1], DEF_P[j + 1] > DEF_P[j] ? (u - DEF_P[j]) / (DEF_P[j + 1] - DEF_P[j]) : 1); };
+const waveColor = i => rgb(STOPS ? along(STOPS, i / (BARS - 1)) : mix(COL[0], COL[1], i / (BARS - 1)));
+const gradOf = S => "linear-gradient(90deg," + DEF_C(S).map((c, i) => rgb(c) + " " + Math.round(DEF_P[i] * 100) + "%").join(",") + ")";
 
 /* two lively colours from the song's picture (falls back to Carmen Musicum's own) */
 function hsl2rgb(h, s, l) {
   const k = n => (n + h * 12) % 12, a = s * Math.min(l, 1 - l);
   return [0, 8, 4].map(n => 255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1))));
 }
-function vivid(c) {
+/* Until a picture had to have strong colour in it,
+   or Carmen Musicum's own colours were used, and every colour was pushed to the same strong,
+   mid-bright band. Now:
+   - only the round part of the picture that shows on the disc counts (the corners are cut off).
+   - every colour in it counts - browns, greys, pastels, white, deep reds - grouped by its real
+     colour (512 groups across the whole range) and averaged from the real pixels, so the result
+     can be any of the 16.7 million colours. Colourful, bright parts count more than grey or dim ones, so
+     a small bright detail still has a say. Only near-black is skipped (a black ring would vanish
+     into the black background).
+   - the colour is kept as it is; it is only lifted (or dimmed) as far as it must be to show on
+     the black background, and a very strong colour is eased a little - never made stronger.
+   - left = the colour most of the disc is, right = the next most that looks clearly different;
+     a one-colour picture gets a lighter or darker shade of its own colour, not a made-up one. */
+function hslOf(c) {
   const [r, g, b] = c.map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
   let h = 0;
   if (d) h = (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6;
   if (h < 0) h += 1;
   const l = (mx + mn) / 2, s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
-  return hsl2rgb(h, Math.max(s, .68), Math.min(.7, Math.max(.58, l)));
+  return [h, Math.min(1, s), l];
 }
+const LMIN = .48, LMAX = .82;
+function onBlack(c) {
+  let [h, s, l] = hslOf(c);
+  if (s > .85) s = .85 + (s - .85) * .5;
+  return hsl2rgb(h, s, Math.min(LMAX, Math.max(LMIN, l)));
+}
+/* a shade of the same colour: lighter if it is darkish, darker if it is light */
+function shade(c, k) { const [h, s, l] = hslOf(c); return hsl2rgb(h, s, Math.min(.9, Math.max(.4, l < .65 ? l + k : l - k))); }
+/* how different two colours look (red-mean distance: 0 the same .. ~765 black and white) */
+const cdist = (a, b) => { const rm = (a[0] + b[0]) / 2, dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
+  return Math.sqrt((2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db); };
 function palette(px) {
-  const B = 24, w = new Float64Array(B), sum = Array.from({length: B}, () => [0, 0, 0]);
-  for (let i = 0; i < px.length; i += 4) {
-    const r = px[i] / 255, g = px[i + 1] / 255, b = px[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
-    const s = mx ? d / mx : 0;
-    if (mx < .2 || s < .22) continue;                          /* too dark or too grey to be a colour */
-    let h = (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6; if (h < 0) h += 1;
-    const k = Math.floor(h * B) % B, wt = s * s * mx;
-    w[k] += wt; sum[k][0] += wt * px[i]; sum[k][1] += wt * px[i + 1]; sum[k][2] += wt * px[i + 2];
+  const n = Math.round(Math.sqrt(px.length / 4)), W = new Float64Array(512), S = new Float64Array(1536);
+  let total = 0;
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const dx = (x + .5) / n - .5, dy = (y + .5) / n - .5;
+    if (dx * dx + dy * dy > .25) continue;                       /* outside the disc's circle */
+    const i = (y * n + x) * 4;
+    if (px[i + 3] < 128) continue;                              /* see-through */
+    const R = px[i], G = px[i + 1], B = px[i + 2], mx = Math.max(R, G, B), mn = Math.min(R, G, B);
+    if (mx < 26) continue;                                      /* near black */
+    const sat = (mx - mn) / mx, wt = (.12 + 1.6 * sat * sat) * (.4 + .6 * mx / 255), k = ((R >> 5) << 6) | ((G >> 5) << 3) | (B >> 5);
+    W[k] += wt; S[k * 3] += wt * R; S[k * 3 + 1] += wt * G; S[k * 3 + 2] += wt * B; total += wt;
   }
-  const score = i => w[i] + .5 * (w[(i + B - 1) % B] + w[(i + 1) % B]);
-  const colourOf = i => { const z = [(i + B - 1) % B, i, (i + 1) % B], W = z.reduce((a, j) => a + w[j], 0);
-    return vivid([0, 1, 2].map(c => z.reduce((a, j) => a + sum[j][c], 0) / W)); };
-  let first = -1, second = -1;
-  for (let i = 0; i < B; i++) if (w[i] && (first < 0 || score(i) > score(first))) first = i;
-  if (first < 0 || score(first) < 1.5) return fillPal(BRAND);
-  for (let i = 0; i < B; i++) {
-    const dist = Math.min(Math.abs(i - first), B - Math.abs(i - first));
-    /* a second colour: well apart in hue, and the further apart the better */
-    if (dist >= 3 && w[i] && score(i) >= .1 * score(first) && (second < 0 || score(i) * (.5 + dist / 12) > score(second) * (.5 + Math.min(Math.abs(second - first), B - Math.abs(second - first)) / 12))) second = i;
-  }
-  const a = colourOf(first), out = [a];
-  out.push(second >= 0 ? colourOf(second) : vivid(mix(a, [255, 255, 255], .35).map((v, j) => j === 2 ? Math.min(255, v + 40) : v)));   /* one-colour art: a lighter partner */
-  const used = second >= 0 ? [first, second] : [first];
-  const far = i => used.every(j => Math.min(Math.abs(i - j), B - Math.abs(i - j)) >= 2);
-  const rest = [];
-  for (let i = 0; i < B; i++) if (w[i] && score(i) >= .04 * score(first)) rest.push(i);
-  rest.sort((p, q) => score(q) - score(p));
-  for (const i of rest) { if (out.length >= 5) break; if (far(i)) { used.push(i); out.push(colourOf(i)); } }
+  if (!total) return fillPal([[150, 150, 158], [205, 205, 212]]);   /* an all-black picture: silver */
+  /* each group with half of its six neighbours, so one colour split over two groups stays one */
+  const near = k => { const r = k >> 6, g = (k >> 3) & 7, b = k & 7, o = [];
+    if (r > 0) o.push(k - 64); if (r < 7) o.push(k + 64); if (g > 0) o.push(k - 8); if (g < 7) o.push(k + 8); if (b > 0) o.push(k - 1); if (b < 7) o.push(k + 1);
+    return o; };
+  const score = k => { let t = W[k]; for (const j of near(k)) t += .5 * W[j]; return t; };
+  const colourAt = k => { let w = W[k], c = [S[k * 3], S[k * 3 + 1], S[k * 3 + 2]];
+    for (const j of near(k)) { w += .5 * W[j]; c[0] += .5 * S[j * 3]; c[1] += .5 * S[j * 3 + 1]; c[2] += .5 * S[j * 3 + 2]; }
+    return c.map(v => v / w); };
+  const ks = []; for (let k = 0; k < 512; k++) if (W[k]) ks.push(k);
+  const sc = new Float64Array(512); for (const k of ks) sc[k] = score(k);
+  ks.sort((p, q) => sc[q] - sc[p] || p - q);
+  const cand = ks.filter((k, i) => i === 0 || sc[k] >= .03 * total).map(k => onBlack(colourAt(k)));
+  const out = [cand[0]];
+  const two = cand.find(c => cdist(c, out[0]) >= 110);           /* clearly different */
+  out.push(two || shade(out[0], .18));
+  for (const c of cand) { if (out.length >= 5) break; if (out.every(o => cdist(o, c) >= 75)) out.push(c); }
   return fillPal(out);
 }
-/* at least four colours: when the picture has fewer, neighbours of its own hues fill in */
-function hueShift(c, dh) {
-  const [r, g, b] = c.map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
-  let h = 0;
-  if (d) h = (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6;
-  h = ((h + dh) % 1 + 1) % 1;
-  const l = (mx + mn) / 2, s = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
-  return hsl2rgb(h, Math.max(s, .68), Math.min(.7, Math.max(.58, l)));
-}
+/* at least four colours (for the galaxy and the glow): shades of its own colours fill in */
 function fillPal(cols) {
   const out = cols.map(c => c.slice());
-  if (out.length < 3) out.push(hueShift(out[0], -.07));
-  if (out.length < 4) out.push(hueShift(out[1], .07));
+  if (out.length < 3) out.push(shade(out[0], .12));
+  if (out.length < 4) out.push(shade(out[1], .12));
   return out;
 }
 const pcStyle = document.head.appendChild(document.createElement("style"));
@@ -2403,7 +2673,7 @@ function trackColors(s) {
   const tok = ++colTok, im = new Image();
   im.onload = () => {
     if (tok !== colTok) return;
-    let pal = fillPal(BRAND);
+    let pal = defPal();
     try {
       const c = document.createElement("canvas"); c.width = c.height = 32;
       const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(im, 0, 0, 32, 32);
@@ -2411,29 +2681,32 @@ function trackColors(s) {
     } catch (e) {}
     songLook(im, pal, tok);
   };
-  im.onerror = () => { if (tok === colTok) songLook(null, fillPal(BRAND), tok); };
+  im.onerror = () => { if (tok === colTok) songLook(null, defPal(), tok); };
   im.src = artUrl(s.p, s.file);
 }
 /* the new song's look goes on in small steps a frame apart, not all in the one frame the
    title changes in: colours first, then the background, then the glow, then (when the phone is
    free) the galaxy's colours */
 function songLook(im, pal, tok) {
-  setColors(pal.slice(0, 2));
+  setColors(pal.def ? [pal[0], pal[4]] : pal.slice(0, 2), pal.def ? pal : null);   /* the default = all five */
   requestAnimationFrame(() => { if (tok !== colTok) return; infoBg(im, pal);
     requestAnimationFrame(() => { if (tok !== colTok) return; glowFor(pal); idle(() => { if (tok === colTok) galaxyFor(pal); }, 700); }); });
 }
 let colSeq = 0;
-function setColors(pair) {
+function setColors(pair, stops) {
   const seq = ++colSeq;
   colFrom = [COL[0].slice(), COL[1].slice()]; colTo = pair.map(c => c.slice()); colAt = performance.now();
   const now = $("#now"); now.style.setProperty("--c1", rgb(pair[0])); now.style.setProperty("--c2", rgb(pair[1]));
+  const mini = $("#mini"); mini.style.setProperty("--c1", rgb(pair[0])); mini.style.setProperty("--c2", rgb(pair[1]));   /* the bar at the bottom too */
+  if (stops) now.style.setProperty("--grad", gradOf(stops)); else now.style.removeProperty("--grad");   
+  const tStops = stops ? stops.map(c => c.slice()) : null;
   /* the list's colours for the playing song are set only where they are used - setting them
      on the whole page made every one of the thousands of rows underneath be looked at again */
   pcStyle.textContent = ".song.on,.sortrow,.order,.copy.close,.upnext{--pc1:" + rgb(pair[0]) + ";--pc2:" + rgb(pair[1]) + "}";
   const target = colTo;
-  const done = () => { if (seq !== colSeq) return; COL = target.map(c => c.slice()); colTo = null;
+  const done = () => { if (seq !== colSeq) return; COL = target.map(c => c.slice()); STOPS = tStops; colTo = null;
     $("#wave").querySelectorAll("i").forEach((b, i) => b.style.setProperty("--c", waveColor(i))); };
-  if (RW.w) { RW.w.postMessage({t: "col", pair: target}); if (RW.live) setTimeout(done, 900); else done(); return; }
+  if (RW.w) { RW.w.postMessage({t: "col", pair: target, stops: tStops}); if (RW.live) setTimeout(done, 900); else done(); return; }
   done(); drawRing();
 }
 let bgFlip = 0;
@@ -2488,7 +2761,42 @@ function gxSize() {
   return D;
 }
 const GPITCH = 1 / Math.tan(15 * Math.PI / 180);          /* how tightly the arms wind */
-const armAt = (k, u) => k * Math.PI + Math.log(Math.max(u, .05) / .05) * GPITCH * .42;
+/* each arm wobbles in its own way, and the second one is turned a touch off the first.
+   The angle grows going out, so at any distance the side facing the middle is angle + a bit */
+const armAt = (k, u) => k * Math.PI + (k ? .18 : 0) + Math.log(Math.max(u, .05) / .05) * GPITCH * .42
+  + .11 * Math.sin(u * 8.5 + k * 2.3) + .05 * Math.sin(u * 21 + k * 4.1);
+const DUST_IN = .17;                                       /* how far inside the arm the dust runs (radians) */
+/* how strong an arm is along its length (0..1): it starts out of the bulge, thins and breaks in
+   places, and fades out - arm 1 a little weaker and shorter */
+const armW = (k, u) => Math.max(0, Math.min(1, (u - .1) / .1)) * Math.max(0, 1 - Math.pow(u / (k ? .88 : .97), 6))
+  * (k ? .82 : 1) * (.72 + .28 * Math.sin(u * 13 + k * 1.7));
+/* the plan - where the knots, pink clouds, spurs and feathers are, in galaxy units (u = 0..1
+   out from the middle, a = angle). Made once, from a fixed seed. */
+const GXP = (() => {
+  let sd = 1969;
+  const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const knots = [], spurs = [], feathers = [];
+  for (let k = 0; k < 2; k++) {
+    for (let i = 0; i < 16; i++) {                             /* star-forming regions come in groups */
+      const u0 = .18 + .74 * r(); if (r() > armW(k, u0) + .1) continue;
+      const big = r() < .3, m = big ? 3 + ((r() * 4) | 0) : 1 + ((r() * 2) | 0);
+      for (let j = 0; j < m; j++) {
+        const u = u0 + (r() - .5) * .05, pink = r() < .35;
+        knots.push({u, a: armAt(k, u) + (pink ? DUST_IN * .45 : (r() - .5) * .14) + (r() - .5) * .04,
+          s: big && j === 0 ? .8 + .2 * r() : .25 + .5 * r() * r(), pink});
+      }
+    }
+    for (let i = 0; i < 4; i++) {                              /* spurs: a short branch leaving the arm, winding looser */
+      const u0 = .3 + .5 * r();
+      spurs.push({k, u0, len: .1 + .12 * r(), da: (r() < .5 ? 1 : -1) * (.5 + .4 * r())});
+    }
+    for (let i = 0; i < 5; i++)                                /* feathers: faint streaks out in the gap */
+      feathers.push({k, u0: .25 + .6 * r(), len: .05 + .1 * r(), off: Math.PI * (.3 + .4 * r())});
+  }
+  return {knots, spurs, feathers};
+})();
+const spurAt = (S, t) => { const u = S.u0 + S.len * t; return {u, a: armAt(S.k, S.u0) + S.da * t * S.len * 2.2}; };
+const featherAt = (F, t) => { const u = F.u0 + F.len * t; return {u, a: armAt(F.k, u) + F.off}; };
 function galaxyStars() {
   const D = gxSize(); if (!D) return;
   const c = $("#nowgx .gxp"), dpr = Math.min(1.5, devicePixelRatio || 1);
@@ -2498,19 +2806,35 @@ function galaxyStars() {
   const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
   const gauss = () => (r() + r() + r() + r() - 2) / 1.15;
   const h = D / 2, Rg = D / 2 * .96;
-  const TINT = ["255,255,255", "214,226,255", "196,214,255", "255,240,222"];
-  const n = Math.round(D * D / 120);
-  for (let i = 0; i < n; i++) {
-    const q = r(); let u, a, al;
-    if (q < .62) {                                          /* in an arm */
-      u = .06 + .94 * Math.pow(r(), .8); a = armAt(r() < .5 ? 0 : 1, u) + gauss() * (.16 + .1 * u);
-      al = .25 + .6 * r() * (1 - .55 * u);
-    } else if (q < .8) {                                    /* the bright middle */
-      u = Math.abs(gauss()) * .11; a = r() * 6.2832; al = .3 + .55 * r();
-    } else { u = Math.sqrt(r()); a = r() * 6.2832; al = .12 + .3 * r() * r(); }   /* the faint disc */
-    const x = h + Math.cos(a) * u * Rg, y = h + Math.sin(a) * u * Rg, s = r() < .9 ? .45 + .4 * r() : .9 + .7 * r();
-    g.globalAlpha = al; g.fillStyle = "rgb(" + TINT[u < .15 ? 3 : (r() * 3) | 0] + ")";
+  const WARM = ["255,236,210", "255,226,190", "255,244,228"], BLUE = ["214,226,255", "196,214,255", "236,242,255"];
+  const dot = (u, a, al, s, tint, sq) => {
+    const x = h + Math.cos(a) * u * Rg, y = h + Math.sin(a) * u * Rg * (sq || 1);
+    g.globalAlpha = al; g.fillStyle = "rgb(" + tint + ")";
     if (s < .9) g.fillRect(x - s / 2, y - s / 2, s, s); else { g.beginPath(); g.arc(x, y, s / 2, 0, 6.2832); g.fill(); }
+  };
+  const size = () => r() < .9 ? .45 + .4 * r() : .9 + .7 * r();
+  const n = Math.round(D * D / 70);
+  for (let i = 0; i < n; i++) {
+    const q = r();
+    if (q < .2) {                                           /* the bulge: dense, warm, a little oval */
+      const u = Math.abs(gauss()) * .085 + Math.abs(gauss()) * .04;
+      dot(u, r() * 6.2832, .3 + .55 * r(), size(), WARM[(r() * 3) | 0], .82);
+    } else if (q < .38) {                                   /* round the knots, tightly - more round the big ones */
+      const K = GXP.knots[(r() * GXP.knots.length) | 0]; if (K.pink || r() > K.s + .2) continue;
+      dot(K.u + gauss() * .02 * K.s, K.a + gauss() * .055 * K.s, .35 + .6 * r(), size(), BLUE[(r() * 3) | 0]);
+    } else if (q < .62) {                                   /* along the arms, thinner where an arm is weak */
+      const k = r() < .55 ? 0 : 1, u = .1 + .9 * Math.pow(r(), .85), w = armW(k, u);
+      if (r() > w + .08) continue;
+      dot(u, armAt(k, u) + gauss() * (.1 + .08 * u), (.2 + .55 * r()) * (.5 + .5 * w), size(), BLUE[(r() * 3) | 0]);
+    } else if (q < .68) {                                   /* the spurs and the feathers */
+      if (r() < .55) { const S = GXP.spurs[(r() * GXP.spurs.length) | 0], t = r(), P = spurAt(S, t);
+        dot(P.u, P.a + gauss() * .06, (.2 + .45 * r()) * (1 - .7 * t), size(), BLUE[(r() * 3) | 0]); }
+      else { const F = GXP.feathers[(r() * GXP.feathers.length) | 0], t = r(), P = featherAt(F, t);
+        dot(P.u, P.a + gauss() * .07, (.1 + .22 * r()) * Math.sin(Math.PI * t), size(), BLUE[(r() * 3) | 0]); }
+    } else {                                                /* the disc: old stars, thinning outward */
+      const u = Math.min(1, -Math.log(1 - r() * .97) * .3);
+      dot(u, r() * 6.2832, (.1 + .3 * r() * r()) * (1 - .6 * u), size(), r() < .5 ? WARM[(r() * 3) | 0] : BLUE[(r() * 3) | 0]);
+    }
   }
   g.globalAlpha = 1;
   if (GX.pal) galaxyFor(GX.pal, true);
@@ -2523,21 +2847,57 @@ function galaxyFor(pal, now) {
   const cs = box.querySelectorAll(".gxc"), c = cs[GX.flip = 1 - GX.flip], L = Math.min(520, Math.round(D * .5));
   c.width = c.height = L;
   const g = c.getContext("2d"), h = L / 2, Rg = L / 2 * .96, T = pal.map(v => mix(v, [128, 128, 128], .12));
+  const T2 = k => T[k + 2] || T[k];
+  let sd = 2969;
+  const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
+  const WARM = [255, 226, 186], CORE = [255, 244, 226], BLUE = [168, 194, 255], PINK = [255, 118, 168];
+  const at = (u, a) => [h + Math.cos(a) * u * Rg, h + Math.sin(a) * u * Rg];
   g.globalCompositeOperation = "lighter";
-  const blob = (x, y, rad, col, al) => { const rg = g.createRadialGradient(x, y, 0, x, y, rad);
+  const blob = (x, y, rad, col, al, sq) => { const rg = g.createRadialGradient(x, y, 0, x, y, rad);
     rg.addColorStop(0, rgba(col, al)); rg.addColorStop(.45, rgba(col, al * .4)); rg.addColorStop(1, rgba(col, 0));
-    g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); };
-  blob(h, h, Rg, mix(T[0], T[1], .5), .1);                                    /* the whole disc, faintly */
-  for (let k = 0; k < 2; k++) for (let i = 0; i < 64; i++) {                  /* the two arms */
-    const u = .07 + .93 * i / 63, a = armAt(k, u), col = mix(T[k], T[k + 2], Math.min(1, u * 1.25));
-    blob(h + Math.cos(a) * u * Rg, h + Math.sin(a) * u * Rg, Rg * (.07 + .12 * u), col, .2 * Math.pow(1 - u, .55) + .04);
+    g.fillStyle = rg;
+    if (sq) { g.save(); g.translate(x, y); g.scale(1, sq); g.translate(-x, -y); g.fillRect(x - rad, y - rad, rad * 2, rad * 2); g.restore(); }
+    else g.fillRect(x - rad, y - rad, rad * 2, rad * 2); };
+  const songMid = mix(T[0], T[1], .5);
+  /* the disc: brightest in the middle and fading outward smoothly (like a real one), warm inside,
+     bluer and more the song's further out */
+  { const rg = g.createRadialGradient(h, h, 0, h, h, Rg);
+    for (let i = 0; i <= 8; i++) { const u = i / 8, col = mix(mix(WARM, BLUE, Math.min(1, u * 1.6)), songMid, .15 + .3 * u);
+      rg.addColorStop(u, rgba(col, (.22 * Math.exp(-u / .3) + .02) * (1 - Math.pow(u, 4)))); }
+    g.fillStyle = rg; g.fillRect(0, 0, L, L); }
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 90; i++) {                  /* the arms: blue-white with the song glowing through */
+    const u = .1 + .88 * i / 89, w = armW(k, u); if (w < .03) continue;
+    const [x, y] = at(u, armAt(k, u) + (r() - .5) * .06);
+    const col = mix(BLUE, mix(T[k], T2(k), Math.min(1, u * 1.25)), .45);
+    blob(x, y, Rg * (.075 + .12 * u) * (.8 + .4 * r()), col, (.15 * Math.pow(1 - u, .5) + .075) * w * (.65 + .7 * r()));
   }
-  blob(h, h, Rg * .3, mix(T[0], T[1], .5), .3);                               /* the middle: the song's colours */
-  blob(h, h, Rg * .14, [255, 236, 214], .55);                                 /* ...and a warm white heart */
-  g.globalCompositeOperation = "destination-out"; g.lineCap = "round";        /* dark dust along the inside of each arm */
-  for (let k = 0; k < 2; k++) { g.beginPath();
-    for (let i = 0; i <= 60; i++) { const u = .12 + .7 * i / 60, a = armAt(k, u) - .22; g[i ? "lineTo" : "moveTo"](h + Math.cos(a) * u * Rg, h + Math.sin(a) * u * Rg); }
-    g.strokeStyle = "rgba(0,0,0,.42)"; g.lineWidth = Rg * .035; g.stroke(); }
+  for (const S of GXP.spurs) for (let i = 0; i <= 12; i++) {                  /* the spurs, fading as they go */
+    const t = i / 12, P = spurAt(S, t), [x, y] = at(P.u, P.a);
+    blob(x, y, Rg * .055, mix(BLUE, T[S.k], .4), .12 * (1 - t));
+  }
+  for (const F of GXP.feathers) for (let i = 0; i <= 8; i++) {                /* the feathers: faint, thin */
+    const t = i / 8, P = featherAt(F, t), [x, y] = at(P.u, P.a);
+    blob(x, y, Rg * .05, mix(BLUE, songMid, .35), .04 * Math.sin(Math.PI * t));
+  }
+  for (const K of GXP.knots) {                                                /* the knots: clusters and pink clouds */
+    const [x, y] = at(K.u, K.a);
+    if (K.pink) blob(x, y, Rg * (.012 + .022 * K.s), mix(PINK, T[0], .2), .22 + .25 * K.s);
+    else { blob(x, y, Rg * (.015 + .04 * K.s), mix([210, 222, 255], songMid, .15), .12 + .28 * K.s);
+      if (K.s > .5) blob(x, y, Rg * .008, [245, 248, 255], .35 + .4 * K.s); }
+  }
+  blob(h, h, Rg * .42, mix(WARM, songMid, .15), .2, .82);                    /* the bulge: a big warm glow, a little oval */
+  blob(h, h, Rg * .22, WARM, .4, .82);
+  blob(h, h, Rg * .09, CORE, .75, .85);                                       /* ...and its bright heart */
+  g.globalCompositeOperation = "destination-out";                             /* dust: broken, patchy, inside each arm */
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 280; i++) {
+    const u = .13 + .72 * i / 279, w = armW(k, u);
+    if (Math.sin(u * 37 + k * 5) + .4 * Math.sin(u * 91 + k) < -.5 || w < .1) continue;   /* lanes that break in places */
+    const [x, y] = at(u, armAt(k, u) + DUST_IN + .06 * (r() - .5));
+    const rad = Rg * (.025 + .03 * r()) * (.7 + .6 * u), al = (.06 + .12 * r()) * w;    /* many soft overlapping puffs - dust, not dots */
+    const rg = g.createRadialGradient(x, y, 0, x, y, rad);
+    rg.addColorStop(0, "rgba(0,0,0," + al + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
   c.classList.add("on"); cs[1 - GX.flip].classList.remove("on");
 }
 /* the glow behind the buttons: four of the song's colours, low on the screen; fades over the last */
@@ -2574,7 +2934,7 @@ function infoBg(im, pair) {
       url = c.toDataURL("image/jpeg", .8);
     } catch (e) { url = ""; }
   }
-  const glow = "radial-gradient(70% 55% at 12% 34%," + rgba(pair[0], .46) + ",transparent 72%),radial-gradient(70% 55% at 88% 40%," + rgba(pair[1], .42) + ",transparent 72%)";   /* softer (was .62/.58) */
+  const glow = "radial-gradient(70% 55% at 12% 34%," + rgba(pair[0], .46) + ",transparent 72%),radial-gradient(70% 55% at 88% 40%," + rgba(pair.def ? pair[4] : pair[1], .42) + ",transparent 72%)";   /* softer (was .62/.58) */
   bgFlip = 1 - bgFlip;
   const el = layers[bgFlip], old = layers[1 - bgFlip];
   el.style.backgroundImage = glow + (url ? ',url("' + url + '")' : "");
@@ -2604,7 +2964,7 @@ function ringThread() {
     w.onmessage = e => ringMsg(e.data);
     RW.w = w;
   } catch (e) { ringLocal(src, false); }
-  ringPx = 0; sizeRing(); RW.w.postMessage({t: "col", pair: COL});
+  ringPx = 0; sizeRing(); RW.w.postMessage({t: "col", pair: COL, stops: STOPS});
   return RW.w;
 }
 /* the same drawing code, run by the page itself (an older WebView, or the thread failed) */
@@ -2621,7 +2981,7 @@ function ringLocal(src, fresh) {
     RW.w = {postMessage: m => handle(m)}; RW.local = true;
     handle({t: "init", canvas: c});
   } catch (e) { RW.w = {postMessage: () => {}}; }
-  if (fresh) { ringPx = 0; RW.live = null; sizeRing(); RW.w.postMessage({t: "col", pair: COL}); setTimeout(ringWake, 0); }
+  if (fresh) { ringPx = 0; RW.live = null; sizeRing(); RW.w.postMessage({t: "col", pair: COL, stops: STOPS}); setTimeout(ringWake, 0); }
 }
 function pollStart() {
   if (RW.poll) return;
@@ -2886,9 +3246,11 @@ setLyricsOpen(LYR.open);
 
 /* ---------- add to another playlist (copies the song) ---------- */
 let addSong = null;
-function openAddTo(s) {
+let addMove = false;
+function openAddTo(s, move) {
   if (!N) return;
-  addSong = s;
+  addSong = s; addMove = !!move;
+  $("#tTitle").textContent = addMove ? "Move to playlist" : "Add to playlist"; $("#tGo").textContent = addMove ? "Move" : "Add";
   $("#tSong").textContent = showName(s) + " - " + (s.artist || "Unknown artist");
   $("#tChips").innerHTML = LIB.playlists.map(p => p.name === s.p
       ? '<button class="chip" disabled aria-pressed="false">' + esc(p.name) + ' (here)</button>'
@@ -2900,7 +3262,9 @@ function openAddTo(s) {
 const closeAddTo = () => { $("#tsheet").classList.add("hidden"); };
 $("#tChips").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b || b.disabled) return;
-  const on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", on);
+  const on = b.getAttribute("aria-pressed") !== "true";
+  if (addMove && on) { $("#tChips").querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", false)); $("#tNew").classList.add("hidden"); }   /* a move goes to one */
+  b.setAttribute("aria-pressed", on);
   if (b.dataset.new) { $("#tNew").classList.toggle("hidden", !on); if (on) $("#tNew").focus(); }
 });
 $("#tGo").onclick = () => {
@@ -2910,6 +3274,7 @@ $("#tGo").onclick = () => {
   if (fresh) names.push(fresh);
   if (!names.length) { toast("Pick a playlist or name a new one"); return; }
   closeAddTo();
+  if (addMove) { moveSong(addSong, names[0]); return; }
   const r = N.addTo(keyOf(addSong), JSON.stringify(names)); if (r) toast(r);
 };
 $("#tCancel").onclick = closeAddTo;
@@ -3007,6 +3372,118 @@ function openKit() {
   $("#ksheet").classList.remove("hidden");
 }
 const closeKit = () => $("#ksheet").classList.add("hidden");
+/* The Sound sheet - even out the volume, the crossfade, the equalizer. The
+   player keeps the settings itself (so they hold with the app closed); this only shows them. */
+let SND = null, sndT = 0;
+const sendSound = o => { try { N.setSound(JSON.stringify(o)); } catch (e) {} };
+/* how far along each slider is, for its colour (CSS --p) */
+const sndFill = () => $("#sndsheet").querySelectorAll('input[type=range]').forEach(r => {
+  const lo = +r.min || 0, hi = +r.max || 100; r.style.setProperty("--p", ((+r.value - lo) / (hi - lo) * 100).toFixed(1) + "%"); });
+const dbTxt = mb => (mb > 0 ? "+" : mb < 0 ? "\u2212" : "") + (Math.abs(mb) / 100).toFixed(Math.abs(mb) % 100 ? 1 : 0) + " dB";
+const hzTxt = hz => hz >= 1000 ? (hz / 1000).toFixed(hz % 1000 ? 1 : 0) + " kHz" : hz + " Hz";
+/* The bands are grouped into Bass (under 300 Hz), Middle (300 Hz - 3 kHz) and Treble (3 kHz and
+   up). Each group has one slider; moving it moves every band in it. Every value is said in words. */
+const TONES = [
+  {g: "bass", n: "Bass", what: "The thump and boom - kick drums, bass lines", is: hz => hz < 300},
+  {g: "mid", n: "Middle", what: "Voices, guitars, most instruments", is: hz => hz >= 300 && hz < 3000},
+  {g: "treb", n: "Treble", what: "The sparkle - cymbals, hi-hats, the crisp edge", is: hz => hz >= 3000}];
+const bandName = hz => hz < 120 ? "Deep bass" : hz < 300 ? "Bass" : hz < 1200 ? "Middle" : hz < 3000 ? "Upper middle" : hz < 7000 ? "Presence" : "Treble";
+const toneWords = mb => { const a = Math.abs(mb); if (a < 100) return "Normal";
+  const how = a < 350 ? "A little " : a < 750 ? "" : "A lot "; return how + (how ? (mb > 0 ? "more" : "less") : (mb > 0 ? "More" : "Less")); };
+const toneOf = (E, t) => { const ix = E.hz.map((hz, i) => t.is(hz) ? i : -1).filter(i => i >= 0);
+  return {ix, lv: ix.length ? Math.round(ix.reduce((s, i) => s + E.lv[i], 0) / ix.length / 50) * 50 : 0}; };
+function sndToneShow() {
+  const E = SND.eq, parts = [];
+  TONES.forEach(t => {
+    const o = toneOf(E, t), box = $("#sndSimple").querySelector('[data-g="' + t.g + '"]'); if (!o.ix.length || !box) return;
+    const w = toneWords(o.lv), v = box.querySelector(".tonev");
+    v.textContent = w + (Math.abs(o.lv) >= 100 ? "  (" + dbTxt(o.lv) + ")" : "");
+    v.className = "tonev " + (Math.abs(o.lv) < 100 ? "flat" : o.lv > 0 ? "up" : "down");
+    box.querySelector("input").value = o.lv;
+    parts.push(w.toLowerCase() + " " + t.n.toLowerCase());
+  });
+  $("#sndSum").innerHTML = "You're hearing: <b>" + esc(parts.join(", ")) + "</b>";
+  $("#sndBands").querySelectorAll("input").forEach((r, k) => { r.value = E.lv[k]; r.nextElementSibling.textContent = dbTxt(E.lv[k]); });
+  sndFill();
+}
+function openSound() {
+  if (!N || !N.sound) return;
+  try { SND = JSON.parse(N.sound()); } catch (e) { return; }
+  renderSound(true);
+  $("#sndsheet").classList.remove("hidden");
+}
+const closeSound = () => $("#sndsheet").classList.add("hidden");
+function sndPresetMark() {
+  const E = SND.eq, same = (a, b) => a.length === b.length && a.every((v, i) => Math.abs(v - b[i]) < 1);
+  $("#sndPre").querySelectorAll(".chip").forEach(c => {
+    const i = +c.dataset.i, lv = i < 0 ? E.lv.map(() => 0) : E.presets[i].lv;
+    c.classList.toggle("on", same(E.lv, lv)); c.setAttribute("aria-pressed", same(E.lv, lv));
+  });
+}
+function renderSound(full) {
+  const S = SND; if (!S) return;
+  const done = Math.min(S.measured || 0, S.total || 0);
+  $("#sndLevel").setAttribute("aria-pressed", !!S.level);
+  $("#sndLevelSub").textContent = S.level
+    ? "On - every song plays at about the same loudness. " + (done < S.total
+        ? "Measured so far: " + done.toLocaleString() + " of " + S.total.toLocaleString() + " songs - the rest while music plays or the phone charges."
+        : "Every song is measured.")
+    : "Off - songs play as loud as they were made.";
+  $("#sndXf").value = S.xfade;
+  $("#sndXfV").textContent = S.xfade ? S.xfade + " s" : "Off";
+  const E = S.eq || {}, b = $("#sndEq");
+  if (E.none || !E.hz) {
+    b.disabled = true; b.setAttribute("aria-pressed", false);
+    $("#sndEqSub").textContent = "This phone has no equalizer for apps.";
+    $("#sndEqBox").classList.add("hidden");
+    return;
+  }
+  b.setAttribute("aria-pressed", !!E.on);
+  $("#sndEqSub").textContent = E.on ? "On - tap a preset, or set each band" : "Off";
+  $("#sndEqBox").classList.toggle("hidden", !E.on);
+  if (full) {
+    $("#sndPre").innerHTML = '<button class="chip" data-i="-1">Flat</button>' +
+      (E.presets || []).map((p, i) => '<button class="chip" data-i="' + i + '">' + esc(p.n) + '</button>').join("");
+    $("#sndSimple").innerHTML = TONES.map(t => toneOf(E, t).ix.length ? '<div class="tone" data-g="' + t.g + '">' +
+      '<div class="tonehd"><b>' + t.n + '</b><span class="tonev"></span></div><small>' + t.what + '</small>' +
+      '<input type="range" min="' + E.min + '" max="' + E.max + '" step="50" aria-label="' + t.n + '">' +
+      '<div class="ends"><span>Less</span><span>Normal</span><span>More</span></div></div>' : "").join("");
+    $("#sndBands").innerHTML = E.hz.map((hz, i) => '<label class="band"><span>' + bandName(hz) + '<small>' + hzTxt(hz) + '</small></span>' +
+      '<input type="range" min="' + E.min + '" max="' + E.max + '" step="50" value="' + E.lv[i] + '" data-b="' + i + '" aria-label="' + hzTxt(hz) + '">' +
+      '<b>' + dbTxt(E.lv[i]) + '</b></label>').join("");
+  }
+  sndPresetMark();
+  sndToneShow();
+  sndFill();
+}
+$("#sndBtn").onclick = openSound;
+$("#sndAdv").onclick = () => { const b = $("#sndAdv"), open = b.getAttribute("aria-expanded") !== "true";
+  b.setAttribute("aria-expanded", open); $("#sndBands").classList.toggle("hidden", !open); };
+$("#sndSimple").addEventListener("input", e => {
+  const r = e.target, box = r.closest(".tone"); if (!box || !SND) return;
+  const E = SND.eq, t = TONES.find(x => x.g === box.dataset.g);
+  toneOf(E, t).ix.forEach(i => { E.lv[i] = Math.max(E.min, Math.min(E.max, +r.value)); });
+  sndPresetMark(); sndToneShow();
+  clearTimeout(sndT); sndT = setTimeout(() => sendSound({eqLv: E.lv}), 120);
+});
+$("#sndClose").onclick = closeSound;
+$("#sndsheet").addEventListener("click", e => { if (e.target.id === "sndsheet") closeSound(); });
+$("#sndLevel").onclick = () => { if (!SND) return; SND.level = !SND.level; sendSound({level: SND.level}); renderSound(); };
+$("#sndXf").oninput = e => { $("#sndXfV").textContent = +e.target.value ? e.target.value + " s" : "Off"; sndFill(); };
+$("#sndXf").onchange = e => { if (!SND) return; SND.xfade = +e.target.value; sendSound({xfade: SND.xfade}); renderSound(); };
+$("#sndEq").onclick = () => { const E = SND && SND.eq; if (!E || E.none) return; E.on = !E.on; sendSound({eqOn: E.on, eqLv: E.lv}); renderSound(); };
+$("#sndBands").addEventListener("input", e => {
+  const r = e.target; if (!r.dataset || r.dataset.b === undefined || !SND) return;
+  const E = SND.eq; E.lv[+r.dataset.b] = +r.value; r.nextElementSibling.textContent = dbTxt(+r.value);
+  sndPresetMark(); sndToneShow();
+  clearTimeout(sndT); sndT = setTimeout(() => sendSound({eqLv: E.lv}), 120);   /* heard as the finger moves */
+});
+$("#sndPre").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if (!c || !SND) return;
+  const E = SND.eq, i = +c.dataset.i;
+  E.lv = (i < 0 ? E.lv.map(() => 0) : E.presets[i].lv).slice();
+  sndPresetMark(); sndToneShow(); sendSound({eqLv: E.lv});
+});
 $("#kBtn").onclick = openKit;
 $("#kCancel").onclick = closeKit;
 $("#ksheet").addEventListener("click", e => { if (e.target.id === "ksheet") closeKit(); });

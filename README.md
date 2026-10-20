@@ -20,6 +20,8 @@ What it does:
 - A spectrum ring around the record that moves with the music, in each song's own colours
 - Sort by Recently played, Most played, Recently added, Title or Artist (A to Z or Z to A)
 - Home-screen widget, lock-screen controls, shuffle and repeat
+- Every song at about the same loudness, crossfade between songs, and an equalizer that says "more bass" instead of "60 Hz" (home screen > Sound)
+- Move songs between playlists, and delete a playlist when you are done sorting it
 
 It's free and open source (GPL-3.0). Android 8 or newer, 64-bit phone.
 

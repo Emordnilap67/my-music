@@ -76,6 +76,29 @@ final class Plays {
         }
     }
 
+    /** a song moved to another playlist - its plays go with it */
+    static synchronized void move(Context c, String from, String to) {
+        try {
+            JSONArray a = all(c).optJSONArray(from);
+            if (a == null) return;
+            JSONArray b = all(c).optJSONArray(to), v = new JSONArray();
+            v.put(a.optLong(0, 0) + (b == null ? 0 : b.optLong(0, 0)));
+            v.put(Math.max(a.optLong(1, 0), b == null ? 0 : b.optLong(1, 0)));
+            all(c).put(to, v);
+            all(c).remove(from);
+            text = null;
+            File f = file(c), tmp = new File(f.getPath() + ".tmp");
+            FileOutputStream o = new FileOutputStream(tmp);
+            try {
+                o.write(all(c).toString().getBytes("UTF-8"));
+            } finally {
+                o.close();
+            }
+            if (!tmp.renameTo(f)) tmp.delete();
+        } catch (Exception ignored) {
+        }
+    }
+
     /** everything, for the page */
     /** read again from the file (after a restore) */
     static synchronized void reload() {

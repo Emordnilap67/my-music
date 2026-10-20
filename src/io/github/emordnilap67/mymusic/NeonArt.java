@@ -49,6 +49,8 @@ final class NeonArt {
     }
 
     private static Shader across(float x0, float x1, int a, int b) {
+        int[] five = Neon.stops(a, b);                                  // the default runs through all five
+        if (five != null) return new LinearGradient(x0, 0, x1, 0, five, Neon.POS, Shader.TileMode.CLAMP);
         return new LinearGradient(x0, 0, x1, 0, a, b, Shader.TileMode.CLAMP);
     }
 

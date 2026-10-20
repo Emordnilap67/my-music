@@ -351,7 +351,6 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         if (m.find()) sharedLink = m.group();
     }
 
-
     private void addNow(final String key, final List<String> folders) {
         final Uri t = Importer.tree(this);
         final Library.Song s = Library.get(this).byKey.get(key);
@@ -946,6 +945,23 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
+        /** the Sound sheet - evening out, crossfade, equalizer */
+        @JavascriptInterface
+        public String sound() {
+            return Sound.info(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void setSound(final String json) {
+            Sound.set(MainActivity.this, json);
+            PlayerService.run(MainActivity.this, new PlayerService.Job() {
+                @Override
+                public void run(PlayerService p) {
+                    p.soundChanged();
+                }
+            });
+        }
+
         @JavascriptInterface
         public void rescan() {
             new Thread(new Runnable() {
@@ -1062,6 +1078,63 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 }
             });
             return "";
+        }
+
+        /** move this song into another playlist - its own file goes there; the answer comes back as a note */
+        @JavascriptInterface
+        public String moveTo(final String key, final String folder) {
+            final String f = folder == null ? "" : folder.trim();
+            if (f.isEmpty() || f.contains("/") || f.startsWith(".") || f.equalsIgnoreCase(Backup.DIR)) return "Pick a playlist first";
+            final Uri t = Importer.tree(MainActivity.this);
+            if (t == null) return "Carmen Musicum needs its folder first - tap Add songs once and allow it";
+            final Library.Song s = Library.get(MainActivity.this).byKey.get(key);
+            if (s == null) return "";
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final String[] r = Importer.moveSong(MainActivity.this, t, s, f);
+                    if (r[1] != null && PlayerService.instance != null) {
+                        final String to = r[1];
+                        PlayerService.run(MainActivity.this, new PlayerService.Job() {
+                            @Override
+                            public void run(PlayerService p) {
+                                p.moved(key, to);          // it plays on under its new name
+                            }
+                        });
+                    }
+                    reread(r[0], false);
+                }
+            }).start();
+            return "Moving " + s.title + "...";
+        }
+
+        /** is this playlist linked to a YouTube playlist, and is it checked */
+        @JavascriptInterface
+        public String plInfo(String folder) {
+            return "{\"linked\":" + Sync.linked(MainActivity.this, folder) + ",\"on\":" + !Sync.off(MainActivity.this, folder) + "}";
+        }
+
+        /** check this playlist on YouTube for new songs, or not; switched off, its "never came" list goes */
+        @JavascriptInterface
+        public void setFollow(String folder, boolean on) {
+            Sync.setOff(MainActivity.this, folder, !on);
+            if (!on) Missing.remove(MainActivity.this, folder, "*");
+        }
+
+        /** delete a playlist and the songs still in it (the page asked first) */
+        @JavascriptInterface
+        public void deletePlaylist(final String folder) {
+            final Uri t = Importer.tree(MainActivity.this);
+            if (t == null) {
+                js("window.onLibrary&&onLibrary(" + Library.q("Carmen Musicum needs its folder first - tap Add songs once and allow it") + ")");
+                return;
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    reread(Importer.deletePlaylist(MainActivity.this, t, folder), false);
+                }
+            }).start();
         }
 
         /** look up the lyrics; the answer comes back through onLyrics(...) */

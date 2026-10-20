@@ -21,7 +21,7 @@ final class Copies {
     /** up to 6 matches as JSON: [{"id","t","a","d"}], or {"error": "..."} */
     static String search(Context c, String query) {
         try {
-            if (!Ytdl.available(c)) return "{\"error\":\"The downloader is missing - run music build again\"}";
+            if (!Ytdl.available(c)) return "{\"error\":\"The downloader is missing from this install - get the APK from the Releases page\"}";
             Ytdl.init(c);
             String q = query.replaceAll("\\s+", " ").trim();
             if (q.isEmpty()) return "{\"error\":\"No name to search for\"}";

@@ -40,6 +40,7 @@ public class Sync extends BroadcastReceiver {
             if (!(e.getValue() instanceof String) || !e.getKey().matches("[A-Za-z0-9_-]{10,64}")) continue;
             if (e.getKey().startsWith("RD")) continue;     // a YouTube Mix changes by itself all the time - never followed
             String folder = (String) e.getValue();
+            if (off(c, folder)) continue;                  // switched off - never checked
             for (String n : names) {
                 if (n.equalsIgnoreCase(folder) && new File(root, n).isDirectory()) {
                     out.put(n, "https://www.youtube.com/playlist?list=" + e.getKey());
@@ -50,6 +51,46 @@ public class Sync extends BroadcastReceiver {
         return out;
     }
 
+    /* A playlist can be
+       switched off - it is never checked for new songs, whatever its link; its songs stay as they are. Kept
+       apart from the links ("nofollow"), so switching back on needs nothing else. */
+    static boolean off(Context c, String folder) {
+        return folder != null && c.getSharedPreferences("nofollow", Context.MODE_PRIVATE)
+                .getBoolean(folder.toLowerCase(java.util.Locale.ROOT), false);
+    }
+
+    static void setOff(Context c, String folder, boolean off) {
+        SharedPreferences.Editor e = c.getSharedPreferences("nofollow", Context.MODE_PRIVATE).edit();
+        String k = folder.toLowerCase(java.util.Locale.ROOT);
+        if (off) e.putBoolean(k, true);
+        else e.remove(k);
+        e.apply();
+    }
+
+    /** this playlist came from a YouTube playlist that can be followed (a Mix never is) */
+    static boolean linked(Context c, String folder) {
+        for (Map.Entry<String, ?> e : c.getSharedPreferences("lists", Context.MODE_PRIVATE).getAll().entrySet()) {
+            if (!(e.getValue() instanceof String) || e.getKey().startsWith("RD")) continue;
+            if (((String) e.getValue()).equalsIgnoreCase(folder)) return true;
+        }
+        return false;
+    }
+
+    /** a playlist is gone: its link and its switch go too */
+    static void forget(Context c, String folder) {
+        SharedPreferences lp = c.getSharedPreferences("lists", Context.MODE_PRIVATE);
+        SharedPreferences.Editor e = lp.edit();
+        for (Map.Entry<String, ?> x : lp.getAll().entrySet())
+            if (x.getValue() instanceof String && ((String) x.getValue()).equalsIgnoreCase(folder)) e.remove(x.getKey());
+        e.apply();
+        setOff(c, folder, false);
+    }
+
+    /**
+     * check every linked playlist now. Returns the playlists being checked
+     * ("Dance and Rock"), or "" when there are none.
+     * Throws if Android will not let the download start (from the background).
+     */
     static String run(Context c) {
         Context a = c.getApplicationContext();
         Map<String, String> l = links(a);
