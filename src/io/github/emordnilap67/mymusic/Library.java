@@ -137,6 +137,17 @@ final class Library {
         } finally {
             if (cur != null) cur.close();
         }
+        /* Android's
+           index only knows songs, so a folder whose songs were all moved out (or not added yet) never showed.
+           Every playlist folder shows now, empty ones too - ready for songs. */
+        if (!pls.isEmpty()) {
+            File[] dirs = new File(root).listFiles();
+            if (dirs != null) for (File d : dirs) {
+                String n = d.getName();
+                if (!d.isDirectory() || n.startsWith(".") || n.equals("Carmen Musicum backup") || pls.containsKey(n)) continue;
+                pls.put(n, new Pl(n));
+            }
+        }
         for (Pl p : pls.values()) {
             Collections.sort(p.songs, new Comparator<Song>() {
                 @Override

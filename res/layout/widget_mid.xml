@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Carmen Musicum widget v21 (Oct 9) - about 4 x 2. Made by tests/v21/gen_layout.py: the neon card
-     from his picture. Every part is sized by weights from the widget's real size (no sizes
+<!-- Carmen Musicum widget - about 4 x 2: the neon card. Every part is sized by weights from the widget's real size (no sizes
      from the launcher needed), the edge is nine pieces drawn in the song's colours
      (NeonArt.frame: corners keep their shape at any size), texts size themselves. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/w_root" android:layout_width="match_parent" android:layout_height="match_parent">

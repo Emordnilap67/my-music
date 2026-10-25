@@ -51,6 +51,7 @@ public class DownloadService extends Service {
     private volatile boolean stopping;
     private volatile String limitNote;
     private String lastFolder;                     // where the last job really went
+    private String lastPend;                       // and what its songs wait under (see pendKey)
 
     static void start(Context c, String link, String folder) {
         Intent i = new Intent(c, DownloadService.class).setAction(A_START).putExtra("link", link).putExtra("folder", folder);
@@ -226,11 +227,12 @@ public class DownloadService extends Service {
             }
             String msg;
             lastFolder = job[1];
+            lastPend = null;
             try {
                 msg = run(job[0], job[1]);
             } catch (Exception e) {
                 msg = "Download failed: " + (e.getMessage() == null ? e.toString() : e.getMessage());
-                if (!stopping) Pending.finish(this, lastFolder);
+                if (!stopping) Pending.finish(this, lastPend != null ? lastPend : lastFolder);
             }
             String where = lastFolder == null || lastFolder.isEmpty() ? READING : lastFolder;
             Progress.update(label(job[1]), null, 0, 0, null);
@@ -293,6 +295,17 @@ public class DownloadService extends Service {
                 .replaceAll("\\s+", " ").trim().replaceAll("^\\.+", "").trim();
         if (s.length() > 60) s = s.substring(0, 60).trim();
         return s;
+    }
+
+    /**
+     * what a job's songs wait
+     * under in Pending - the playlist's name, or, for a YouTube playlist poured into a playlist that follows
+     * another one, the name plus that list, so the playlist's own check never wipes the songs still to come
+     */
+    private String pendKey(String folder, String listId) {
+        if (listId == null || folder.isEmpty()) return folder;
+        if (folder.equalsIgnoreCase(getSharedPreferences("lists", Context.MODE_PRIVATE).getString(listId, ""))) return folder;
+        return Sync.followsOther(this, folder, listId) ? folder + Pending.SEP + listId : folder;
     }
 
     /** where a whole YouTube playlist goes when nobody picked a playlist for it */
@@ -369,7 +382,8 @@ public class DownloadService extends Service {
         a.add(link);
         Map<String, String[]> meta = new LinkedHashMap<>();       // id -> {title, artist, seconds}
         // what it waits under until it has a name (a new playlist is named after the YouTube one)
-        String pkey = !wanted.isEmpty() ? wanted : "?" + (listId != null ? listId : Integer.toHexString(link.hashCode()));
+        String pkey = !wanted.isEmpty() ? pendKey(wanted, listId) : "?" + (listId != null ? listId : Integer.toHexString(link.hashCode()));
+        lastPend = pkey;
         String plTitle = "", lastErr = "", lastLine = "";
         if (stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
         Map<String, String> restoreNames = new LinkedHashMap<>();   // id -> the file name it had
@@ -439,10 +453,14 @@ public class DownloadService extends Service {
         // where it goes: the playlist picked, the one it went to before, the one that already has
         // most of these songs, or a new playlist named after the YouTube one
         String folder = wanted.isEmpty() ? pickFolder(tree, listId, meta.keySet(), plTitle) : wanted;
+        final String pf = pendKey(folder, listId);
         if (!folder.equals(card)) Progress.update(card, null, 0, 0, null);
-        if (!folder.equals(pkey)) Pending.finish(this, pkey);       // it waited under a temporary name
+        if (!pf.equals(pkey)) Pending.finish(this, pkey);           // it waited under a temporary name
         lastFolder = folder;
-        if (listId != null) getSharedPreferences("lists", Context.MODE_PRIVATE).edit().putString(listId, folder).apply();
+        lastPend = pf;
+        // poured into a playlist that follows another YouTube playlist (its own), it comes in
+        // once and is not followed - that playlist keeps following its own list
+        if (listId != null && pf.equals(folder)) getSharedPreferences("lists", Context.MODE_PRIVATE).edit().putString(listId, folder).apply();
         String fid = Importer.folderId(this, tree, folder);
         if (fid == null) return "Could not open the folder " + folder;
         Set<String> archive = Importer.readArchive(this, tree, fid);
@@ -511,13 +529,13 @@ public class DownloadService extends Service {
         }
         int total = todo.size();
         if (total == 0) {
-            Pending.finish(this, folder);
+            Pending.finish(this, pf);
             if (restore) Backup.restoreDone(this, folder);
             if (gone > 0) return finishText(folder, 0, local, 0, gone, 0, false, null, 0, 0);
             return "Nothing new for " + folder + " - all " + meta.size() + " already there";
         }
         // the whole list shows in the app at once; each song fills in as it arrives
-        Pending.start(this, folder, link, wanted, plTitle, items);
+        Pending.start(this, pf, link, wanted, plTitle, items);
 
         // 2. fetch them, one after another, at the same polite pace as playlist.sh
         File work = new File(getCacheDir(), "dl");
@@ -542,17 +560,20 @@ public class DownloadService extends Service {
                 "--extractor-retries", "10", "--retry-sleep", "extractor:exp=2:30",
                 "--sleep-requests", "2", "--sleep-interval", "5", "--max-sleep-interval", "12",
                 "--no-simulate", "--print", "after_move:MMDONE\t%(id)s\t%(filepath)s",
+                // how far the song in hand is - a 3-hour video sat at "0 of 1" for ten minutes
+                "--progress", "--newline", "--progress-template", "download:MMPCT %(progress._percent_str)s",
+                "--progress-template", "postprocess:MMPP %(progress.postprocessor)s %(progress.status)s",
                 "-o", work.getAbsolutePath() + "/%(title)s [%(id)s].%(ext)s",
                 "-a", batch.getAbsolutePath()));
         int done = 0, added = 0, dupes = 0, blocked = 0, failed = 0, goneNow = 0, notSaved = 0, inARow = 0;
         boolean paused = false;
         List<String> newIds = new ArrayList<>();
         final AtomicInteger scanning = new AtomicInteger();
-        long shownAt = System.currentTimeMillis();
+        long shownAt = System.currentTimeMillis(), pctAt = 0;
         int shownAdded = 0;
         progress(folder, "downloading", 0, total, "");
         if (stopping) {
-            if (limitNote == null) Pending.finish(this, folder);
+            if (limitNote == null) Pending.finish(this, pf);
             return limitNote != null ? limitNote : "Stopped before anything came in";
         }
         p = proc = Ytdl.start(this, d);
@@ -590,13 +611,13 @@ public class DownloadService extends Service {
                                     });
                         } else {
                             notSaved++;                    // not archived: tried again next time
-                            Pending.failed(this, folder, f[1], "Could not save it to the folder");
+                            Pending.failed(this, pf, f[1], "Could not save it to the folder");
                         }
                     }
                     mp3.delete();
                     done++;
                     if (inFolder) {
-                        Pending.done(this, folder, f[1]);
+                        Pending.done(this, pf, f[1]);
                         newIds.add(f[1]);
                         if (newIds.size() % 10 == 0)
                             Importer.appendArchive(this, tree, fid, newIds.subList(newIds.size() - 10, newIds.size()));
@@ -610,6 +631,16 @@ public class DownloadService extends Service {
                         MainActivity.songsArrived();
                         shownAdded = added;
                         shownAt = now;
+                    }
+                } else if (line.startsWith("MMPCT ") || line.startsWith("MMPP ExtractAudio started")) {
+                    // this song's own progress, once a second at most
+                    long now = System.currentTimeMillis();
+                    boolean conv = line.startsWith("MMPP");
+                    if (conv || now - pctAt >= 1000) {
+                        pctAt = now;
+                        String what = conv ? "making the MP3 (a long video takes a few minutes)"
+                                : (total > 1 ? "this song " : "") + line.substring(6).trim();
+                        progress(folder, "downloading", done, total, (blocked > 0 ? "YouTube is slowing things down - " : "") + what);
                     }
                 } else if (line.startsWith("ERROR")) {
                     Matcher m = ERR.matcher(line.trim());
@@ -639,7 +670,7 @@ public class DownloadService extends Service {
                         } else {
                             failed++;
                         }
-                        if (fid1 != null) Pending.failed(this, folder, fid1, whyNot);
+                        if (fid1 != null) Pending.failed(this, pf, fid1, whyNot);
                         progress(folder, "downloading", done, total, "");
                     }
                 }
@@ -662,22 +693,22 @@ public class DownloadService extends Service {
         int left = Math.max(0, total - done);
         gone += goneNow;
         if (stopping && limitNote == null) {
-            Pending.finish(this, folder);              // Stop: forget the rest
+            Pending.finish(this, pf);              // Stop: forget the rest
             return finishText(folder, added, dupes + local, notSaved, gone, failed, true, null, 0, 0);
         }
         if (paused || limitNote != null || (blocked > 0 && left > 0)) {
             // YouTube (or Android's daily limit) paused it: the rest waits and Carmen Musicum tries again by itself
             long at = System.currentTimeMillis() + (limitNote != null ? 12 * WAIT_MS : WAIT_MS);
-            Pending.waitFor(this, folder, at, limitNote != null ? limitNote : "YouTube paused downloads");
+            Pending.waitFor(this, pf, at, limitNote != null ? limitNote : "YouTube paused downloads");
             Retry.schedule(this, at);
             return finishText(folder, added, dupes + local, notSaved, gone, failed, false,
                     limitNote != null ? limitNote : "YouTube paused downloads", left, at);
         }
         // songs gone from YouTube stay listed in the playlist, with "Find another copy"
         List<String[]> goneItems = new ArrayList<>();
-        for (String[] it : Pending.failedItems(this, folder)) if (Dead.gone(it[4]) && !here.has(it[0], it[1], it[2], true)) goneItems.add(it);
+        for (String[] it : Pending.failedItems(this, pf)) if (Dead.gone(it[4]) && !here.has(it[0], it[1], it[2], true)) goneItems.add(it);
         Missing.add(this, folder, goneItems);
-        Pending.finish(this, folder);
+        Pending.finish(this, pf);
         if (restore) {
             // what did not come in stays on the list and is tried again by itself (3 tries at most)
             java.util.Set<String> drop = new java.util.HashSet<>(newIds);
@@ -685,8 +716,8 @@ public class DownloadService extends Service {
             int[] rest = Backup.restoreKeep(this, folder, drop, new java.util.HashSet<>(todo));
             if (rest[0] > 0) {
                 long at = System.currentTimeMillis() + (rest[1] > 0 ? 60000 : WAIT_MS);
-                Pending.keep(this, folder, link, wanted);
-                Pending.waitFor(this, folder, at, "Trying the rest again");
+                Pending.keep(this, pf, link, wanted);
+                Pending.waitFor(this, pf, at, "Trying the rest again");
                 Retry.schedule(this, at);
             }
         }

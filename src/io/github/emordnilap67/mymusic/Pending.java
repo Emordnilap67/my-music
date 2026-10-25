@@ -15,6 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 
 final class Pending {
+    /** "Playlist" + SEP + list id = a YouTube playlist on its way into a playlist that follows another one */
+    static final String SEP = "\u0001";
     private static JSONObject all;
 
     private Pending() {}

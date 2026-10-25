@@ -21,6 +21,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
+/**
+ * Lyrics, looked up in order: LRCLIB (lrclib.net, a free lyrics library - mostly timed lines), lyrics
+ * already in the song file, LRCLIB again allowing a lyric video's longer cut, the words in the video's
+ * description, another version of the song in LRCLIB, and the video's own captions. Each answer is kept
+ * on the phone; lyrics found are also written into the song file (Embed).
+ *
+ * Words found without times get them from the video's captions (Align). Timed lyrics from LRCLIB are laid
+ * beside the library's other uploads of the same song and length (Align.odd): when those agree with each
+ * other and not with the answer - an upload timed to a music video's intro, say - the better-timed one is
+ * used. Lyrics kept from before are checked once, the next time their song plays.
+ */
 final class Lyrics {
     interface Done {
         void got(String json);
@@ -35,6 +46,8 @@ final class Lyrics {
     private static final long RECHECK_MS = 2L * 60 * 1000;
     /** machine-made lyrics (the phone's own, YouTube's automatic captions): ask the library again after this */
     private static final long MACHINE_RECHECK_MS = 7L * 24 * 3600 * 1000;
+    /** untimed lyrics: the video's captions are asked for their timing again after this */
+    private static final long TIME_RETRY_MS = 7L * 24 * 3600 * 1000;
     /**
      * answers kept before this version are asked again: "none" from the
      * older, narrower search; YouTube's automatic captions get one look in
@@ -143,6 +156,16 @@ final class Lyrics {
                         && (kept.optBoolean("recheck") && age > RECHECK_MS || "auto".equals(ksrc) && kept.optInt("v") < V
                         || machine && age > MACHINE_RECHECK_MS);
                 if (recheck) return upgrade(c, key, f, kept, asks, secs, likely, done);
+                if (keep && "ok".equals(st) && kept.optString("synced", null) == null && kept.optString("plain", null) != null
+                        && key.equals(latest)) {
+                    String timed = timeKept(c, key, f, kept, s, likely, now, done);
+                    if (timed != null) return timed;
+                }
+                if (keep && "ok".equals(st) && "lrclib".equals(ksrc) && kept.optString("synced", null) != null
+                        && !kept.optBoolean("loose") && kept.optString("timedBy", "").isEmpty() && kept.optLong("agreed") == 0
+                        && key.equals(latest)) {
+                    return agreeKept(c, key, f, kept, likely, secs, done);       // once, as it plays
+                }
                 if (keep) {
                     String ft = fileText(kept);
                     if (ft != null && !Embed.isIn(c, key, ft)) Embed.mark(c, key);     // not in the file yet
@@ -155,10 +178,19 @@ final class Lyrics {
         Map<String, String> memo = new HashMap<>();
         JSONObject hit = null;
         boolean loose = false, siteDown = false, busy = false;
+        long agreedAt = 0;
         try {
             for (LyricsQuery k : asks) {
                 hit = lookup(k, secs, memo, 6, true);
-                if (hit != null) break;
+                if (hit == null) continue;
+                try {
+                    JSONObject better = agreed(k, secs, hit, memo);
+                    if (better != null) hit = better;
+                    agreedAt = now;
+                } catch (Exception e) {
+                    // the library stopped answering: these stand, laid beside the others when the song next plays
+                }
+                break;
             }
         } catch (Busy e) {
             busy = true;
@@ -196,6 +228,7 @@ final class Lyrics {
                 src = "file";
             }
         }
+        String looseSynced = null;                                       // its own times, for another cut
         if (!found(status) && !siteDown && !busy) {
             for (LyricsQuery k : asks) {
                 JSONObject h = lookup(k, secs, memo, 30, false);         // only what the library already said
@@ -205,6 +238,7 @@ final class Lyrics {
                     status = "ok";
                     src = "lrclib";
                     loose = true;
+                    looseSynced = text(h, "syncedLyrics");
                     break;
                 }
             }
@@ -262,6 +296,20 @@ final class Lyrics {
                 soon = true;
             }
         }
+        // words without times - timed from the phone's own listening or the video's captions
+        String timedBy = null;
+        boolean timeTried = false;
+        if ("ok".equals(status) && synced == null && plain != null && key.equals(latest)) {
+            String sid = tags != null ? tags.id : Id3.read(s.path == null ? null : new File(s.path), true).id;
+            done.got(page(key, "ok", null, plain, src, likely));         // the words now, their times as soon as they are worked out
+            String[] t = timeFor(c, s, key, plain, looseSynced, sid);
+            timeTried = true;
+            if (t == STOPPED) return null;
+            if (t != null) {
+                synced = t[0];
+                timedBy = t[1];
+            }
+        }
         if (!found(status) && (siteDown || busy)) {
             // nothing kept as "none": the library did not really answer. Remember only that YouTube had nothing.
             long cc = ccNone ? now : ccAt;
@@ -284,6 +332,10 @@ final class Lyrics {
         if (loose) keep.put("loose", true);
         if (synced != null) keep.put("synced", synced);
         if (plain != null) keep.put("plain", plain);
+        if (agreedAt > 0 && synced != null && "lrclib".equals(src) && !loose) keep.put("agreed", agreedAt);
+        if (timedBy != null) keep.put("timedBy", timedBy);
+        else if (timeTried) keep.put("tt", now);
+        if (timedBy == null && looseSynced != null) keep.put("ownTimes", looseSynced);    // for a timing found later
         if (fromT != null) keep.put("fromTrack", fromT);
         if (fromA != null) keep.put("fromArtist", fromA);
         if ((siteDown || busy) && "ok".equals(status)) keep.put("recheck", true);     // the library may have better ones
@@ -325,6 +377,17 @@ final class Lyrics {
         }
         String sy = hit == null || loose ? null : text(hit, "syncedLyrics");
         String pl = hit == null ? null : loose ? untimed(hit) : text(hit, "plainLyrics");
+        String tb = null;
+        String machine = captions ? kept.optString("synced", null) : null;
+        if (sy == null && pl != null && machine != null) {
+            // the library's words, the machine's timing (they were timed before - they stay timed)
+            String t = loose ? Align.shift(text(hit, "syncedLyrics"), machine) : null;
+            if (t == null) t = Align.time(pl, machine);
+            if (t != null) {
+                sy = t;
+                tb = was;
+            }
+        }
         if (hit != null && !hit.optBoolean("instrumental") && (sy != null || pl != null)) {
             JSONObject keep = new JSONObject();
             keep.put("v", V);
@@ -334,6 +397,7 @@ final class Lyrics {
             if (loose) keep.put("loose", true);
             if (sy != null) keep.put("synced", sy);
             if (pl != null) keep.put("plain", pl);
+            if (tb != null) keep.put("timedBy", tb);
             write(f, keep);
             Embed.mark(c, key);                                      // the better lyrics replace the ones in the file
             return pageOf(c, key, keep, likely);
@@ -343,6 +407,132 @@ final class Lyrics {
         kept.put("at", System.currentTimeMillis());          // machine-made ones are asked again a week from now
         write(f, kept);
         return null;
+    }
+
+    /**
+     * the library's timed answer laid beside its other uploads of this song at this length (8 at
+     * most, closest length first): the upload to take instead when the others agree it is off, else
+     * null. Throws when the library does not answer.
+     */
+    private static JSONObject agreed(LyricsQuery q, double secs, JSONObject hit, Map<String, String> memo) throws Exception {
+        String sy = text(hit, "syncedLyrics");
+        if (sy == null || secs <= 0 || q.artist.isEmpty() || q.simpleTrack.trim().isEmpty()) return null;
+        String firstArtist = q.simpleArtist.isEmpty() ? q.artist : q.simpleArtist;
+        String body = http(API + "search?track_name=" + enc(q.simpleTrack) + "&artist_name=" + enc(firstArtist), memo, true);
+        if (body == null) return null;
+        List<LyricsQuery.Hit> hs = new ArrayList<>();
+        hits(body, hs);
+        final long id = hit.optLong("id", -1);
+        List<JSONObject> near = new ArrayList<>();
+        for (LyricsQuery.Hit h : hs) {
+            JSONObject o = (JSONObject) h.raw;
+            String s = text(o, "syncedLyrics");
+            if (h.instrumental || s == null || Math.abs(h.duration - secs) > 3 || id >= 0 && o.optLong("id", -2) == id || s.equals(sy)) continue;
+            near.add(o);
+        }
+        final double want = secs;
+        java.util.Collections.sort(near, new java.util.Comparator<JSONObject>() {
+            @Override
+            public int compare(JSONObject a, JSONObject b) {
+                return Double.compare(Math.abs(a.optDouble("duration", 0) - want), Math.abs(b.optDouble("duration", 0) - want));
+            }
+        });
+        List<String> others = new ArrayList<>();
+        for (int i = 0; i < near.size() && i < 8; i++) others.add(text(near.get(i), "syncedLyrics"));
+        int pick = Align.odd(sy, others);
+        return pick < 0 ? null : near.get(pick);
+    }
+
+    /**
+     * timed library lyrics kept from before as their song plays: shown at once, then laid
+     * beside the other uploads; better-timed ones replace them (and the ones in the song file).
+     * Returns the new answer, or null (nothing more to send).
+     */
+    private static String agreeKept(Context c, String key, File f, JSONObject kept, LyricsQuery likely, double secs,
+                                    Done done) throws Exception {
+        done.got(pageOf(c, key, kept, likely));
+        JSONObject was = new JSONObject();
+        was.put("syncedLyrics", kept.optString("synced"));
+        JSONObject better;
+        try {
+            better = agreed(likely, secs, was, new HashMap<String, String>());
+        } catch (Exception e) {
+            return null;                                             // busy or offline: the next time it plays
+        }
+        kept.put("agreed", System.currentTimeMillis());
+        if (better != null) {
+            kept.put("synced", text(better, "syncedLyrics"));
+            String pl = text(better, "plainLyrics");
+            if (pl != null) kept.put("plain", pl);
+        }
+        write(f, kept);
+        if (better == null) return null;
+        Embed.mark(c, key);                                          // the better-timed lyrics go into the song file too
+        return pageOf(c, key, kept, likely);
+    }
+
+    /** timeFor() when the song changed meanwhile - the answer is not wanted */
+    private static final String[] STOPPED = new String[0];
+
+    /**
+     * times for untimed words: {timed lyrics, "heard" / "cc" / "auto"},
+     * null when no timed source fits, STOPPED when another song was asked for
+     */
+    private static String[] timeFor(Context c, Library.Song s, final String key, String plain, String ownTimes, String videoId) {
+        String heard = Heard.get(c, s);
+        if (heard != null) {
+            String t = ownTimes != null ? Align.shift(ownTimes, heard) : null;
+            if (t == null) t = Align.time(plain, heard);
+            if (t != null) return new String[]{t, "heard"};
+        }
+        if (videoId == null || videoId.isEmpty() || !Ytdl.available(c) || !key.equals(latest)) return null;
+        try {
+            Captions.Result r = Captions.fetch(c, videoId, new Captions.Cancel() {
+                @Override
+                public boolean now() {
+                    return !key.equals(latest);
+                }
+            });
+            if (r == null || r.lrc == null) return null;
+            String t = ownTimes != null ? Align.shift(ownTimes, r.lrc) : null;
+            if (t == null) t = Align.time(plain, r.lrc);
+            return t == null ? null : new String[]{t, r.auto ? "auto" : "cc"};
+        } catch (Captions.Stopped e) {
+            return STOPPED;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * a kept answer with words but no times, as its song plays: the
+     * words go to the page at once; then the phone's own listening (always
+     * looked at - it may have been written since) and, once a week at most,
+     * the video's captions. Returns the timed answer, or null (nothing more
+     * to send).
+     */
+    private static String timeKept(Context c, String key, File f, JSONObject kept, Library.Song s, LyricsQuery likely,
+                                   long now, Done done) throws Exception {
+        boolean captionsDue = now - kept.optLong("tt", 0) > TIME_RETRY_MS;
+        if (!captionsDue && Heard.get(c, s) == null) return null;
+        done.got(pageOf(c, key, kept, likely));
+        String sid = captionsDue ? Id3.read(s.path == null ? null : new File(s.path), true).id : null;
+        String[] t = timeFor(c, s, key, kept.optString("plain"), kept.optString("ownTimes", null), sid);
+        if (t == STOPPED) return null;
+        if (t == null) {
+            if (captionsDue) {
+                kept.put("tt", now);
+                write(f, kept);
+            }
+            return null;
+        }
+        kept.put("synced", t[0]);
+        kept.put("timedBy", t[1]);
+        kept.remove("tt");
+        kept.remove("ownTimes");
+        write(f, kept);
+        Embed.mark(c, key);                                          // the timed words go into the song file too
+        return pageOf(c, key, kept, likely);
     }
 
     /** a library answer's words without times (for a lyric video's longer length, or another version); null if none */
@@ -537,9 +727,11 @@ final class Lyrics {
         boolean again = k.optBoolean("recheck");
         String ft2 = fileText(k);
         boolean inFile = ft2 != null && Embed.isIn(c, key, ft2);
-        if (ft.isEmpty() && fa.isEmpty() && !again && !inFile) return p;
+        String tb = k.optString("timedBy", "");
+        if (ft.isEmpty() && fa.isEmpty() && !again && !inFile && tb.isEmpty()) return p;
         try {
             JSONObject o = new JSONObject(p);
+            if (!tb.isEmpty()) o.put("timedBy", tb);
             if (inFile) o.put("inFile", true);                   // the page says it is saved in the song
             if (!ft.isEmpty() || !fa.isEmpty()) {
                 o.put("fromTrack", ft);

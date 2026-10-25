@@ -345,8 +345,14 @@ final class Queue {
         repeat = "all".equals(r) || "one".equals(r) ? r : "off";
     }
 
-    /** forget songs that are no longer in the library; keep the list's current one (cur) if it is still there */
+    /**
+     * forget songs that are no longer in the library; keep the list's current one (cur) if it is still there.
+     * when cur itself went, the place moves to the song that came after it - the one
+     * Up next was showing - instead of back to the first song of the order.
+     */
     void keepOnly(Set<String> known, String cur) {
+        int at = cur == null ? -1 : order.indexOf(cur), after = 0;     // where cur sat, and how many before it stay
+        for (int k = 0; k < at; k++) if (known.contains(order.get(k))) after++;
         base.retainAll(known);
         order.retainAll(known);
         upNext.retainAll(known);
@@ -355,6 +361,7 @@ final class Queue {
         round2 = null;
         if (extra != null && !known.contains(extra)) extra = null;
         i = cur == null ? -1 : order.indexOf(cur);
+        if (i < 0 && at >= 0) i = Math.min(after, order.size() - 1);  // the song after it (the last one if it was last)
         if (i < 0) i = order.isEmpty() ? -1 : 0;
         far = i;
     }

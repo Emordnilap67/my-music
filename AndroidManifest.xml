@@ -12,12 +12,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- v11: try again by itself an hour after YouTube pauses downloads -->
+    <!-- try again by itself an hour after YouTube pauses downloads -->
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
-    <!-- v33: the 6-hour check for new songs comes back after the phone restarts -->
+    <!-- the 6-hour check for new songs comes back after the phone restarts -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- the moving ring (v11): Android files "see the app's own sound" under
+    <!-- the moving ring: Android files "see the app's own sound" under
          record audio. Carmen Musicum never opens the microphone. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
@@ -53,7 +53,7 @@
         <receiver
             android:name=".Retry"
             android:exported="false" />
-        <!-- v33: every 6 hours, new songs from each playlist's YouTube link (and again after a restart) -->
+        <!-- every 6 hours, new songs from each playlist's YouTube link (and again after a restart) -->
         <receiver
             android:name=".Sync"
             android:exported="true">

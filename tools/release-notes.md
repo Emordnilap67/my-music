@@ -1,3 +1,18 @@
+**New in 7.0:**
+
+- **Karaoke:** the microphone in the player opens a full-screen karaoke view - the line being sung big, each word filling in as it's sung, the next line below, and three dots counting down before the singing starts again
+- **Lyrics that keep time:** lyrics from LRCLIB are now compared with the library's other uploads of the same song; one timed to a music video's intro (every line seconds late) is swapped for a well-timed one by itself - lyrics you already have are checked once, the next time their song plays. Lyrics with no times get them from the video's captions
+- **Pour a YouTube playlist into one of yours:** sharing a playlist now asks where its songs go - one of your playlists, its own playlist, or a new one. Songs already there aren't downloaded again, and your playlist keeps following its own YouTube playlist
+- **A new home screen:** playlists as square cards, nine to a page - swipe sideways for more - each ringed in its picture's colours, inside one frame that takes the playing song's colours
+- **Menus as glowing cards.** Hold a playlist's card for its menu (Play, Shuffle, **Share playlist**, Change picture, Check YouTube, Check for wrong audio, Delete). The **...** inside a playlist is the menu for the song that's playing
+- **Share a playlist** as text - its name, YouTube link and every song
+- **Player bar:** back, play and next, in the song's own colours
+- **The ring:** its audio bars are now spikes of glowing particles - 136 of them
+- **Empty playlist folders show,** ready for songs; downloads show each song's progress
+- **Big playlists stay quick:** thousands of songs draw in the background, Sort answers straight away, and songs arriving from a download never hold up a tap
+- **Fixed:** deleting the song that's playing went back to the first song of the shuffle - it now goes on to the next one; menu cards could turn black while scrolling on some phones
+- **Freeze log:** if the app ever stalls for more than a couple of seconds, what it was doing goes into `Carmen Musicum backup/.freezes.txt` - attach it to a bug report
+
 **New in 6.0:**
 
 - **Every song at about the same loudness:** each song is measured once (the way broadcasters measure loudness) and loud ones are turned down, quiet ones up - with a limiter, so nothing distorts. On unless you turn it off: home screen > **Sound**

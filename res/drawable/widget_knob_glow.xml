@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- v21: the white knob with its soft glow (15dp) -->
+<!-- the white knob with its soft glow (15dp) -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item><shape android:shape="oval">
         <gradient android:type="radial" android:gradientRadius="7.5dp" android:startColor="#88FFFFFF" android:centerColor="#33FFFFFF" android:endColor="#00FFFFFF" />

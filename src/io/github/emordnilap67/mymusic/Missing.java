@@ -14,6 +14,13 @@ import java.util.List;
 
 final class Missing {
     private static JSONObject all;
+    /**
+     * the page asks for this list on its own thread
+     * and waits for the answer. A tidy-up holding the lock for the whole time it compared every song in a big
+     * playlist (thousands, each file looked at) kept the page waiting, and every tap with it. Now the page gets the
+     * last answer as text straight away, and the tidy-up holds the lock only to read and to save.
+     */
+    private static volatile String text;
 
     private Missing() {}
 
@@ -46,6 +53,7 @@ final class Missing {
     }
 
     private static void save(Context c) {
+        text = null;                          // the page's copy is made again from what changed
         try {
             File f = file(c), tmp = new File(f.getPath() + ".tmp");
             FileOutputStream o = new FileOutputStream(tmp);
@@ -122,31 +130,58 @@ final class Missing {
     /**
      * local first: a song that is in the playlist folder is not gone,
      * whatever YouTube says - drop it from the list. Returns how many went.
+     * the comparing (slow on a big playlist) is done WITHOUT the lock -
+     * the list is copied, compared, and only the dropping is done under it.
      */
-    static synchronized int pruneLocal(Context c) {
-        int n = 0;
-        try {
-            java.util.List<String> folders = new java.util.ArrayList<>();
+    static int pruneLocal(Context c) {
+        java.util.Map<String, List<String[]>> copy = new java.util.LinkedHashMap<>();     // folder -> {id, title, artist}
+        synchronized (Missing.class) {
             java.util.Iterator<String> it = all(c).keys();
-            while (it.hasNext()) folders.add(it.next());
-            for (String folder : folders) {
+            while (it.hasNext()) {
+                String folder = it.next();
                 JSONArray a = all(c).optJSONArray(folder);
                 if (a == null) continue;
-                LocalMatch local = LocalMatch.cached(c, folder);
-                JSONArray keep = new JSONArray();
+                List<String[]> l = new java.util.ArrayList<>();
                 for (int i = 0; i < a.length(); i++) {
                     JSONObject o = a.optJSONObject(i);
-                    if (o == null) continue;
-                    if (local.has(o.optString("id"), o.optString("t"), o.optString("a"), true)) n++;
-                    else keep.put(o);
+                    if (o != null) l.add(new String[]{o.optString("id"), o.optString("t"), o.optString("a")});
                 }
-                if (keep.length() == a.length()) continue;
-                if (keep.length() == 0) all(c).remove(folder);
-                else all(c).put(folder, keep);
+                copy.put(folder, l);
+            }
+        }
+        java.util.Set<String> drop = new java.util.HashSet<>();           // "folder\nid"
+        try {
+            for (java.util.Map.Entry<String, List<String[]>> e : copy.entrySet()) {
+                LocalMatch local = LocalMatch.cached(c, e.getKey());
+                for (String[] x : e.getValue()) if (local.has(x[0], x[1], x[2], true)) drop.add(e.getKey() + "\n" + x[0]);
             }
         } catch (Exception ignored) {
         }
-        if (n > 0) save(c);
+        if (drop.isEmpty()) return 0;
+        int n = 0;
+        synchronized (Missing.class) {
+            try {
+                List<String> folders = new java.util.ArrayList<>();
+                java.util.Iterator<String> it = all(c).keys();
+                while (it.hasNext()) folders.add(it.next());
+                for (String folder : folders) {
+                    JSONArray a = all(c).optJSONArray(folder);
+                    if (a == null) continue;
+                    JSONArray keep = new JSONArray();
+                    for (int i = 0; i < a.length(); i++) {
+                        JSONObject o = a.optJSONObject(i);
+                        if (o == null) continue;
+                        if (drop.contains(folder + "\n" + o.optString("id"))) n++;
+                        else keep.put(o);
+                    }
+                    if (keep.length() == a.length()) continue;
+                    if (keep.length() == 0) all(c).remove(folder);
+                    else all(c).put(folder, keep);
+                }
+            } catch (Exception ignored) {
+            }
+            if (n > 0) save(c);
+        }
         return n;
     }
 
@@ -201,9 +236,16 @@ final class Missing {
     /** read again from the file (after a restore) */
     static synchronized void reload() {
         all = null;
+        text = null;
     }
 
-    static synchronized String json(Context c) {
-        return all(c).toString();
+    /** the page's copy - made once after each change, then handed out without waiting */
+    static String json(Context c) {
+        String t = text;
+        if (t != null) return t;
+        synchronized (Missing.class) {
+            if (text == null) text = all(c).toString();
+            return text;
+        }
     }
 }

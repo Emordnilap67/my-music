@@ -76,6 +76,15 @@ public class Sync extends BroadcastReceiver {
         return false;
     }
 
+    /** this playlist follows a YouTube playlist other than this one (a Mix is never followed) */
+    static boolean followsOther(Context c, String folder, String listId) {
+        for (Map.Entry<String, ?> e : c.getSharedPreferences("lists", Context.MODE_PRIVATE).getAll().entrySet()) {
+            if (!(e.getValue() instanceof String) || e.getKey().startsWith("RD") || e.getKey().equals(listId)) continue;
+            if (((String) e.getValue()).equalsIgnoreCase(folder)) return true;
+        }
+        return false;
+    }
+
     /** a playlist is gone: its link and its switch go too */
     static void forget(Context c, String folder) {
         SharedPreferences lp = c.getSharedPreferences("lists", Context.MODE_PRIVATE);

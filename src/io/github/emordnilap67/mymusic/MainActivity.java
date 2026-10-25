@@ -226,7 +226,10 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     protected void onResume() {
         super.onResume();
         if (web != null) web.onResume();
-        micAt = 0;                            // allowed in Settings meanwhile? looked up again
+        // the microphone permission (for the ring) is looked up here and when Android answers the request;
+        // the page's calls only read the answer, so none of them waits on Android's permission service
+        micOk = checkSelfPermission(MIC) == PackageManager.PERMISSION_GRANTED;
+        micAt = android.os.SystemClock.uptimeMillis();
         PlayerService.listener = this;
         current = this;
         if (!granted && hasPermission()) onGranted();     // allowed in Settings meanwhile
@@ -319,7 +322,8 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
         if (code == REQ_MIC) {
             boolean ok = checkSelfPermission(MIC) == PackageManager.PERMISSION_GRANTED;
-            micAt = 0;                        // the ring's permission is looked up again at once
+            micOk = ok;                       // the page reads this
+            micAt = android.os.SystemClock.uptimeMillis();
             if (ok) Viz.reset();
             boolean forever = !ok && !shouldShowRequestPermissionRationale(MIC);    // Android will not ask again
             js("window.onMic&&onMic(" + ok + "," + forever + ")");
@@ -535,6 +539,45 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         }
     }
 
+    /**
+     * the playlist as text - its name and song
+     * count, its YouTube playlist link when it came from one, then every song (Artist - Title).
+     * Thousands of song files at once are more than Messages or Drive take, so the list goes, not the files.
+     */
+    private void sharePlaylist(String name) {
+        Library.Pl pl = null;
+        for (Library.Pl p : Library.get(this).playlists) if (p.name.equalsIgnoreCase(name)) pl = p;
+        if (pl == null) return;
+        String link = null;
+        for (java.util.Map.Entry<String, ?> e : getSharedPreferences("lists", MODE_PRIVATE).getAll().entrySet()) {
+            if (e.getKey().startsWith("RD") || !e.getKey().matches("[A-Za-z0-9_-]{10,64}")) continue;   // a Mix has no lasting link
+            if (e.getValue() instanceof String && ((String) e.getValue()).equalsIgnoreCase(pl.name))
+                link = "https://www.youtube.com/playlist?list=" + e.getKey();
+        }
+        int n = pl.songs.size();
+        StringBuilder b = new StringBuilder();
+        b.append(pl.name).append(" - ").append(String.format(java.util.Locale.US, "%,d", n)).append(n == 1 ? " song" : " songs").append('\n');
+        if (link != null) b.append("On YouTube: ").append(link).append('\n');
+        b.append('\n');
+        int k = 0;
+        for (Library.Song s : pl.songs) {
+            if (k++ >= 1500) {
+                b.append("... and ").append(String.format(java.util.Locale.US, "%,d", n - 1500)).append(" more\n");
+                break;
+            }
+            if (s.artist != null && !s.artist.isEmpty()) b.append(s.artist).append(" - ");
+            b.append(s.title).append('\n');
+        }
+        b.append("\nShared from Carmen Musicum");
+        try {
+            Intent send = new Intent(Intent.ACTION_SEND).setType("text/plain")
+                    .putExtra(Intent.EXTRA_TEXT, b.toString()).putExtra(Intent.EXTRA_SUBJECT, pl.name);
+            startActivity(Intent.createChooser(send, "Share " + pl.name));
+        } catch (Exception e) {
+            js("window.onLibrary&&onLibrary(" + Library.q("Could not share " + pl.name) + ")");
+        }
+    }
+
     private void pickCover(String pl) {
         pendingCover = pl;
         try {
@@ -698,7 +741,13 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     }
 
     private WebResourceResponse asset(String name) throws java.io.IOException {
-        return ok(mime(name), getAssets().open(name), name.endsWith(".html") ? "no-cache" : "max-age=86400");
+        WebResourceResponse r = ok(mime(name), getAssets().open(name), name.endsWith(".html") ? "no-cache" : "max-age=86400");
+        if (name.endsWith(".html")) {             // lets the page sample itself, so a freeze names the function that held it
+            Map<String, String> hd = new HashMap<>(r.getResponseHeaders());
+            hd.put("Document-Policy", "js-profiling");
+            r.setResponseHeaders(hd);
+        }
+        return r;
     }
 
     private static WebResourceResponse ok(String type, InputStream in, String cache) {
@@ -774,6 +823,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** songs on their way into playlists (see Pending) */
         @JavascriptInterface
         public String pending() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             return Pending.json(MainActivity.this);
         }
 
@@ -784,6 +834,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public String progress() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             return Progress.progressJson();
         }
 
@@ -817,6 +868,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** "what is playing?" without the page waiting - the answer comes in via onNative */
         @JavascriptInterface
         public void askState() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             h.post(new Runnable() {
                 @Override
                 public void run() {
@@ -828,6 +880,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public String state() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             // read on the main thread, where the player lives
             final String[] out = {"{}"};
             final CountDownLatch done = new CountDownLatch(1);
@@ -848,6 +901,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void play(String keysJson, final int index, final boolean shuffle) {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             final List<String> keys = new ArrayList<>();
             try {
                 JSONArray a = new JSONArray(keysJson);
@@ -865,6 +919,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void toggle() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -875,6 +930,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void next() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -907,6 +963,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void prev() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -917,6 +974,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void seek(final int ms) {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -1033,6 +1091,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void deleteSong(final String key) {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             h.post(new Runnable() {
                 @Override
                 public void run() {
@@ -1140,6 +1199,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** look up the lyrics; the answer comes back through onLyrics(...) */
         @JavascriptInterface
         public void lyrics(final String key) {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             Lyrics.get(MainActivity.this, key, new Lyrics.Done() {
                 @Override
                 public void got(final String json) {
@@ -1236,6 +1296,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void savePrefs(final String json) {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             Backup.pagePrefs(MainActivity.this, json);
         }
 
@@ -1312,6 +1373,17 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             return "";
         }
 
+        /** share a playlist (its name, link and songs, as text) */
+        @JavascriptInterface
+        public void sharePlaylist(final String name) {
+            h.post(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.this.sharePlaylist(name);
+                }
+            });
+        }
+
         @JavascriptInterface
         public void shareSong(final String key) {
             h.post(new Runnable() {
@@ -1325,6 +1397,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** the hearted songs: ["playlist/file", ...] */
         @JavascriptInterface
         public String favs() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             return Favs.json(MainActivity.this);
         }
 
@@ -1337,6 +1410,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** how often and when each song was played: {"playlist/file": [times, last ms]} */
         @JavascriptInterface
         public String plays() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             return Plays.json(MainActivity.this);
         }
 
@@ -1344,8 +1418,10 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public String missing() {
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            String j = Missing.json(MainActivity.this);           // the answer first, the tidy-up after it
             Missing.pruneLater(MainActivity.this);
-            return Missing.json(MainActivity.this);
+            return j;
         }
 
         /** search YouTube for other uploads; the answer comes back to onCopies(tok, list) */
@@ -1413,7 +1489,8 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public boolean micAllowed() {
-            return checkSelfPermission(MIC) == PackageManager.PERMISSION_GRANTED;
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            return micOk;                              // looked up in onResume / the permission answer, never here
         }
 
         @JavascriptInterface
@@ -1426,17 +1503,19 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
-        /** the ring's numbers right now (see Viz.read) - never waits; the permission is
-         *  looked up at most every 2 s (it was asked of Android 40 times a second) */
+        /** the ring's numbers right now (see Viz.read) - never waits; the permission is only read here
+         *  (looked up in onResume and when Android answers the request) */
         @JavascriptInterface
         public String viz() {
-            long now = android.os.SystemClock.uptimeMillis();
-            if (now - micAt > 2000) {
-                micOk = checkSelfPermission(MIC) == PackageManager.PERMISSION_GRANTED;
-                micAt = now;
-            }
+            Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
             if (!micOk) return "x";
             return Viz.read();
+        }
+
+        /** the page's own account of a freeze (the function it was stuck in) - into .freezes.txt (Slow.java) */
+        @JavascriptInterface
+        public void freezeNote(final String text) {
+            Slow.note(MainActivity.this, text);
         }
 
         @JavascriptInterface

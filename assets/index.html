@@ -35,6 +35,16 @@ img{display:block}
 .disc0{display:block;width:96px;height:96px;margin:28px auto 22px;filter:drop-shadow(0 0 18px rgba(124,77,255,.45))}
 .mark{font-family:var(--display);font-weight:700;font-size:clamp(30px,10.6vw,58px);letter-spacing:.05em;white-space:nowrap;line-height:1;margin:0;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* while a song is on, the title wears its two colours (set in titleLook),
+   easing from one song's to the next like the bar at the bottom, and they flow slowly through the
+   letters while it plays. Nothing on, or a song with no picture of its own: Carmen Musicum's five. */
+.mark.song{background:linear-gradient(90deg,var(--c1),var(--c2),var(--c1));background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;transition:--c1 .8s ease,--c2 .8s ease;
+  animation:markflow 16s linear infinite paused}
+body.playing .mark.song{animation-play-state:running}
+body:has(#now.show) .mark.song{animation-play-state:paused}     /* not under the player */
+@keyframes markflow{to{background-position:200% 0}}
+@media (prefers-reduced-motion:reduce){.mark.song{animation:none}}
 .tag{margin:12px 0 0;font-size:12px;letter-spacing:.28em;text-transform:uppercase;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .rule{height:1px;margin:28px 0 8px;background:linear-gradient(90deg,transparent,var(--violet) 30%,var(--violet) 70%,transparent);opacity:.6}
@@ -207,7 +217,46 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
 .srow{display:block;width:100%;text-align:left;padding:14px 4px;border-top:1px solid var(--line);font-size:16px}
 .srow small{display:block;color:var(--mist);font-size:13px;margin-top:2px}
 .srow.danger{color:#FF6B8B}
-/* Every home
+/* the song menu as glowing cards - each its own colour,
+   red to pink down the list (favourites, hide, wrong song, wrong lyrics, share, add, move, queue, play next),
+   then grey for Delete and white for Cancel. A neon edge, a soft glow, a dark wash of the colour with a fine
+   grain over it, and a white icon on the left. */
+:is(#sheet,#psheet) .sheetcard{background:#000;max-height:92vh;overflow-y:auto;padding-top:14px}
+:is(#sheet,#psheet) .srow{--k:#fff;position:relative;display:flex;align-items:flex-start;gap:16px;width:100%;margin:0 0 12px;padding:14px 16px;
+  border:2px solid var(--k);border-radius:14px;color:#fff;text-align:left;
+  background:var(--grain),radial-gradient(130% 160% at 0% 0%,color-mix(in srgb,var(--k) 46%,#07050d),color-mix(in srgb,var(--k) 22%,#07050d) 72%);
+  box-shadow:0 0 12px -1px var(--k),inset 0 0 16px -4px var(--k)}
+/* The grain was
+   a live blend layer on every card (mix-blend-mode over an SVG noise filter) inside a scrolling list - too heavy
+   for Android's WebView, which showed black where it could not keep up. Now the grain is a tiny ready-made
+   picture in the card's own background (no extra layer, no blending), and each card has two glows, not three. */
+:is(#sheet,#psheet){--grain:url(data:image/png;base64,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)}
+:is(#sheet,#psheet) .srow .ic{flex:none;width:30px;height:30px;margin-top:3px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.55))}
+:is(#sheet,#psheet) .srow .ic .fill{fill:#fff;stroke:none}
+:is(#sheet,#psheet) .srow .tx{display:block;min-width:0;flex:1}
+:is(#sheet,#psheet) .srow .st{display:block;font-size:19px;font-weight:500;line-height:1.25}
+:is(#sheet,#psheet) .srow small{color:rgba(255,255,255,.86);font-size:14px;margin-top:4px;line-height:1.35}
+:is(#sheet,#psheet) .srow.danger{color:#fff}
+:is(#sheet,#psheet) #shDel,:is(#sheet,#psheet) #shCancel{background:var(--grain),radial-gradient(130% 160% at 0% 0%,color-mix(in srgb,var(--k) 16%,#050407),#050407 72%)}   /* near-black, a bright edge */
+:is(#sheet,#psheet) #shCancel{align-items:center;margin-bottom:4px}
+:is(#sheet,#psheet) #shCancel .st{font-size:21px}
+#sheet #shFav{--k:#FF2E3A}#sheet #shHide{--k:#FF7A1A}#sheet #shWrong{--k:#FFC21A}#sheet #shLyr{--k:#2EDB5C}#sheet #shShare{--k:#2F7BFF}#sheet #shAdd{--k:#3D5BFF}
+#sheet #shMoveLast{--k:#6A4DFF}#sheet #shMove{--k:#8A3DFF}#sheet #shQueue{--k:#C03DE6}#sheet #shNext{--k:#FF3D9E}#sheet #shDel{--k:#BDB8CC}#sheet #shCancel{--k:#FFFFFF}   /* "#sheet" in front: the colour beats the white default above */
+/* the
+   playlist menu is the same glowing cards, red to violet down the list, grey Delete, white Cancel */
+#psheet #psPlay{--k:#FF2E3A}#psheet #psShuf{--k:#FF7A1A}#psheet #psShare{--k:#FFC21A}#psheet #psPick{--k:#2EDB5C}#psheet #psReset{--k:#1FC7B6}
+#psheet #psFollow{--k:#2F7BFF}#psheet #psCheck{--k:#8A3DFF}#psheet #psDel{--k:#BDB8CC}#psheet #psCancel{--k:#FFFFFF}
+#psheet #psDel,#psheet #psCancel{background:var(--grain),radial-gradient(130% 160% at 0% 0%,color-mix(in srgb,var(--k) 16%,#050407),#050407 72%)}
+#psheet #psCancel{align-items:center;margin-bottom:4px}
+#psheet #psCancel .st{font-size:21px}
+#psheet .srow.sw{padding-right:76px}
+#psheet .srow.sw::after{right:14px;background:rgba(255,255,255,.22)}
+#psheet .srow.sw::before{right:35px}
+#psheet .srow.sw[aria-pressed="true"]::before{right:17px}
+#psheet .srow.sw[aria-pressed="true"]::after{background:#fff}
+#psheet .srow.sw[aria-pressed="true"]::before{background:var(--k)}
+/* every home
    button is filled like Add songs, each in its own two colours, with Add songs' dark text. Add songs
    keeps all five. */
 .homefoot .ghost{--g1:#FF8A3D;--g2:#FFD23F;border:0;padding:10px 17px;color:#07050d;font-weight:700;
@@ -226,6 +275,41 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
 footer.mini .ib{color:#07050d;background:linear-gradient(135deg,var(--g1),var(--g2))}
 #mplay{--g1:#FFD23F;--g2:#FF8A3D}         /* play / pause: yellow - orange */
 #mnext{--g1:#3CBEFF;--g2:#32DC8C}         /* next: light blue - green */
+/* back - violet to pink when nothing
+   plays, the song's third colour while one plays (one picked to stand apart from play's and next's) */
+#mprev{--g1:#B05CFF;--g2:#FF5CC8;margin-right:-4px}
+#mnext{margin-left:-4px}
+/* while a
+   song plays, play takes its first colour and next its second (the yellow and blue above when nothing plays) */
+#mini.song #mplay{--g1:var(--c1);--g2:color-mix(in srgb,var(--c1) 55%,#fff)}
+#mini.song #mnext{--g1:var(--c2);--g2:color-mix(in srgb,var(--c2) 55%,#fff)}
+#mini.song #mprev{--g1:var(--c3,var(--c1));--g2:color-mix(in srgb,var(--c3,var(--c1)) 55%,#fff)}
+/* and ONE frame round the whole
+   main page - the 67, the name, search, the playlists, the buttons and the Updated line - on a deep indigo
+   instead of black. The frame takes the playing song's two colours (violet and blue when nothing plays). The
+   buttons and the playlists slide INSIDE it and disappear at its edge, never past it. */
+@property --o1{syntax:"<color>";inherits:true;initial-value:#8A5CFF}
+@property --o2{syntax:"<color>";inherits:true;initial-value:#3C8CFF}
+body:has(#home:not(.hidden)){background:radial-gradient(110% 45% at 22% 0%,#1c0f3e,rgba(28,15,62,0) 70%),
+  radial-gradient(110% 45% at 82% 4%,#0b1a46,rgba(11,26,70,0) 70%),linear-gradient(180deg,#0c0a22,#08071a 55%,#060611)}
+#home{transition:--o1 .9s,--o2 .9s;max-width:none;margin:10px max(10px,calc((100% - 640px) / 2)) 0;padding:18px 14px 22px;
+  border-radius:26px;border:1.5px solid transparent;
+  background:linear-gradient(180deg,#170c36,#110d2b 34%,#0c0b20 70%,#0a0919) padding-box,
+    linear-gradient(100deg,var(--o1),color-mix(in srgb,var(--o1) 50%,var(--o2)),var(--o2)) border-box;
+  box-shadow:0 0 22px -8px var(--o1),0 0 32px -12px var(--o2)}
+#home .pls{margin:6px -14px 0}
+#home .hbtns{flex-basis:calc(100% + 28px);margin:0 -14px;padding:4px 14px}
+/* the 67 picture's black corners melt into the indigo (the record and the 67 themselves are untouched) */
+.hero img{-webkit-mask-image:radial-gradient(circle closest-side,#000 90%,transparent 100%);mask-image:radial-gradient(circle closest-side,#000 90%,transparent 100%)}
+/* 
+   the bar is full width and sits flat on the bottom edge, solid 
+   It keeps the song's two colours, a few faint stars, and the back / play / next buttons. */
+footer.mini{background:radial-gradient(1.2px 1.2px at 18% 62%,rgba(255,255,255,.55),transparent),radial-gradient(1px 1px at 33% 30%,rgba(255,255,255,.35),transparent),
+    radial-gradient(1.4px 1.4px at 52% 72%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 61% 22%,rgba(255,255,255,.3),transparent),
+    radial-gradient(1.2px 1.2px at 74% 56%,rgba(255,255,255,.45),transparent),radial-gradient(1px 1px at 88% 16%,rgba(255,255,255,.3),transparent),
+    radial-gradient(1px 1px at 9% 22%,rgba(255,255,255,.3),transparent),radial-gradient(1.1px 1.1px at 44% 12%,rgba(255,255,255,.35),transparent),
+    radial-gradient(1px 1px at 27% 88%,rgba(255,255,255,.3),transparent),radial-gradient(1.2px 1.2px at 92% 84%,rgba(255,255,255,.4),transparent),
+    linear-gradient(90deg,color-mix(in srgb,var(--c1) 38%,#090710),color-mix(in srgb,var(--c2) 38%,#090710))}
 footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
 /* Bold on every home button (Add songs too, so
    they match) and a step bolder for the song's name in the bar */
@@ -319,6 +403,32 @@ footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
 .song.soon.bad .th::after{border:0;width:auto;height:auto;content:"!";color:#FF6B8B;font-weight:700}
 @media (prefers-reduced-motion:reduce){.dl .bar.busy i{animation:none;width:100%;opacity:.5}}
 .homefoot #made{flex-basis:100%}
+/* the home buttons sit in one row that
+   slides sideways, out to the screen's edges (the -20px undoes .home's side padding). The bar at the
+   bottom stays where it is. */
+.hbtns{flex:0 0 calc(100% + 40px);display:flex;gap:10px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+  margin:0 -20px;padding:4px 20px}
+.hbtns::-webkit-scrollbar{display:none}
+.hbtns>button{flex:none;white-space:nowrap}
+/* the playlists are cards, 3 across and 3 down to a page -
+   picture (or record) on top, name and count under it. A 10th playlist starts page 2, slid to sideways
+   (it snaps a page at a time); the dots under it show which page, and appear only with more than one. */
+.pls{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;margin:6px -20px 0}
+.pls::-webkit-scrollbar{display:none}
+.plpage{flex:0 0 100%;box-sizing:border-box;padding:16px 14px 8px;scroll-snap-align:start;scroll-snap-stop:always;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 14px;align-content:start}
+.pls>li.empty{flex:0 0 100%;box-sizing:border-box}
+.pl{flex-direction:column;align-items:stretch;gap:10px;padding:0 0 2px;border-bottom:0;border-radius:14px;min-width:0}
+.pl .plart,.pl .vinyl{width:100%;height:auto;aspect-ratio:1}
+.pl .plart{border-radius:14px}
+.pl .plart:empty{background:#000}       /* no picture at all yet: plain black */
+.pl>div{min-width:0}
+.pl h2{font-size:15px;letter-spacing:.02em;line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.pl p{font-size:12px;line-height:1.3}
+.pldots{display:flex;justify-content:center;gap:8px;margin:10px 0 0}
+.pldots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.pldots i.on{background:var(--ink)}
+.pls.hidden+.pldots{display:none}
 @media (prefers-reduced-motion:reduce){.spin{animation:none}.now{transition:none}}
 
 /* ---------- each song's own colours, the moving ring, lyrics, add to playlist ---------- */
@@ -335,7 +445,7 @@ footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
 #ring{position:absolute;left:-85%;top:-85%;width:270%;height:270%;pointer-events:none}   /* RING_K = 2.7 */
 .nowact{display:flex;align-items:center}
 .lyrbtn{position:relative;color:var(--mist)}
-.lyrbtn svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lyrbtn svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}   /* two beamed notes */
 .lyrbtn.has{color:var(--ink)}
 .lyrbtn.has::after{content:"";position:absolute;right:8px;top:9px;width:7px;height:7px;border-radius:50%;background:var(--c2);box-shadow:0 0 8px var(--c2)}
 .lyrbtn[aria-pressed="true"]{color:var(--c2)}
@@ -354,6 +464,36 @@ footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
 .chip:disabled{opacity:.4}
 .mnote{color:var(--mist);font-size:14px;margin:0 0 14px}
 @media (prefers-reduced-motion:reduce){.lyr p{transition:none}.now{transition:none}}
+/* Karaoke, full screen over the song's blurred picture - the line
+   being sung big, each word filling left to right in the song's colour; the next line waiting under it; three
+   dots counting down the last three seconds of a long break */
+.karbtn{color:var(--ink)}
+.karbtn svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kara{position:fixed;inset:0;z-index:30;background:#000;display:flex;flex-direction:column;overflow:hidden;
+  padding:calc(10px + env(safe-area-inset-top)) 16px calc(22px + env(safe-area-inset-bottom))}
+.karbg{position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 30%,color-mix(in srgb,var(--c1) 26%,#000),#000 72%)}
+.karbg img{position:absolute;left:-10%;top:-10%;width:120%;height:120%;object-fit:cover;filter:blur(34px) brightness(.36) saturate(1.2)}
+.kartop{position:relative;display:flex;align-items:center;gap:10px}
+.karname{flex:1;min-width:0;text-align:center}
+.karname b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.karname span{display:block;color:var(--mist);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#karplay{color:#07050d;background:linear-gradient(135deg,var(--c1),var(--c2))}
+.karstage{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:22px;text-align:center;padding:0 4px}
+.kline{margin:0;min-height:1.25em;font-size:clamp(26px,7.6vw,38px);font-weight:700;line-height:1.25;color:rgba(255,255,255,.62)}
+.kline.next{font-size:clamp(19px,5.4vw,26px);font-weight:600;color:rgba(255,255,255,.38)}
+.kline span.done{color:var(--c1)}
+.kline span.cur{background:linear-gradient(90deg,var(--c1) var(--k,0%),rgba(255,255,255,.62) var(--k,0%));-webkit-background-clip:text;background-clip:text;color:transparent}
+.kline.gap{letter-spacing:.3em;color:var(--c1)}
+.kline.next.gap{color:rgba(255,255,255,.38)}
+.kcount{display:flex;gap:14px;height:14px;margin:0}
+.kcount i{width:14px;height:14px;border-radius:50%;background:var(--c1);box-shadow:0 0 12px var(--c1);transition:opacity .2s}
+.kcount i.off{opacity:0}
+.kmsg{margin:0;color:var(--ink);font-size:20px}
+.kmsg small{display:block;color:var(--mist);font-size:14px;margin-top:8px}
+.karprog{position:relative;height:4px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
+.karprog i{position:absolute;inset:0;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,var(--c1),var(--c2))}
+@media (prefers-reduced-motion:reduce){.kcount i{transition:none}}
+body.karup #now{visibility:hidden}        /* the player under it rests (nothing of it to draw) */
 /* a long name or artist list never runs under the ring - the disc shrinks to the room it has, the names sit on top */
 .meta{position:relative;z-index:2}
 .info{position:relative;isolation:isolate}
@@ -539,14 +679,17 @@ button,a,input,.song,.pl{touch-action:manipulation}
   <input id="hq" class="search hq" type="search" placeholder="Search every playlist" autocomplete="off" enterkeyhint="search">
   <div id="hres" class="hidden"><p id="hfound" class="hfound"></p><ul id="hsongs2" class="songs"></ul></div>
   <ul id="pls" class="pls"></ul>
+  <div id="pldots" class="pldots hidden"></div>
   <div id="dls" aria-live="polite"></div>
   <div class="homefoot">
-    <button id="addBtn" class="pill main">Add songs</button>
-    <button id="scan" class="ghost">Update library</button>
-    <button id="folderBtn" class="ghost">Music folder</button>
-    <button id="hiddenBtn" class="ghost hidden">Hidden songs</button>
-    <button id="kBtn" class="ghost">Backup</button>
-    <button id="sndBtn" class="ghost">Sound</button>
+    <div class="hbtns">
+      <button id="addBtn" class="pill main">Add songs</button>
+      <button id="scan" class="ghost">Update library</button>
+      <button id="folderBtn" class="ghost">Music folder</button>
+      <button id="hiddenBtn" class="ghost hidden">Hidden songs</button>
+      <button id="kBtn" class="ghost">Backup</button>
+      <button id="sndBtn" class="ghost">Sound</button>
+    </div>
     <span id="made"></span>
   </div>
 </main>
@@ -557,7 +700,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
       <button class="back" id="back" aria-label="Back to playlists"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.4 6.4 14 5l-7 7 7 7 1.4-1.4L9.8 12z"/></svg></button>
       <h2 id="lname"></h2>
       <span class="count" id="lcount"></span>
-      <button class="back" id="lmore" aria-label="Playlist options"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+      <button class="back" id="lmore" aria-label="Options for the song playing"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
     </div>
     <input id="q" class="search" type="search" placeholder="Search songs or artists" autocomplete="off">
     <div class="tools">
@@ -599,18 +742,18 @@ button,a,input,.song,.pl{touch-action:manipulation}
 <div id="sheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="shTitle">
   <div class="sheetcard">
     <b id="shTitle"></b><span id="shArtist"></span>
-    <button id="shFav" class="srow">Add to favorites<small>Hearts it in this playlist. Tap the heart button in the playlist to see just your favorites.</small></button>
-    <button id="shNext" class="srow">Play next<small>Plays right after the song that's on now.</small></button>
-    <button id="shQueue" class="srow">Add to queue<small>Plays after the songs already queued, then your playlist carries on.</small></button>
-    <button id="shMoveLast" class="srow hidden">Move to <span id="shMoveTo"></span><small>Where you moved the last song - one tap.</small></button>
-    <button id="shMove" class="srow">Move to another playlist<small>Takes it out of this playlist and puts it in the one you pick. Its plays and heart go with it.</small></button>
-    <button id="shAdd" class="srow">Add to another playlist<small>Copies the song into the playlists you pick. It stays here too.</small></button>
-    <button id="shShare" class="srow">Share song<small>Sends the song file - Messages, Drive, Bluetooth, anything.</small></button>
-    <button id="shLyr" class="srow hidden">Wrong lyrics<small>Look the words up again by the song's name and artist - type them the way the song is really called.</small></button>
-    <button id="shWrong" class="srow">Plays the wrong song<small>Pick the right one on YouTube - its audio goes in this song's place. The wrong file is kept under Hidden songs.</small></button>
-    <button id="shHide" class="srow">Hide from Carmen Musicum<small>The file stays on the phone. Bring it back from Hidden songs.</small></button>
-    <button id="shDel" class="srow danger">Delete from playlist<small>Deletes the song from this playlist for good. Android asks you to confirm first.</small></button>
-    <button id="shCancel" class="srow">Cancel</button>
+    <button id="shFav" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M12 20.6l-1.3-1.2C5.8 15 3 12.4 3 9.1 3 6.4 5.1 4.3 7.8 4.3c1.5 0 3 .7 4.2 1.9 1.2-1.2 2.7-1.9 4.2-1.9C18.9 4.3 21 6.4 21 9.1c0 3.3-2.8 5.9-7.7 10.3L12 20.6z"/></svg><span class="tx"><span class="st">Add to favorites</span><small>Hearts it in this playlist. Tap the heart button in the playlist to see just your favorites.</small></span></button>
+    <button id="shHide" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><circle class="fill" cx="12" cy="12" r="1.2"/></svg><span class="tx"><span class="st">Hide from Carmen Musicum</span><small>The file stays on the phone. Bring it back from Hidden songs.</small></span></button>
+    <button id="shWrong" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span class="tx"><span class="st">Plays the wrong song</span><small>Pick the right one on YouTube - its audio goes in this song's place. The wrong file is kept under Hidden songs.</small></span></button>
+    <button id="shLyr" class="srow hidden"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg><span class="tx"><span class="st">Wrong lyrics</span><small>Look the words up again by the song's name and artist - type them the way the song is really called.</small></span></button>
+    <button id="shShare" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4"/></svg><span class="tx"><span class="st">Share song</span><small>Sends the song file - Messages, Drive, Bluetooth, anything.</small></span></button>
+    <button id="shAdd" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.2h8.5A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M12 10.5v6M9 13.5h6"/></svg><span class="tx"><span class="st">Add to another playlist</span><small>Copies the song into the playlists you pick. It stays here too.</small></span></button>
+    <button id="shMoveLast" class="srow hidden"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.2h8.5A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M8.5 13.5h6.5M12.5 11l2.5 2.5-2.5 2.5"/></svg><span class="tx"><span class="st">Move to <span id="shMoveTo"></span></span><small>Where you moved the last song - one tap.</small></span></button>
+    <button id="shMove" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.2h8.5A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg><span class="tx"><span class="st">Move to another playlist</span><small>Takes it out of this playlist and puts it in the one you pick. Its plays and heart go with it.</small></span></button>
+    <button id="shQueue" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 2"/></svg><span class="tx"><span class="st">Add to queue</span><small>Plays after the songs already queued, then your playlist carries on.</small></span></button>
+    <button id="shNext" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12"/><circle class="fill" cx="4.5" cy="6" r="1.4"/><circle class="fill" cx="4.5" cy="12" r="1.4"/><circle class="fill" cx="4.5" cy="18" r="1.4"/></svg><span class="tx"><span class="st">Play next</span><small>Plays right after the song that's on now.</small></span></button>
+    <button id="shDel" class="srow danger"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg><span class="tx"><span class="st">Delete from playlist</span><small>Deletes the song from this playlist for good. Android asks you to confirm first.</small></span></button>
+    <button id="shCancel" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="tx"><span class="st">Cancel</span></span></button>
   </div>
 </div>
 
@@ -734,7 +877,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
 
 <div id="ssheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="sTitle">
   <div class="sheetcard">
-    <b id="sTitle">Add this song to</b><span>Tap the playlist it belongs in.</span>
+    <b id="sTitle">Add this song to</b><span id="sSub">Tap the playlist it belongs in.</span>
     <div id="sList" class="slist"></div>
     <div id="sNewRow" class="hidden">
       <input id="sNew" class="search" type="text" placeholder="New playlist name" autocomplete="off">
@@ -747,7 +890,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
 <div id="bsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="bTitle">
   <div class="sheetcard">
     <b id="bTitle">This link is a song in a playlist</b><span>What should come in?</span>
-    <button id="bAll" class="srow">The whole playlist<small>Adds the playlist to Carmen Musicum with all its songs.</small></button>
+    <button id="bAll" class="srow">The whole playlist<small>You pick the playlist its songs go in.</small></button>
     <button id="bOne" class="srow">Just this song<small id="bOneTo"></small></button>
     <button id="bCancel" class="srow">Cancel</button>
   </div>
@@ -755,13 +898,16 @@ button,a,input,.song,.pl{touch-action:manipulation}
 
 <div id="psheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="psTitle">
   <div class="sheetcard">
-    <b id="psTitle"></b><span>Playlist</span>
-    <button id="psCheck" class="srow">Check for wrong audio<small>Finds songs that play a different song than the one shown, and fixes them.</small></button>
-    <button id="psPick" class="srow">Change picture<small>Pick any picture on your phone.</small></button>
-    <button id="psReset" class="srow">Use the original picture</button>
-    <button id="psFollow" class="srow sw hidden" aria-pressed="true">Check YouTube for new songs<small id="psFollowSub"></small></button>
-    <button id="psDel" class="srow danger">Delete playlist<small>Deletes this playlist and the songs still in it from your phone. Songs you moved or copied to other playlists stay.</small></button>
-    <button id="psCancel" class="srow">Cancel</button>
+    <b id="psTitle"></b><span id="psSub">Playlist</span>
+    <button id="psPlay" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M8 5v14l11-7z"/></svg><span class="tx"><span class="st">Play</span><small>From the top, in the order it is sorted.</small></span></button>
+    <button id="psShuf" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c2.5 0 4 1.2 5.5 3.5l1 1.5c1.5 2.3 3 3.5 5.5 3.5H21M3 17h3.5c1.4 0 2.5-.4 3.5-1.2M14 8.2c1-.8 2.1-1.2 3.5-1.2H21M18.5 4.5 21 7l-2.5 2.5M18.5 14.5 21 17l-2.5 2.5"/></svg><span class="tx"><span class="st">Shuffle</span><small>Every song once, in a random order.</small></span></button>
+    <button id="psShare" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4"/></svg><span class="tx"><span class="st">Share playlist</span><small>Sends its name, its YouTube link if it has one, and every song in it.</small></span></button>
+    <button id="psPick" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M21 15.5l-5-5-9 9"/></svg><span class="tx"><span class="st">Change picture</span><small>Pick any picture on your phone.</small></span></button>
+    <button id="psReset" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg><span class="tx"><span class="st">Use the original picture</span></span></button>
+    <button id="psFollow" class="srow sw hidden" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path class="fill" d="M10 9v6l5-3z"/></svg><span class="tx"><span class="st">Check YouTube for new songs</span><small id="psFollowSub"></small></span></button>
+    <button id="psCheck" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span class="tx"><span class="st">Check for wrong audio</span><small>Finds songs that play a different song than the one shown, and fixes them.</small></span></button>
+    <button id="psDel" class="srow danger"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg><span class="tx"><span class="st">Delete playlist</span><small>Deletes this playlist and the songs still in it from your phone. Songs you moved or copied to other playlists stay.</small></span></button>
+    <button id="psCancel" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="tx"><span class="st">Cancel</span></span></button>
   </div>
 </div>
 
@@ -779,6 +925,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <div class="th"><img id="mart" alt=""></div>
     <div style="min-width:0"><b id="mtitle"></b><span id="martist"></span></div>
   </button>
+  <button class="ib" id="mprev" aria-label="Previous song"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
   <button class="ib" id="mplay" aria-label="Play"></button>
   <button class="ib" id="mnext" aria-label="Next song"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg></button>
 </footer>
@@ -792,7 +939,8 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button class="ib" id="nclose" aria-label="Close player"><svg viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg></button>
     <span class="pname" id="npl"></span>
     <div class="nowact">
-      <button class="ib lyrbtn" id="nlyr" aria-label="Lyrics" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v9.5A1.5 1.5 0 0 1 19 17H9.5L5 20.5V17H5a1.5 1.5 0 0 1-1.5-1.5V6A1.5 1.5 0 0 1 5 4.5z"/><path d="M7.5 9h9M7.5 12.5h6"/></svg></button>
+      <button class="ib karbtn" id="nkar" aria-label="Karaoke"><svg viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M8.5 21h7"/></svg></button>
+      <button class="ib lyrbtn" id="nlyr" aria-label="Lyrics" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 17.5V6l10.5-2.2v11.2"/><circle cx="6.6" cy="17.6" r="2.4" fill="currentColor"/><circle cx="17.1" cy="15.1" r="2.4" fill="currentColor"/></svg></button>
       <button class="ib" id="nmore" aria-label="More for this song"><svg viewBox="0 0 24 24"><path d="M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
     </div>
   </div>
@@ -813,6 +961,21 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button class="ib tog" id="rep" aria-label="Repeat: off" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg><span class="one hidden" id="rep1">1</span></button>
   </div>
   <button class="upnext hidden" id="upnext" aria-label="Up next"><svg viewBox="0 0 24 24"><path d="M3 6h12v2H3zm0 5h12v2H3zm0 5h8v2H3zm14-1v-4h2v4h4v2h-4v4h-2v-4h-4v-2z"/></svg>Up next:<b id="upTitle"></b><span id="upMore"></span></button>
+</section>
+<section id="kara" class="kara hidden" aria-label="Karaoke" aria-hidden="true">
+  <div class="karbg" id="karbg" aria-hidden="true"></div>
+  <div class="kartop">
+    <button class="ib" id="karclose" aria-label="Close karaoke"><svg viewBox="0 0 24 24"><path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4z"/></svg></button>
+    <div class="karname"><b id="kartitle"></b><span id="karartist"></span></div>
+    <button class="ib" id="karplay" aria-label="Pause"></button>
+  </div>
+  <div class="karstage">
+    <p class="kcount" id="kcount" aria-hidden="true"><i class="off"></i><i class="off"></i><i class="off"></i></p>
+    <p class="kline" id="kl0"></p>
+    <p class="kline next" id="kl1"></p>
+    <p class="kmsg hidden" id="karmsg"></p>
+  </div>
+  <div class="karprog" aria-hidden="true"><i id="karprog"></i></div>
 </section>
 
 <div id="toast" class="toast hidden" role="status"></div>
@@ -969,7 +1132,11 @@ function hexAt(t) {
   return ease((u - SH_HEX - SH_FADE - SH_ROUND) / SH_FADE);
 }
 const ECH = [], ECHO_MS = 800;                                  /* the echoes going out (when, how hard); each lasts just under a beat (800 ms at most) */
-const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(132);   /* 132 bars */
+const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(136);   /* 136 bars */
+/* the bars as spikes of specks - each speck's fixed place across its bar, along it, its wobble and its drift past the
+   tip (its own small random numbers, made once, so the specks stay put and only breathe) */
+const BJ = 96, BJT = new Float32Array(136 * BJ * 3);
+{ let h = 20261025; for (let k = 0; k < BJT.length; k++) { h = (Math.imul(h, 1103515245) + 12345) | 0; BJT[k] = ((h >>> 8) & 0xffff) / 65536; } }
 const TS = [];                                                  /* stars popping off the bar tips (where, when, how fast) */   /* the audio bars - each band smoothed, and its own recent top */
 let nShape = 0, pose = 0, lastPoseAt = -1e9, ivMed = 470, subLean = 0, style = "mix", styleNext = "mix";
 /* what the song is like right now: bassSlow = the bass over the last ~2 s, bassPeak = how loud it
@@ -1330,7 +1497,8 @@ function draw() {
   }
 
   {
-    const NBR = 66, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();       /* taller (was .34). 66 a side */
+    const BL = Array.from({length: 6}, () => [new Path2D(), new Path2D(), new Path2D()]);   /* the bars' specks - six columns, three brightnesses */
+    const NBR = 68, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();       /* taller (was .34). 68 a side */
     for (let j = 0; j < NBR; j++) {
       /* a bar between two bands reads between them, so neighbours rise and fall smoothly, not in steps */
       const fb = Math.min(48, 1 + j * 47 / (NBR - 1)), b0 = Math.floor(fb), b1 = Math.min(48, b0 + 1), fr = fb - b0;   /* up to about 9 kHz - the very top is mostly empty */
@@ -1342,16 +1510,40 @@ function draw() {
         const ca = sd * Math.sin(psi), sa = -Math.cos(psi);
         const x0 = c + ca * base * R, y0 = c + sa * base * R, x1 = c + ca * (base + L) * R, y1 = c + sa * (base + L) * R;
         bp.moveTo(x0, y0); bp.lineTo(x1, y1);
-        if (lv > .3) { gp.moveTo(x0, y0); gp.lineTo(x1, y1); }
-
+        if (lv > .25) { gp.moveTo(x0, y0); gp.lineTo(x1, y1); }
+        /* the bar's specks - thickest and brightest at its foot, narrowing to a point at its tip, each one
+           breathing a little; past the tip of a lively bar a few drift outward and fade */
+        {
+          const ib = (j * 2 + (sd > 0 ? 1 : 0)) * BJ * 3, n = Math.min(BJ, Math.max(4, Math.round(L / .0075))), hw = R * (.022 + .03 * lv);
+          const nx = -sa, ny = ca, ph = clock * .0016;
+          for (let k = 0; k < n; k++) {
+            const q0 = BJT[ib + k * 3], q1 = BJT[ib + k * 3 + 1], q2 = BJT[ib + k * 3 + 2];
+            const u = Math.min(1, (k + q1) / n), taper = Math.pow(1 - u, 1.3);
+            const across = (q0 + q2 - 1) * hw * taper + .12 * hw * Math.sin(ph + q2 * 6.283) * taper;
+            const rr = (base + u * L) * R, px = c + ca * rr + nx * across, py = c + sa * rr + ny * across;
+            const al = (1 - .65 * u) * (1 - .4 * Math.abs(q0 + q2 - 1)), sz = px1 * (.55 + (1 - u)) * (.9 + .4 * lv);
+            BL[colOf(px)][al > .62 ? 2 : al > .36 ? 1 : 0].rect(px - sz, py - sz, sz * 2, sz * 2);
+          }
+          if (lv > .25) for (let k = 0; k < 5; k++) {
+            const q0 = BJT[ib + k * 3 + 2], f = (ph * .55 + q0 + k / 5) % 1, rr = (base + L + .015 + .13 * f) * R;
+            const across = (BJT[ib + k * 3] - .5) * hw * .9, px = c + ca * rr + nx * across, py = c + sa * rr + ny * across;
+            if ((1 - f) * (lv - .2) > .12) { const sz = px1 * (.45 + .4 * (1 - f)); BL[colOf(px)][(1 - f) * lv > .4 ? 1 : 0].rect(px - sz, py - sz, sz * 2, sz * 2); }
+          }
+        }
+        /* a bar that jumps up sends a little star off its tip */
         const bi = j * 2 + (sd > 0 ? 1 : 0), jump = lv - BPREV[bi]; BPREV[bi] = lv;
         if (dtS && jump > .12 && lv > .45 && TS.length < 70 && rnd2() < .88 * 36 / NBR)   /* the same whatever the bar count. more (was .55, at most 40) */
           TS.push({ca, sa, r: base + L + .02, t: clock, v: .25 + .35 * rnd2(), s: .6 + .5 * lv, tw: rnd2() * 6.283});
       }
     }
-    x.strokeStyle = g0; x.globalAlpha = .15; x.lineWidth = R * .065; x.stroke(gp);   /* a soft glow on the taller ones */
-    x.strokeStyle = g2; x.globalAlpha = .75; x.lineWidth = R * .024; x.stroke(bp);
-    x.strokeStyle = g4; x.globalAlpha = .35; x.lineWidth = Math.max(px1, R * .008); x.stroke(bp);   /* a bright core */
+    /* each bar is now a spike of light specks in the song's colours - wide and bright
+       at its foot, tapering to a point - over a faint trace of the old line, so it still reads as a bar. Same bars,
+       same movement; the stars off the tips stay. (Was: a solid line, .75 bright, with a core and a glow.) */
+    x.strokeStyle = g0; x.globalAlpha = .14; x.lineWidth = R * .075; x.stroke(gp);   /* a soft glow on the taller ones */
+    x.strokeStyle = g2; x.globalAlpha = .28; x.lineWidth = R * .014; x.stroke(bp);   /* the faint trace */
+    for (let sd = 0; sd < 6; sd++) for (let i = 0; i < 3; i++) {
+      x.fillStyle = rgb(mix(TC.CC[sd], [255, 255, 255], [.18, .36, .62][i])); x.globalAlpha = [.5, .76, 1][i]; x.fill(BL[sd][i]);
+    }
     /* the stars off the tips: they float out, twinkle and fade */
     for (const T of TS) {
       const age = (clock - T.t) / 1000; if (age < 0) continue;
@@ -1466,7 +1658,20 @@ onmessage = e => {
 </script>
 <script>
 "use strict";
-const N = window.Native || null;
+/* Carmen Musicum app page. The playing happens in the app itself
+   (window.Native); this page shows it and sends taps. */
+/* every call to Android is timed - one that holds the page 1 s or more is written down (mm_slowcall: when, which call, how long, which
+   screen; it rides in the backup), and a freeze notes the last call made before it. Android's side of the watch
+   is Slow.java (Carmen Musicum backup/.freezes.txt). Nothing else about the calls changes. */
+const NLAST = {k: "", at: 0};
+const N = window.Native ? new Proxy(window.Native, {get(t, k) {
+  const f = t[k]; if (typeof f !== "function") return f;
+  return (...a) => { NLAST.k = k; NLAST.at = Date.now(); const t0 = performance.now();
+    try { return f.apply(t, a); } finally { const ms = performance.now() - t0; if (ms >= 1000 && k !== "savePrefs") setTimeout(() => slowCall(k, ms), 0); } };
+}}) : null;
+function slowCall(k, ms) {
+  try { const a = JSON.parse(localStorage.getItem("mm_slowcall") || "[]"); a.push([Date.now(), k, Math.round(ms), location.hash || "#/"]); store("mm_slowcall", a.slice(-12)); } catch (e) {}
+}
 const $ = s => document.querySelector(s);
 const enc = encodeURIComponent;
 /* work that can wait runs when the phone is free (never in the way of a tap),
@@ -1505,13 +1710,81 @@ const keyOf = s => s.p + "/" + s.file;
 function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} pushPrefs(); }
 function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
 /* the page's own settings, kept in the new-phone backup */
-const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff", "mm_favonly"];
+const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff", "mm_favonly", "mm_slow", "mm_slowcall"];
+/* the page samples itself - Chrome's own JavaScript sampler,
+   allowed by the Document-Policy header MainActivity sends, a fresh one every 20 s - so when a freeze over 2 s
+   ends, the samples from inside it say which function the page was stuck in (and, through NLAST, the last call
+   to Android). That goes into Carmen Musicum backup/.freezes.txt (N.freezeNote -> Slow.java) next to what
+   Android's threads were doing - one look at that file names the cause. */
+let PROF = null;
+function profStart() {
+  if (!window.Profiler) return;
+  try { if (PROF) PROF.stop().catch(() => {}); PROF = new Profiler({sampleInterval: 10, maxBufferSize: 9000}); } catch (e) { PROF = null; }
+}
+profStart(); setInterval(() => { if (!document.hidden) profStart(); }, 20000);
+function freezeTrace(t0, ms) {
+  const head = "page froze " + (ms / 1000).toFixed(1) + " s on " + (location.hash || "#/") + " - last call to Android: " +
+    (NLAST.k ? NLAST.k + ", " + ((Date.now() - NLAST.at) / 1000).toFixed(1) + " s before the end" : "none") + "\n  page: " + pageSize();   /* + its size */
+  const send = t => { try { window.Native && window.Native.freezeNote && window.Native.freezeNote(t); } catch (e) {} };
+  const p = PROF; PROF = null;
+  if (!p) { send(head + "\n  (no sampler on this phone)"); profStart(); return; }
+  p.stop().then(tr => {
+    const nm = f => { const fr = tr.frames[f]; return fr ? (fr.name || "(anon)") + (fr.line ? ":" + fr.line : "") : "?"; };
+    const stackOf = id => { const o = []; while (id !== undefined && id !== null && o.length < 8) { const st = tr.stacks[id]; if (!st) break; o.push(nm(st.frameId)); id = st.parentId; } return o.join(" < "); };
+    const counts = new Map(); let n = 0;
+    for (const sm of tr.samples) {
+      if (sm.timestamp < t0 || sm.timestamp > t0 + ms) continue;
+      n++; const k = sm.stackId === undefined || sm.stackId === null ? "(not in JavaScript)" : stackOf(sm.stackId);
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+    const top = [...counts].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, c]) => "  " + Math.round(100 * c / Math.max(1, n)) + "%  " + k);
+    send(head + "\n  " + n + " samples inside it (page line numbers):\n" + (top.join("\n") || "  (none)"));
+  }).catch(() => send(head + "\n  (the sampler failed)")).finally(profStart);
+}
+/* a freeze over 2 seconds is written down - when, how long, which screen, how many songs it had - and goes
+   into the backup with the settings above, so the next one can be traced instead of guessed */
+try {
+  new PerformanceObserver(l => {
+    for (const e of l.getEntries()) {
+      if (e.duration < 2000) continue;
+      freezeTrace(e.startTime, e.duration);
+      const a = load("mm_slow") || [];
+      a.push([Date.now(), Math.round(e.duration), location.hash || "#/", PL ? PL.songs.length : 0, listDone ? 1 : 0, NLAST.k, Date.now() - NLAST.at]);   /* + the last call to Android, how long ago */
+      store("mm_slow", a.slice(-12));
+    }
+  }).observe({type: "longtask", buffered: true});
+} catch (e) {}
+/* Chrome's own account of a frame that
+   held the screen 2 s or more - how much of it was scripts, how much styling, laying out and painting the page - plus
+   how much memory the page holds and how many elements it has, into .freezes.txt next to the freeze. */
+function pageSize() {
+  let s = document.getElementsByTagName("*").length.toLocaleString() + " elements";
+  try { const m = performance.memory; if (m) s += ", script memory " + Math.round(m.usedJSHeapSize / 1048576) + " of " + Math.round(m.jsHeapSizeLimit / 1048576) + " MB"; } catch (e) {}
+  return s;
+}
+try {
+  new PerformanceObserver(l => {
+    for (const e of l.getEntries()) {
+      if (e.duration < 2000) continue;
+      const end = e.startTime + e.duration, sc = e.scripts || [], s1 = x => (x / 1000).toFixed(1) + " s";
+      const scr = sc.reduce((a, s) => a + s.duration, 0), forced = sc.reduce((a, s) => a + (s.forcedStyleAndLayoutDuration || 0), 0);
+      const sl = e.styleAndLayoutStart ? end - e.styleAndLayoutStart : 0, rd = e.renderStart ? end - e.renderStart : 0;
+      const top = sc.slice().sort((a, b) => b.duration - a.duration)[0];
+      const t = "frame held " + s1(e.duration) + " on " + (location.hash || "#/") + ": scripts " + s1(scr) + " (forced style/layout " + s1(forced) +
+        "), rendering " + s1(rd) + " - of it style+layout+paint " + s1(sl) + ", the rest (not scripts, not rendering) " + s1(Math.max(0, e.duration - scr - rd)) +
+        (top ? "\n  longest script " + s1(top.duration) + ": " + (top.invoker || "?") + " " + (top.sourceFunctionName || "") + " :" + (top.sourceCharPosition ?? "") : "") +
+        "\n  page: " + pageSize();
+      try { window.Native && window.Native.freezeNote && window.Native.freezeNote(t); } catch (x) {}
+    }
+  }).observe({type: "long-animation-frame", buffered: true});
+} catch (e) {}
 function pushPrefs() {
   try { const o = {}; PREFS.forEach(k => { const v = load(k); if (v !== null) o[k] = v; }); window.Native && Native.savePrefs(JSON.stringify(o)); } catch (e) {}
 }
 
 let LIB = {playlists: []}, KEYS = new Map(), PL = null, shown = [], sortBy = load("mm_sort") || "artist", sortRev = load("mm_rev") === true;
 let ST = {}, stAt = 0, cur = null;     /* what the player last said, when, and its song */
+let titlePair = null;                  /* the playing song's two colours for the home title (null = the five) */
 
 /* ---------- library ---------- */
 async function getLib() {
@@ -1525,7 +1798,7 @@ async function getLib() {
   const was = cur;
   cur = ST.key ? KEYS.get(ST.key) || null : null;      /* the same song, from the fresh list (player stays open) */
   if (cur && (!was || keyOf(was) !== keyOf(cur) || !$("#mtitle").textContent)) showSong(cur);
-  $("#mini").classList.toggle("hidden", !cur);
+  $("#mini").classList.toggle("hidden", !cur); titleLook();
   loadPending(); mergePending(); loadPlays(); loadFavs();
   idle(() => warmSorts(null, false), 1500);          /* every playlist's order, ready before it is opened */
 }
@@ -1582,23 +1855,30 @@ function missOf(name) {
   const k = Object.keys(MISSING).find(x => x.toLowerCase() === name.toLowerCase());
   return (k && MISSING[k]) || [];
 }
+/* a YouTube playlist poured into a playlist that follows another one waits apart ("Playlist\u0001list") -
+   shown with that playlist as one list; paused only when every part of it is */
+const pendBase = k => k.split("\u0001")[0];
 function pendOf(name) {
   if (!name) return null;
-  const k = Object.keys(PENDING).find(x => x.toLowerCase() === name.toLowerCase());
-  const e = k && PENDING[k];
-  return e && Array.isArray(e.items) && e.items.length ? e : null;
+  const es = Object.keys(PENDING).filter(x => pendBase(x).toLowerCase() === name.toLowerCase()).map(k => PENDING[k])
+    .filter(e => e && Array.isArray(e.items) && e.items.length);
+  if (es.length < 2) return es[0] || null;
+  const at = Math.min(...es.map(e => e.retry || 0)), first = es.find(e => (e.retry || 0) === at);
+  return {items: [].concat(...es.map(e => e.items)), retry: at, note: first.note || ""};
 }
 const waiting = e => e ? e.items.filter(x => x.s !== "x").length : 0;
 function mergePending() {
   /* a playlist that so far exists only as songs on their way still shows */
-  Object.keys(PENDING).forEach(name => {
-    if (name.startsWith("?") || !pendOf(name)) return;
+  Object.keys(PENDING).forEach(k => {
+    const name = pendBase(k);
+    if (k.startsWith("?") || !pendOf(name)) return;
     if (!LIB.playlists.some(p => p.name.toLowerCase() === name.toLowerCase())) LIB.playlists.push({name, cover: "", custom: false, songs: [], soon: true});
   });
   LIB.playlists = LIB.playlists.filter(p => !p.soon || pendOf(p.name));
   LIB.playlists.sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: "base", numeric: true}));
 }
-let homeSig = "", homeY = 0;
+const PL_COL = new Map();                          /* a picture's ring colours, worked out once */
+let homeSig = "", homeY = 0, homeX = [0, 0];      /* and how far the playlists and the buttons were slid */
 function plSub(p) {
   const secs = p.songs.reduce((a, s) => a + (s.duration || 0), 0), n = p.songs.length, w = waiting(pendOf(p.name));
   let sub = n ? nSongs(n) + ", " + (secs < 3600 ? Math.round(secs / 60) + " min" : hours(secs)) : "";
@@ -1619,26 +1899,34 @@ function renderHome() {
       'or <b>Music folder</b> to use a folder of songs you already have (each folder inside it is a playlist).</li>';
   } else {
     /* same playlists and pictures as on screen: only the counts change (no pictures blinking while songs come in) */
-    const sig = LIB.playlists.map(p => p.name + "|" + p.cover + "|" + (p.songs[0] ? p.songs[0].file : "")).join("\n");
+    const order = plOrder();
+    const sig = order.map(i => { const p = LIB.playlists[i]; return p.name + "|" + p.cover + "|" + (p.songs[0] ? p.songs[0].file : ""); }).join("\n");
     if (sig === homeSig && ul.querySelectorAll(".pl").length === LIB.playlists.length) {
-      ul.querySelectorAll(".pl p").forEach((el, i) => { const t = plSub(LIB.playlists[i]); if (el.textContent !== t) el.textContent = t; });
+      ul.querySelectorAll(".pl").forEach(b => { const el = b.querySelector("p"), t = plSub(LIB.playlists[+b.dataset.i]); if (el.textContent !== t) el.textContent = t; });
     } else {
       homeSig = sig;
       /* A playlist's own
          ring and glow round its picture - ring, then the two glows; any other playlist keeps the blue */
-      /* a playlist's own ring and glow round its picture, by its name in lower case: [ring, glow, glow].
-         Empty here - every playlist has the blue; add one like  "rock": ["#FF3B3B", "#E62B3B", "#FF6B5E"] */
+
+      /* a playlist can be given its own ring and glow colours here: {"playlist name": [colour, colour, glow]} */
       const PL_RING = {};
-      ul.innerHTML = LIB.playlists.map((p, i) => {
-        const first = p.songs[0];
+      const cards = order.map(i => {
+        const p = LIB.playlists[i], first = p.songs[0];
         const ring = PL_RING[p.name.toLowerCase()], rs = ring ? ' style="--r1:' + ring[0] + ';--r2:' + ring[1] + ';--r3:' + ring[2] + '"' : '';
-        const pic = p.cover ? '<div class="plart"' + rs + '><img src="/cover?p=' + enc(p.name) + '&v=' + enc(p.cover) + '" alt=""></div>'
-          : '<div class="vinyl"><div class="label">' + (first ? '<img loading="lazy" src="' + artUrl(p.name, first.file) +
-            '" alt="" onerror="this.remove()">' : '') + '</div></div>';
-        return '<li><button class="pl" data-i="' + i + '">' + pic + '<div><h2>' + esc(p.name) + '</h2><p>' + esc(plSub(p)) + '</p></div></button></li>';
-      }).join("");
+        /* a playlist with no picture of its own shows its
+           first song's picture, square like the others; one without PL_RING colours takes them from its picture */
+        const auto = ring ? '' : ' data-auto';
+        const pic = p.cover ? '<div class="plart"' + rs + '><img src="/cover?p=' + enc(p.name) + '&v=' + enc(p.cover) + '" alt=""' + auto + '></div>'
+          : '<div class="plart"' + rs + '>' + (first ? '<img src="' + artUrl(p.name, first.file) + '" alt=""' + auto + ' onerror="this.remove()">' : '') + '</div>';
+        return '<button class="pl" data-i="' + i + '">' + pic + '<div><h2>' + esc(p.name) + '</h2><p>' + esc(plSub(p)) + '</p></div></button>';
+      });
+      let html = "";                               /* 9 to a page (3 x 3) */
+      for (let k = 0; k < cards.length; k += 9) html += '<li class="plpage">' + cards.slice(k, k + 9).join("") + '</li>';
+      ul.innerHTML = html;
+      ul.querySelectorAll("img[data-auto]").forEach(plAuto);
     }
   }
+  plDots();
   let fold = ""; try { fold = N ? N.folder() : ""; } catch (e) {}
   $("#made").textContent = (fold ? fold + " - " : "") + (LIB.made ? "updated " + LIB.made.slice(5).replace("-", "/") : "");
   if ($("#hq").value.trim()) homeSearch();
@@ -1711,31 +1999,84 @@ window.onNoPermission = () => {
     '<button class="pill main" id="settings">Open settings</button></li>';
   $("#settings").onclick = () => N.openSettings();
 };
+/* the order of the playlists: any named in PL_FIRST (lower case) first, in that order; every other playlist
+   after them, the most played first. Gives the order as indexes into LIB.playlists (the cards keep their data-i). */
+const PL_FIRST = [];
+function plOrder() {
+  const tot = {};
+  for (const k in PLAYS) { const n = k.slice(0, k.indexOf("/")); tot[n] = (tot[n] || 0) + (PLAYS[k][0] || 0); }
+  const pin = p => { const r = PL_FIRST.indexOf(p.name.toLowerCase()); return r < 0 ? PL_FIRST.length : r; };
+  return LIB.playlists.map((p, i) => i).sort((a, b) => { const p = LIB.playlists[a], q = LIB.playlists[b];
+    return pin(p) - pin(q) || (tot[q.name] || 0) - (tot[p.name] || 0) || COLL.compare(p.name, q.name); });
+}
+/* a playlist's ring and glow in its picture's own colours (palette(), as a song's are) */
+function plAuto(img) {
+  const put = c => { const b = img.parentNode; if (!b) return;
+    b.style.setProperty("--r1", rgb(c[0])); b.style.setProperty("--r2", rgb(c[0])); b.style.setProperty("--r3", rgb(c[1])); };
+  const k = img.getAttribute("src");
+  if (PL_COL.has(k)) { put(PL_COL.get(k)); return; }
+  const go = () => {
+    try {
+      const c = document.createElement("canvas"); c.width = c.height = 32;
+      const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(img, 0, 0, 32, 32);
+      const pal = palette(x.getImageData(0, 0, 32, 32).data); PL_COL.set(k, pal); put(pal);
+    } catch (e) {}
+  };
+  if (img.complete && img.naturalWidth) go(); else img.addEventListener("load", go, {once: true});
+}
+/* a dot for each page of playlists, the one on screen lit; tap a dot to go to its page */
+function plDots() {
+  const ul = $("#pls"), d = $("#pldots"), n = ul.querySelectorAll(".plpage").length;
+  d.classList.toggle("hidden", n < 2);
+  if (d.children.length !== n) d.innerHTML = n < 2 ? "" : "<i></i>".repeat(n);
+  const at = Math.round(ul.scrollLeft / Math.max(1, ul.clientWidth));
+  [...d.children].forEach((el, i) => el.classList.toggle("on", i === at));
+}
+$("#pls").addEventListener("scroll", plDots, {passive: true});
+$("#pldots").addEventListener("click", e => {
+  const i = [...$("#pldots").children].indexOf(e.target); if (i < 0) return;
+  $("#pls").scrollTo({left: i * $("#pls").clientWidth, behavior: "smooth"});
+});
 let plDone = false, plT = null, plX = 0, plY = 0, sheetPl = null;
 $("#pls").addEventListener("pointerdown", e => {
   const b = e.target.closest(".pl"); if (!b) return;
   plDone = false; plX = e.clientX; plY = e.clientY; clearTimeout(plT);
   plT = setTimeout(() => {
-    plDone = true; sheetPl = LIB.playlists[+b.dataset.i]; if (!sheetPl || !N) return;
-    $("#psTitle").textContent = sheetPl.name; $("#psReset").classList.toggle("hidden", !sheetPl.custom);
-    psFollowFor(sheetPl.name);                     
-    $("#psheet").classList.remove("hidden");
+    plDone = true; openPs(LIB.playlists[+b.dataset.i]);
   }, 550);
 });
 $("#pls").addEventListener("pointermove", e => { if (Math.abs(e.clientX - plX) + Math.abs(e.clientY - plY) > 12) clearTimeout(plT); });
 ["pointerup", "pointercancel", "pointerleave"].forEach(ev => $("#pls").addEventListener(ev, () => clearTimeout(plT)));
-$("#pls").addEventListener("contextmenu", e => e.preventDefault());
-const closePs = () => { $("#psheet").classList.add("hidden"); };
+/* the phone's own long press
+   (it fires contextmenu) opens the playlist menu as well - the timer alone could be cut off by the phone */
+$("#pls").addEventListener("contextmenu", e => {
+  e.preventDefault();
+  const b = e.target.closest(".pl"); if (!b || !$("#psheet").classList.contains("hidden")) return;
+  clearTimeout(plT); plDone = true; openPs(LIB.playlists[+b.dataset.i]);
+});
+const closePs = () => { $("#psheet").classList.add("hidden"); plDone = false; };     /* the next tap on a card opens it */
 $("#psCancel").onclick = closePs;
 $("#psheet").addEventListener("click", e => { if (e.target.id === "psheet") closePs(); });
 $("#psPick").onclick = () => { closePs(); if (sheetPl) N.pickCover(sheetPl.name); };
-$("#lmore").onclick = () => {
-  if (!PL || !N) return; sheetPl = PL;
-  $("#psTitle").textContent = PL.name; $("#psReset").classList.toggle("hidden", !PL.custom);
-  /* the YouTube switch shows only on a playlist that came from a YouTube playlist (a Mix is never checked) */
-  psFollowFor(PL.name);
+/* the ... inside a playlist opens the SONG menu for the song playing (favorites, hide, wrong song,
+   lyrics, share, add, move, queue, play next, delete). The playlist menu is a long press on the playlist's
+   card - never from here. With no song loaded at all there is nothing to show, and it says so. */
+$("#lmore").onclick = () => { if (cur) openSheet(cur); else toast("Play a song first - this menu is for the song playing"); };
+/* the playlist menu, from a long press on its card. The YouTube switch shows only on a
+   playlist that came from a YouTube playlist (a Mix is never checked). Play, Shuffle and Share at the top. */
+function openPs(p) {
+  if (!p || !N) return; sheetPl = p;
+  const n = p.songs.length;
+  $("#psTitle").textContent = p.name; $("#psSub").textContent = n ? nSongs(n) : "Playlist - no songs yet";
+  $("#psReset").classList.toggle("hidden", !p.custom);
+  ["#psPlay", "#psShuf", "#psShare"].forEach(x => $(x).classList.toggle("hidden", !n));
+  $("#psShare").classList.toggle("hidden", !n || !N.sharePlaylist);
+  psFollowFor(p.name);
   $("#psheet").classList.remove("hidden");
-};
+}
+$("#psPlay").onclick = () => { const p = sheetPl; closePs(); if (p && p.songs.length) playList(sortedNow(p), 0, false); };
+$("#psShuf").onclick = () => { const p = sheetPl; closePs(); if (!p || !p.songs.length) return; const all = sortedNow(p); playList(all, Math.floor(Math.random() * all.length), true); };
+$("#psShare").onclick = () => { const p = sheetPl; closePs(); if (p && N && N.sharePlaylist) N.sharePlaylist(p.name); };
 function psFollowFor(name) {
   let info = {}; try { info = JSON.parse(N.plInfo ? N.plInfo(name) : "{}"); } catch (e) {}
   $("#psFollow").classList.toggle("hidden", !info.linked); psFollowShow(!!info.on);
@@ -1901,7 +2242,7 @@ function renderList(top) {
   if (!favOnly() && !sortCache.has(key)) {
     const want = PL, by = sortBy, rev = sortRev;
     $("#lname").textContent = PL.name; $("#lcount").textContent = countLine(PL.songs.length, waiting(pendOf(PL.name)));
-    if (!LIST_BASE || LIST_BASE.pl !== PL) { ++renderTok; $("#songs").innerHTML = ""; shown = []; LIST_BASE = {pl: PL, list: []}; }
+    if (!LIST_BASE || LIST_BASE.pl !== PL) { ++renderTok; $("#songs").innerHTML = ""; shown = []; LIST_BASE = {pl: PL, list: []}; listDone = true; drawList = null; }
     sortAsync(PL, by).then(() => { if (PL === want && sortBy === by && sortRev === rev) { renderList(top); if (top) scrollTo(0, 0); } });
     return;
   }
@@ -1921,20 +2262,49 @@ function renderList(top) {
     /* first screen now; the rest in small pieces only while the phone is free, so a
        tap (Back, Sort, a song) never waits behind 2,000 rows being added */
     ul.innerHTML = list.slice(0, 40).map(row).join("");
-    let n = 40;
-    listDone = n >= list.length;
-    const more = dl => {
-      if (tok !== renderTok) return;
-      do {
-        ul.insertAdjacentHTML("beforeend", list.slice(n, n + 120).map((s, k) => row(s, n + k)).join(""));
-        n += 120;
-      } while (n < list.length && dl && dl.timeRemaining && dl.timeRemaining() > 8);
-      if (n >= list.length) listDone = true; else idle(more, 500);
-    };
-    if (!listDone) idle(more, 500);
+    drawRest(list, 40, tok);
+    if (keepY >= 0) {                     /* drawn again under you - enough rows to stand where you were */
+      const yy = keepY, need = Math.ceil((yy + 2 * innerHeight) / 56);
+      keepY = -1; if (need > drawAt) drawChunk(need - drawAt);
+      requestAnimationFrame(() => scrollTo(0, yy));
+    }
   }
   showSort();
 }
+/*
+ * the rows after the first screen were
+ * added 120 at a time, forced every half second even while the phone was busy, and every new song that came
+ * in drew the whole list again. Now the rest is drawn 40 at a time only when the phone is truly free (forced
+ * at most every 3 seconds), and straight away when you scroll near the end of what is drawn - a tap never
+ * waits behind thousands of rows.
+ */
+let drawList = null, drawAt = 0, drawTick = false, keepY = -1;
+function drawRest(list, n, tok) {
+  drawList = list; drawAt = n; listDone = n >= list.length;
+  if (!listDone) idle(dl => drawIdle(dl, tok), 3000);
+}
+function drawChunk(k) {
+  if (listDone || !drawList) return;
+  const n = drawAt, part = drawList.slice(n, n + k);
+  $("#songs").insertAdjacentHTML("beforeend", part.map((s, j) => rowHtml(s, n + j)).join(""));
+  drawAt = n + part.length;
+  if (drawAt >= drawList.length) { listDone = true; drawList = null; }
+}
+function drawIdle(dl, tok) {
+  if (tok !== renderTok || listDone) return;
+  do drawChunk(40); while (!listDone && dl && dl.timeRemaining && dl.timeRemaining() > 10);
+  if (!listDone) idle(d => drawIdle(d, tok), 3000);
+}
+addEventListener("scroll", () => {
+  if (listDone || drawTick) return;
+  drawTick = true;
+  requestAnimationFrame(() => {
+    drawTick = false;
+    if (listDone || $("#list").classList.contains("hidden")) return;
+    const last = $("#songs").lastElementChild;
+    if (last && last.getBoundingClientRect().top < innerHeight * 3) drawChunk(80);
+  });
+}, {passive: true});
 /*
  * songs arriving while a playlist is open slot in where they belong -
  * nothing above you moves, no pictures reload, no jump. Returns false when
@@ -1942,7 +2312,7 @@ function renderList(top) {
  * song gone).
  */
 function patchList() {
-  if (!PL || !listDone || $("#q").value.trim() || favOnly()) return false;
+  if (!PL || $("#q").value.trim() || favOnly()) return false;      /* also while the list is still being drawn */
   const list = sortedNow(PL), ul = $("#songs");
   const old = new Map();
   for (const li of ul.children) { if (!li.dataset.k) return false; old.set(li.dataset.k, li); }
@@ -1950,9 +2320,10 @@ function patchList() {
   const pos = new Map(list.map((s, i) => [keyOf(s), i]));
   let last = -1;
   for (const k of old.keys()) { const p = pos.get(k); if (p === undefined || p < last) return false; last = p; }
+  const upto = listDone ? list.length - 1 : last;          /* below the drawn rows, the drawing carries on in the new order */
   const t = document.createElement("template");
   let next = null;
-  for (let i = list.length - 1; i >= 0; i--) {
+  for (let i = upto; i >= 0; i--) {
     const li = old.get(keyOf(list[i]));
     if (li) { next = li; continue; }
     t.innerHTML = rowHtml(list[i], i);
@@ -1960,6 +2331,7 @@ function patchList() {
     ul.insertBefore(el, next); next = el;
   }
   let i = 0; for (const li of ul.children) li.dataset.i = i++;
+  if (!listDone) { drawList = list; drawAt = upto + 1; }
   shown = list; LIST_BASE = {pl: PL, list};
   $("#lcount").textContent = countLine(PL.songs.length, waiting(pendOf(PL.name)));
   renderPend(); renderMiss(); markOn();
@@ -2063,8 +2435,14 @@ window.onPending = () => {
   }
   renderDls();
 };
-/* new songs are in: read the library again without a message, staying where you are */
-window.onSongs = async () => {
+/* new songs are in: read the library again without a message, staying where you are.
+   songs landing one after another are read in one go, and never while a finger is on the screen
+   (or for a moment after) - a download filling the open playlist no longer freezes taps */
+let songsT = 0, touchAt = 0;
+["pointerdown", "touchmove", "wheel"].forEach(ev => addEventListener(ev, () => { touchAt = Date.now(); }, {passive: true, capture: true}));
+window.onSongs = () => { clearTimeout(songsT); songsT = setTimeout(songsNow, 1500); };
+const songsNow = async () => {
+  if (Date.now() - touchAt < 2500) { songsT = setTimeout(songsNow, 1500); return; }
   const name = PL && PL.name, y = scrollY, qv = $("#q").value, inList = !$("#list").classList.contains("hidden");
   try { await getLib(); } catch (e) { return; }
   if (inList && name) {
@@ -2072,7 +2450,7 @@ window.onSongs = async () => {
     if (!PL) { route(); return; }
     shown = shown.map(s => KEYS.get(keyOf(s)) || s);                /* the same songs, from the fresh list */
     if (DLS.some(d => d.folder.toLowerCase() === name.toLowerCase())) {     /* the one filling up: show its new songs */
-      if (!patchList()) { $("#q").value = qv; renderList(); requestAnimationFrame(() => scrollTo(0, y)); }
+      if (!patchList()) { $("#q").value = qv; keepY = y; renderList(); }
     } else markOn();
   } else if (!$("#home").classList.contains("hidden")) renderHome();
 };
@@ -2122,7 +2500,7 @@ function apply(st) {
   ST = st || {}; stAt = performance.now();
   const s = ST.key ? KEYS.get(ST.key) || null : null;
   if (s !== cur) { cur = s; if (s) showSong(s); markOn(); idle(loadPlays, 2000); }     /* play counts when free */
-  $("#mini").classList.toggle("hidden", !cur);
+  $("#mini").classList.toggle("hidden", !cur); titleLook();
   syncPlay(); tick(); renderUp();
   if (ST.note) toast(ST.note);
 }
@@ -2142,6 +2520,7 @@ function markOn() {
   }
 }
 $("#mplay").onclick = () => N && N.toggle(); $("#nplay").onclick = () => N && N.toggle();
+$("#mprev").onclick = () => N && N.prev();
 $("#mnext").onclick = () => N && N.next(); $("#next").onclick = () => N && N.next(); $("#prev").onclick = () => N && N.prev();
 $("#shuf").onclick = () => N && N.setShuffle(!ST.shuffle);
 $("#rep").onclick = () => N && N.setRepeat(ST.repeat === "all" ? "one" : ST.repeat === "one" ? "off" : "all");
@@ -2175,7 +2554,7 @@ function showSong(s) {
   for (const [id, big] of [["#mart", false], ["#nart", true]]) { const im = $(id); im.style.visibility = "visible"; im.onerror = () => im.style.visibility = "hidden"; im.src = artUrl(s.p, s.file, big); }
   waveOn = -1;                                            /* the progress line (no bars to build) */
   trackColors(s);
-  if ($("#now").classList.contains("show") || LYR.open) wantLyrics(s);
+  if ($("#now").classList.contains("show") || LYR.open || KAR.open) wantLyrics(s);
   else { LYR.data = null; $("#nlyr").classList.remove("has"); }
 }
 let playShown = null;
@@ -2183,8 +2562,8 @@ function syncPlay() {
   const p = !!ST.playing;
   if (p !== playShown) {                                   /* only when it changed (was redrawn every 2 s) */
     playShown = p;
-    $("#mplay").innerHTML = $("#nplay").innerHTML = p ? PAUSE : PLAY;
-    $("#mplay").setAttribute("aria-label", p ? "Pause" : "Play"); $("#nplay").setAttribute("aria-label", p ? "Pause" : "Play");
+    $("#mplay").innerHTML = $("#nplay").innerHTML = $("#karplay").innerHTML = p ? PAUSE : PLAY;
+    $("#mplay").setAttribute("aria-label", p ? "Pause" : "Play"); $("#nplay").setAttribute("aria-label", p ? "Pause" : "Play"); $("#karplay").setAttribute("aria-label", p ? "Pause" : "Play");
     $("#disc").classList.toggle("go", p);
     document.body.classList.toggle("playing", p);           /* the bars on the playing song move only while it plays */
   }
@@ -2207,6 +2586,8 @@ function tick() {
   if (on !== waveOn) { waveOn = on; $("#pfill").style.transform = "scaleX(" + (on / 2000) + ")"; $("#pknob").style.transform = "translateX(" + (on / 20) + "%)"; }
   if (!LYR.raf) lyricsTick();
   lyricsWake();
+  if (!KAR.raf) karTick();
+  karWake();
 }
 function seekTo(ms) {
   if (!N || !cur) return;
@@ -2241,7 +2622,7 @@ function linkKind(link) {
 const wholeList = id => "https://www.youtube.com/playlist?list=" + id;
 let addChose = false;                  /* picked a chip by hand: typing the link does not undo it */
 function addChips() {
-  const names = LIB.playlists.filter(p => !p.soon).map(p => p.name), list = linkKind($("#aLink").value.trim()).kind !== "song";
+  const names = plOrder().map(i => LIB.playlists[i]).filter(p => !p.soon).map(p => p.name), list = linkKind($("#aLink").value.trim()).kind !== "song";
   if (!addChose) addTo = list ? AUTO : "";          /* a song: you pick where it belongs */
   if (addTo === AUTO && !list) addTo = "";
   const newOn = (addChose && addTo === "") || (!names.length && !list);
@@ -2292,24 +2673,29 @@ $("#aPhone").onclick = () => {
   closeAdd(); N.importSongs(to);
 };
 $("#addBtn").onclick = () => openAdd("");
-/* Share > Carmen Musicum, straight in, no questions:
-   - a playlist becomes a playlist in Carmen Musicum (named after it - or, if one here already has its songs,
-     that one fills up); every song is listed at once and fills in as it downloads
-   - a song goes into the playlist used last
+/* Share > Carmen Musicum:
+   - a song: you tap the playlist it belongs in
+   - a playlist: you tap where its songs go: one of your playlists, Its own
+     playlist (named after the YouTube one), or a new one; every song is listed at once and fills in as it
+     downloads, songs already in that playlist are not fetched again
    - a song played from a playlist: asks once - the whole playlist, or just the song */
-/* a shared song: you tap the playlist it belongs in (one tap starts it) */
+/* one tap starts it */
 let songLink = "";
-function shareSong(link) {
+function shareSong(link, whole) {
   songLink = link;
-  $("#sList").innerHTML = LIB.playlists.map((p, i) => '<button class="srow" data-i="' + i + '">' + esc(p.name) +
-    '<small>' + countLine(p.songs.length, waiting(pendOf(p.name))) + '</small></button>').join("") +
-    '<button class="srow" id="sNewBtn">New playlist<small>Starts a new playlist with this song.</small></button>';
+  $("#sTitle").textContent = whole ? "Add this playlist to" : "Add this song to";
+  $("#sSub").textContent = whole ? "Tap the playlist its songs go in." : "Tap the playlist it belongs in.";
+  $("#sList").innerHTML = plOrder().map(i => { const p = LIB.playlists[i]; return '<button class="srow" data-i="' + i + '">' + esc(p.name) +
+    '<small>' + countLine(p.songs.length, waiting(pendOf(p.name))) + '</small></button>'; }).join("") +
+    (whole ? '<button class="srow" id="sOwnBtn">Its own playlist<small>A new playlist named after the YouTube one.</small></button>' : '') +
+    '<button class="srow" id="sNewBtn">New playlist<small>Starts a new playlist with ' + (whole ? 'these songs' : 'this song') + '.</small></button>';
   $("#sNewRow").classList.add("hidden"); $("#sNew").value = "";
   $("#ssheet").classList.remove("hidden");
 }
 const closeSong = () => $("#ssheet").classList.add("hidden");
 $("#sList").addEventListener("click", e => {
   if (e.target.closest("#sNewBtn")) { $("#sNewRow").classList.remove("hidden"); $("#sNew").focus(); return; }
+  if (e.target.closest("#sOwnBtn")) { closeSong(); startDownload(songLink, ""); return; }
   const b = e.target.closest("[data-i]"); if (!b) return;
   const p = LIB.playlists[+b.dataset.i]; if (!p) return;
   closeSong(); startDownload(songLink, p.name);
@@ -2325,7 +2711,7 @@ let bothLink = "", bothId = "";
 window.onShared = link => {
   if (!N) return;
   const k = linkKind(link);
-  if (k.kind === "playlist") startDownload(link, "");
+  if (k.kind === "playlist") shareSong(link, true);
   else if (k.kind === "both") {
     bothLink = link; bothId = k.id;
     $("#bOneTo").textContent = "You pick the playlist it belongs in.";
@@ -2333,7 +2719,7 @@ window.onShared = link => {
   } else shareSong(link);
 };
 const closeBoth = () => $("#bsheet").classList.add("hidden");
-$("#bAll").onclick = () => { closeBoth(); startDownload(wholeList(bothId), ""); };
+$("#bAll").onclick = () => { closeBoth(); shareSong(wholeList(bothId), true); };
 $("#bOne").onclick = () => { closeBoth(); shareSong(bothLink); };
 $("#bCancel").onclick = closeBoth;
 $("#bsheet").addEventListener("click", e => { if (e.target.id === "bsheet") closeBoth(); });
@@ -2353,9 +2739,9 @@ function renderDls() {
       (d.text && !busy ? '<div class="warn">' + esc(d.text) + '</div>' : '') + '</div>';
   });
   /* waiting out YouTube's pause: it carries on by itself */
-  const waits = Object.keys(PENDING).filter(k => (PENDING[k].retry || 0) > now && !DLS.some(d => d.folder.toLowerCase() === k.toLowerCase())).map(k => {
+  const waits = Object.keys(PENDING).filter(k => (PENDING[k].retry || 0) > now && !DLS.some(d => d.folder.toLowerCase() === pendBase(k).toLowerCase())).map(k => {
     const e = PENDING[k], w = waiting(e);
-    return '<div class="dl"><b>' + (k.startsWith("?") ? "A playlist for Carmen Musicum" : esc(k)) + '</b>' +
+    return '<div class="dl"><b>' + (k.startsWith("?") ? "A playlist for Carmen Musicum" : esc(pendBase(k))) + '</b>' +
       '<div class="row"><span>' + (w ? nSongs(w) + " still to come" : "Waiting") + '</span><button class="ghost dlstop">Stop</button></div>' +
       '<div class="note">' + esc(e.note || "YouTube paused downloads") + ' - Carmen Musicum tries again at ' + clock(e.retry) + ' by itself.</div></div>';
   });
@@ -2371,7 +2757,7 @@ let sheetSong = null;
 function openSheet(s) {
   if (!s || !N) return;
   sheetSong = s; $("#shTitle").textContent = showName(s); $("#shArtist").textContent = s.artist || "Unknown artist";
-  $("#shFav").firstChild.textContent = isFav(s) ? "Remove from favorites" : "Add to favorites";
+  $("#shFav").querySelector(".st").textContent = isFav(s) ? "Remove from favorites" : "Add to favorites";
   /* Wrong lyrics in this menu too, for the song that is playing */
   $("#shLyr").classList.toggle("hidden", !(cur && keyOf(cur) === keyOf(s)));
   /* one tap to move it where the last one went (going through a big playlist) */
@@ -2491,15 +2877,16 @@ function goBack(fallback) {
 function popDone() { popFor = null; clearTimeout(popT); if (goNext) { const h = goNext; goNext = null; go(h); } }
 /* the phone's own Back button (MainActivity asks the page first): "1" = the page stepped back */
 window.appBack = () => { if (popFor !== null) return "1";
+  if (KAR.open) { karClose(); return "1"; }
   if (!$("#home").classList.contains("hidden") && !$("#now").classList.contains("show") && $("#hq").value) { $("#hq").value = ""; $("#hq").blur(); homeSearch(); return "1"; }
   if (history.state && history.state.d > 0) { goBack("#/"); return "1"; } return "0"; };
 let miniAt = 0;
 $("#mini").addEventListener("pointerdown", e => {
-  if (e.button > 0 || e.target.closest("#mplay,#mnext") || !cur) return;
+  if (e.button > 0 || e.target.closest("#mprev,#mplay,#mnext") || !cur) return;
   miniAt = performance.now(); go("#/now");
 });
 $("#mini").addEventListener("click", e => {
-  if (e.target.closest("#mplay,#mnext") || !cur) return;
+  if (e.target.closest("#mprev,#mplay,#mnext") || !cur) return;
   if (performance.now() - miniAt < 1000) return;           /* the touch already opened it */
   go("#/now");
 });
@@ -2512,7 +2899,7 @@ function route(to) {
   const h = to || location.hash || "#/";
   const now = $("#now");
   const wasHome = !$("#home").classList.contains("hidden");
-  if (wasHome && h !== "#/" && h !== "#/now") homeY = scrollY;
+  if (wasHome && h !== "#/" && h !== "#/now") { homeY = scrollY; homeX = [$("#pls").scrollLeft, $(".hbtns").scrollLeft]; }
   if (h === "#/now") { if (!cur) { history.replaceState({d: 0}, "", lastView); return route(); } now.classList.add("show"); now.setAttribute("aria-hidden", "false"); nowShown(); return; }
   now.classList.remove("show"); now.setAttribute("aria-hidden", "true"); ringStop(); document.body.classList.remove("nowup");
   lastView = h;
@@ -2530,7 +2917,7 @@ function route(to) {
     }
   }
   $("#list").classList.add("hidden"); $("#home").classList.remove("hidden"); renderHome();
-  if (!wasHome) { scrollTo(0, homeY); enter($("#home")); }      /* back where you were on the home screen */
+  if (!wasHome) { scrollTo(0, homeY); $("#pls").scrollLeft = homeX[0]; $(".hbtns").scrollLeft = homeX[1]; plDots(); enter($("#home")); }      /* back where you were on the home screen */
 }
 addEventListener("popstate", () => {
   const h = location.hash || "#/", want = popFor;
@@ -2689,16 +3076,35 @@ function trackColors(s) {
    free) the galaxy's colours */
 function songLook(im, pal, tok) {
   setColors(pal.def ? [pal[0], pal[4]] : pal.slice(0, 2), pal.def ? pal : null);   /* the default = all five */
+  if (!pal.def) {          /* the back button's colour - the picture's colour furthest from play's and next's */
+    const a = pal[0], b = pal[1];
+    let c3 = null, far = -1;
+    for (const c of pal.slice(2)) { const d = Math.min(cdist(c, a), cdist(c, b)); if (d > far) { far = d; c3 = c; } }
+    if (!c3 || far < 70) c3 = onBlack(mix(a, b, .5).map(v => 255 - v));   /* too close: the opposite of their middle */
+    $("#mini").style.setProperty("--c3", rgb(c3));
+  }
   requestAnimationFrame(() => { if (tok !== colTok) return; infoBg(im, pal);
     requestAnimationFrame(() => { if (tok !== colTok) return; glowFor(pal); idle(() => { if (tok === colTok) galaxyFor(pal); }, 700); }); });
 }
 let colSeq = 0;
+/* the home screen's title in the playing song's colours (CSS .mark.song) */
+function titleLook() {
+  const m = $(".mark"), on = !!cur && !!titlePair;
+  if (on) { m.style.setProperty("--c1", rgb(titlePair[0])); m.style.setProperty("--c2", rgb(titlePair[1])); }
+  m.classList.toggle("song", on);
+}
 function setColors(pair, stops) {
   const seq = ++colSeq;
   colFrom = [COL[0].slice(), COL[1].slice()]; colTo = pair.map(c => c.slice()); colAt = performance.now();
   const now = $("#now"); now.style.setProperty("--c1", rgb(pair[0])); now.style.setProperty("--c2", rgb(pair[1]));
   const mini = $("#mini"); mini.style.setProperty("--c1", rgb(pair[0])); mini.style.setProperty("--c2", rgb(pair[1]));   /* the bar at the bottom too */
-  if (stops) now.style.setProperty("--grad", gradOf(stops)); else now.style.removeProperty("--grad");   
+  mini.classList.toggle("song", !stops);                                         /* play / next in these colours */
+  const home = $("#home");                                                         /* the home screen's frames */
+  if (stops) { home.style.removeProperty("--o1"); home.style.removeProperty("--o2"); }
+  else { home.style.setProperty("--o1", rgb(pair[0])); home.style.setProperty("--o2", rgb(pair[1])); }
+  const kara = $("#kara"); kara.style.setProperty("--c1", rgb(pair[0])); kara.style.setProperty("--c2", rgb(pair[1]));
+  if (stops) now.style.setProperty("--grad", gradOf(stops)); else now.style.removeProperty("--grad");
+  titlePair = stops ? null : pair; titleLook();
   const tStops = stops ? stops.map(c => c.slice()) : null;
   /* the list's colours for the playing song are set only where they are used - setting them
      on the whole page made every one of the thousands of rows underneath be looked at again */
@@ -2947,7 +3353,13 @@ const NB = 64, RING = {on: false, raf: 0, polled: 0, still: 0, top: 55, bars: ne
 const calm = matchMedia("(prefers-reduced-motion: reduce)");
 let vizOK = false;
 let nowSliding = false;          /* the player is still sliding up - the ring waits */
-const ringVisible = () => $("#now").classList.contains("show") && !nowSliding && !LYR.open && !document.hidden;
+const KAR = {open: false, raf: 0, key: null, sig: undefined, idx: -2, spans: [], st: [], n: -1};   /* karaoke */
+const ringVisible = () => $("#now").classList.contains("show") && !nowSliding && !LYR.open && !KAR.open && !document.hidden;
+/* the ring is drawn on a thread
+   of its own (a Web Worker with an OffscreenCanvas); the page only hands it the readings,
+   about 33 a second, and the song's colours. the "Quantum Entanglement" look (ringsrc
+   above). A WebView that can't run it on its own thread gets the very same code run by the
+   page itself (ringLocal) - so it looks the same either way. */
 const RING_K = 2.7;                /* 2.7 times the record - the waves, web and particle cloud round it */
 const RW = {w: null, tried: false, poll: 0, live: null, local: false};
 function ringThread() {
@@ -3127,8 +3539,12 @@ function parseLrc(text) {
     const end = i + 1 < out.length ? out[i + 1].t : l.t + 6000;
     if (l.words) {
       l.ws = l.words.map((w, k) => ({w: w.w, s: w.t, e: k + 1 < l.words.length ? l.words[k + 1].t : Math.min(end, w.t + Math.max(350, w.w.length * 90))}));
+    } else if (!l.text) {
+      /* a break's
+         notes are one "word" that is over the moment it starts, so they go white all at once */
+      l.ws = [{w: "\u266A \u266A", s: l.t, e: l.t}];
     } else {
-      const ws = l.text ? l.text.split(" ") : [], chars = ws.reduce((a, w) => a + w.length + 1, 0) || 1;
+      const ws = l.text.split(" "), chars = ws.reduce((a, w) => a + w.length + 1, 0) || 1;
       const dur = Math.min(end - l.t, Math.max(1200, chars * 75 + 400));
       let c = 0;
       l.ws = ws.map(w => { const s = l.t + dur * c / chars; c += w.length + 1; return {w, s, e: l.t + dur * c / chars}; });
@@ -3154,7 +3570,9 @@ function showLyrics() {
     heard: "Written by your phone from the song itself - some words may be off.",
     other: "Lyrics of " + esc(d.fromTrack || "another version") + (d.fromArtist ? " by " + esc(d.fromArtist) : "") +
       " (LRCLIB) - another version of this song, so some words may differ."};
-  const foot = '<div class="lfoot">' + (FROM[d.src] || "") + (d.synced ? "" : " Not timed.") + (d.inFile ? " Saved in the song file." : "") + '<br><button class="lfix">Wrong? Search by name</button></div>';
+  const TIMED = {cc: " Timed to this song by its captions.", auto: " Timed to this song by its automatic captions.",
+    heard: " Timed to this song by what your phone heard."};
+  const foot = '<div class="lfoot">' + (FROM[d.src] || "") + (d.synced ? (TIMED[d.timedBy] || "") : " Not timed.") + (d.inFile ? " Saved in the song file." : "") + '<br><button class="lfix">Wrong? Search by name</button></div>';
   const timing = () => '<div class="ltime" id="ltime">Words light up: <button data-off="250">Sooner</button><button data-off="-250">Later</button><span>' + offText() + '</span></div>';
   if (d.status === "loading") L.innerHTML = d.src === "cc" ? msg("Reading the video's captions...", "Asking YouTube - 25 seconds at most.") : msg("Looking for lyrics...");
   else if (d.status === "instrumental") L.innerHTML = msg("Instrumental", "No words in this one.", fix);
@@ -3162,7 +3580,7 @@ function showLyrics() {
   else if (d.status !== "ok") L.innerHTML = msg("No lyrics found for this song", "Looked in LRCLIB (this version and others), the song file, the video's description and its captions." +
     (d.track ? "<br>Searched for: " + esc(d.track) + (d.artist ? " - " + esc(d.artist) : "") : ""), fix);
   else if (LYR.lines) L.innerHTML = LYR.lines.map((l, i) => '<p data-i="' + i + '"' + (l.text ? '>' + l.ws.map((w, k) => '<span data-w="' + k + '">' + esc(w.w) + '</span>').join(" ")
-    : ' class="gap">&#9834; &#9834;') + '</p>').join("") + foot + timing();
+    : ' class="gap"><span data-w="0">&#9834; &#9834;</span>') + '</p>').join("") + foot + timing();
   else { L.classList.add("plain"); L.innerHTML = String(d.plain || "").split(/\r?\n/).map(x => '<p>' + (esc(x) || "&nbsp;") + '</p>').join("") + foot; }
   LYR.idx = -1; lyricsTick(true); lyricsWake();
 }
@@ -3220,6 +3638,77 @@ function setLyricsOpen(on) {
   else ringStart();
 }
 $("#nlyr").onclick = () => setLyricsOpen(!LYR.open);
+/* ---------- Karaoke (CSS .kara) - the same timed lyrics, timing nudge and LEAD as the lyrics panel ---------- */
+function karOpen() {
+  if (!cur) return;
+  KAR.open = true; KAR.key = null; KAR.sig = undefined;
+  const k = $("#kara"); k.classList.remove("hidden"); k.setAttribute("aria-hidden", "false"); document.body.classList.add("karup");
+  ringStop();
+  const waiting = LYR.data && (LYR.data.status === "offline" || LYR.data.status === "busy");
+  if (!LYR.data || LYR.data.key !== keyOf(cur) || waiting && !LYR.retry.t) wantLyrics(cur);
+  karTick(); karWake();
+}
+function karClose() {
+  KAR.open = false; cancelAnimationFrame(KAR.raf); KAR.raf = 0;
+  const k = $("#kara"); k.classList.add("hidden"); k.setAttribute("aria-hidden", "true"); document.body.classList.remove("karup");
+  if (!LYR.open) ringStart();
+}
+const karLive = () => KAR.open && ST.playing && !document.hidden;
+function karWake() { if (!KAR.raf && karLive()) KAR.raf = requestAnimationFrame(karFrame); }
+function karFrame() { KAR.raf = 0; if (!karLive()) return; karTick(); KAR.raf = requestAnimationFrame(karFrame); }
+/* a line as word spans; a break (or the intro) as the notes, lit at once */
+function karSet(el, l, next) {
+  el.className = "kline" + (next ? " next" : "") + (l && !l.text ? " gap" : "");
+  el.innerHTML = !l ? "" : l.text ? l.ws.map(w => '<span>' + esc(w.w) + '</span>').join(" ") : "&#9834; &#9834;";
+}
+function karTick() {
+  if (!KAR.open) return;
+  if (!cur) { karClose(); return; }
+  const key = keyOf(cur);
+  if (KAR.key !== key) {
+    KAR.key = key; $("#kartitle").textContent = showName(cur); $("#karartist").textContent = cur.artist || "";
+    $("#karbg").innerHTML = '<img alt="" src="' + artUrl(cur.p, cur.file, true) + '" onerror="this.remove()">';
+  }
+  const d = dur(), t = pos() + LEAD + lyrOff();
+  $("#karprog").style.transform = "scaleX(" + (d ? Math.min(1, pos() / d) : 0).toFixed(4) + ")";
+  const ld = LYR.data && LYR.data.key === key ? LYR.data : null, lines = ld ? LYR.lines : null;
+  const sig = lines || (ld ? ld.status + "|" + !!ld.plain : "");
+  if (sig !== KAR.sig) {
+    KAR.sig = sig; KAR.idx = -2; KAR.n = -1;
+    const m = $("#karmsg"); m.classList.toggle("hidden", !!lines);
+    if (!lines) {
+      karSet($("#kl0"), null, false); karSet($("#kl1"), null, true);
+      m.innerHTML = !ld || ld.status === "loading" || ld.status === "busy" || ld.status === "offline" ? "Looking for lyrics..."
+        : ld.status === "ok" ? "These lyrics aren't timed<small>Karaoke needs lyrics that know when each line is sung.</small>"
+        : ld.status === "instrumental" ? "Instrumental<small>No words in this one.</small>"
+        : "No lyrics found for this song<small>Open the lyrics and try \u201cSearch by name\u201d.</small>";
+    }
+  }
+  const dots = n => { if (n !== KAR.n) { KAR.n = n; $("#kcount").querySelectorAll("i").forEach((el, j) => el.classList.toggle("off", j >= n)); } };
+  if (!lines) { dots(0); return; }
+  let lo = 0, hi = lines.length - 1, i = -1;
+  while (lo <= hi) { const mid = (lo + hi) >> 1; if (lines[mid].t <= t) { i = mid; lo = mid + 1; } else hi = mid - 1; }
+  if (i !== KAR.idx) {
+    KAR.idx = i;
+    karSet($("#kl0"), i < 0 ? {text: ""} : lines[i], false);
+    karSet($("#kl1"), lines[i + 1] || null, true);
+    KAR.spans = [...$("#kl0").querySelectorAll("span")]; KAR.st = [];
+  }
+  const l = i >= 0 ? lines[i] : null;
+  if (l && l.text) l.ws.forEach((w, k) => {
+    const sp = KAR.spans[k]; if (!sp) return;
+    const st = t >= w.e ? 2 : t >= w.s ? 1 : 0;
+    if (st !== KAR.st[k]) { sp.className = st === 2 ? "done" : st === 1 ? "cur" : ""; KAR.st[k] = st; }
+    if (st === 1) sp.style.setProperty("--k", Math.min(100, Math.round((t - w.s) / Math.max(1, w.e - w.s) * 100)) + "%");
+  });
+  /* the countdown: the last three seconds before singing that comes after four or more without */
+  const nx = lines[i + 1], end = !l ? 0 : l.text && l.ws.length ? l.ws[l.ws.length - 1].e : l.t;
+  const left = nx ? (nx.t - t) / 1000 : 99;
+  dots(nx && nx.text && nx.t - end >= 4000 && left <= 3 ? Math.max(0, Math.ceil(left)) : 0);
+}
+$("#nkar").onclick = karOpen;
+$("#karclose").onclick = karClose;
+$("#karplay").onclick = () => { if (N) N.toggle(); };
 $("#nartist").addEventListener("click", () => {
   const p = $("#nartist"); if (!p.classList.contains("more")) return;
   const all = !p.classList.contains("all"); p.classList.toggle("all", all); p.textContent = all ? p.dataset.all : p.dataset.short;
