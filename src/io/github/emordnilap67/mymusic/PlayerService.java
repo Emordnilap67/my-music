@@ -13,6 +13,8 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Icon;
 import android.media.AudioAttributes;
+import android.media.AudioDeviceCallback;
+import android.media.AudioDeviceInfo;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
@@ -237,6 +239,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         session.setActive(true);
         // 4 = RECEIVER_NOT_EXPORTED (Android 13+ wants it said; a system broadcast still arrives)
         registerReceiver(noisy, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), 4);
+        am.registerAudioDeviceCallback(devices, MAIN);
         instance = this;
         Loud.done = new Loud.Done() {               // a song just measured - the one on now (or next) takes its level
             @Override
@@ -312,6 +315,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             unregisterReceiver(noisy);
         } catch (Exception ignored) {
         }
+        am.unregisterAudioDeviceCallback(devices);
         if (focus != null) am.abandonAudioFocusRequest(focus);
         MAIN.removeCallbacks(fadeTick);
         MAIN.removeCallbacks(watch);
@@ -725,6 +729,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             Library.Song s = key == null ? null : Library.get(this).byKey.get(key);
             db = s == null ? Loud.UNKNOWN_DB : Loud.gainDb(this, key, s.size);
         }
+        if (Sound.outside(this)) db = Math.min(12f, db + Sound.boostDb(this));    // Bluetooth, Alexa, the car - louder
         v[0] = db < 0 ? (float) Math.pow(10, db / 20.0) : 1f;
         Sound.Fx f = fx.get(m);
         if (f != null) f.boost(db);
@@ -885,6 +890,19 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         saveQueue();
     }
 
+    /** a Bluetooth speaker or headphones came or went - the Bluetooth boost follows at once */
+    private final AudioDeviceCallback devices = new AudioDeviceCallback() {
+        @Override
+        public void onAudioDevicesAdded(AudioDeviceInfo[] added) {
+            soundChanged();
+        }
+
+        @Override
+        public void onAudioDevicesRemoved(AudioDeviceInfo[] removed) {
+            soundChanged();
+        }
+    };
+
     /** the Sound settings changed: every player takes them now */
     void soundChanged() {
         for (java.util.Map.Entry<MediaPlayer, Sound.Fx> e : fx.entrySet()) e.getValue().equalize(this);
@@ -1039,7 +1057,8 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         }
         Bitmap small = null;
         if (art != null && s.key.equals(artKey)) small = art;   // the widget rounds it and takes its colours
-        PlayerWidget.show(this, LyricsQuery.shownTitle(s.title, s.artist), s.artist.isEmpty() ? s.pl : s.artist,
+        String[] nm = LyricsQuery.shown(s.title, s.artist);       // the song's name, every artist under it
+        PlayerWidget.show(this, nm[0], nm[1].isEmpty() ? s.pl : nm[1],
                 isPlaying() || (wantPlay && preparing), small, q.shuffle, q.repeat, position(), duration());
         MAIN.removeCallbacks(widgetTick);
         if (isPlaying()) MAIN.postDelayed(widgetTick, 1000);
@@ -1097,9 +1116,10 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
     private MediaMetadata meta(Library.Song s) {
+        String[] nm = LyricsQuery.shown(s.title, s.artist);       // lock screen, car, headphones - the same names
         MediaMetadata.Builder b = new MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, LyricsQuery.shownTitle(s.title, s.artist))
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, s.artist)
+                .putString(MediaMetadata.METADATA_KEY_TITLE, nm[0])
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, nm[1])
                 .putString(MediaMetadata.METADATA_KEY_ALBUM, s.album.isEmpty() ? s.pl : s.album)
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, duration());
         if (art != null && s.key.equals(artKey)) b.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, art);
@@ -1144,10 +1164,11 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private Notification notification(Library.Song s, boolean playing) {
         int small = getResources().getIdentifier("ic_stat", "drawable", getPackageName());
         if (small == 0) small = android.R.drawable.ic_media_play;
+        String[] nm = LyricsQuery.shown(s.title, s.artist);
         Notification.Builder b = new Notification.Builder(this, CH)
                 .setSmallIcon(small)
-                .setContentTitle(LyricsQuery.shownTitle(s.title, s.artist))
-                .setContentText(s.artist.isEmpty() ? s.pl : s.artist)
+                .setContentTitle(nm[0])
+                .setContentText(nm[1].isEmpty() ? s.pl : nm[1])
                 .setContentIntent(openApp())
                 .setDeleteIntent(action(A_STOP, 4))
                 .setVisibility(Notification.VISIBILITY_PUBLIC)

@@ -2,6 +2,7 @@ package io.github.emordnilap67.mymusic;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
@@ -18,6 +19,9 @@ import org.json.JSONObject;
  *   from clipping.
  * - CROSSFADE (6 s unless changed, 0 = off): songs blend into each other; see PlayerService.
  * - EQUALIZER (off unless turned on): Android's own, with this phone's bands and presets.
+ * - LOUDER ON BLUETOOTH (+8 dB unless changed, 0 = off): on a Bluetooth
+ *   speaker, earbuds, the car, wired or USB headphones every song gets this much more, through the same
+ *   LoudnessEnhancer (it holds the peaks back, so nothing clips). The phone's own speaker stays as it was.
  * Settings live in the player's preferences, so the player uses them with the app closed.
  */
 final class Sound {
@@ -36,6 +40,36 @@ final class Sound {
     /** the crossfade in ms (0 = off) */
     static int xfadeMs(Context c) {
         return Math.max(0, Math.min(12, prefs(c).getInt("xfade", 6))) * 1000;
+    }
+
+    /** how many dB louder on Bluetooth and other outside speakers (0 = off) */
+    static int boostDb(Context c) {
+        return Math.max(0, Math.min(12, prefs(c).getInt("boost", 8)));
+    }
+
+    /** the music goes out to a Bluetooth / wired / USB device, not the phone's own speaker */
+    static boolean outside(Context c) {
+        try {
+            AudioManager am = (AudioManager) c.getSystemService(Context.AUDIO_SERVICE);
+            for (AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
+                switch (d.getType()) {
+                    case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
+                    case AudioDeviceInfo.TYPE_BLE_HEADSET:
+                    case AudioDeviceInfo.TYPE_BLE_SPEAKER:
+                    case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
+                    case AudioDeviceInfo.TYPE_WIRED_HEADSET:
+                    case AudioDeviceInfo.TYPE_USB_HEADSET:
+                    case AudioDeviceInfo.TYPE_USB_DEVICE:
+                    case AudioDeviceInfo.TYPE_LINE_ANALOG:
+                    case AudioDeviceInfo.TYPE_LINE_DIGITAL:
+                    case AudioDeviceInfo.TYPE_AUX_LINE:
+                        return true;
+                    default:
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
     }
 
     static boolean eqOn(Context c) {
@@ -136,6 +170,8 @@ final class Sound {
             JSONObject o = new JSONObject();
             o.put("level", levelOn(c));
             o.put("xfade", xfadeMs(c) / 1000);
+            o.put("boost", boostDb(c));
+            o.put("outside", outside(c));
             o.put("measured", Loud.count(c));
             o.put("total", Library.get(c).byKey.size());
             JSONObject e = new JSONObject();
@@ -179,13 +215,14 @@ final class Sound {
         }
     }
 
-    /** a change from the Sound sheet: any of level, xfade, eqOn, eqLv */
+    /** a change from the Sound sheet: any of level, xfade, boost, eqOn, eqLv */
     static void set(Context c, String json) {
         try {
             JSONObject o = new JSONObject(json);
             SharedPreferences.Editor ed = prefs(c).edit();
             if (o.has("level")) ed.putBoolean("level", o.getBoolean("level"));
             if (o.has("xfade")) ed.putInt("xfade", Math.max(0, Math.min(12, o.getInt("xfade"))));
+            if (o.has("boost")) ed.putInt("boost", Math.max(0, Math.min(12, o.getInt("boost"))));
             if (o.has("eqOn")) ed.putBoolean("eqOn", o.getBoolean("eqOn"));
             if (o.has("eqLv")) {
                 JSONArray a = o.getJSONArray("eqLv");

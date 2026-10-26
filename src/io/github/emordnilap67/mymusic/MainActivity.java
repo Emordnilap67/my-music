@@ -741,13 +741,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     }
 
     private WebResourceResponse asset(String name) throws java.io.IOException {
-        WebResourceResponse r = ok(mime(name), getAssets().open(name), name.endsWith(".html") ? "no-cache" : "max-age=86400");
-        if (name.endsWith(".html")) {             // lets the page sample itself, so a freeze names the function that held it
-            Map<String, String> hd = new HashMap<>(r.getResponseHeaders());
-            hd.put("Document-Policy", "js-profiling");
-            r.setResponseHeaders(hd);
-        }
-        return r;
+        return ok(mime(name), getAssets().open(name), name.endsWith(".html") ? "no-cache" : "max-age=86400");
     }
 
     private static WebResourceResponse ok(String type, InputStream in, String cache) {

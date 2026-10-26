@@ -1,3 +1,13 @@
+**New in 8.0:**
+
+- **Song names done right:** the player shows the song's name big, with every artist underneath - "A vs. B Ft. C" lists all three, a featuring in the name moves to the artists, and YouTube clutter like "(Official Music Video)" or "[Lyrics]" drops off. Long names wrap to four lines instead of being cut off. The lock screen, notification and widget show the same
+- **Remixes named properly:** an upload called "Song - Someone Remix" shows as **Song (Someone Remix)** by the song's artists, and "Song - Artists" shows the song by those artists - not the other way round
+- **Louder on Bluetooth:** Sound > **Louder on Bluetooth** plays up to 12 dB louder on Bluetooth speakers, earbuds, the car and wired or USB headphones (+8 to start, 0 = off). The phone's own speaker stays as it was, and the loudest moments are held back so nothing crackles
+- **An Equalizer button:** the equalizer has its own button and page on the home screen. **Sound** keeps evening out the volume, Louder on Bluetooth and the crossfade
+- **Home buttons refreshed:** each in its own two tones with a soft light along the top, and the row fades out just inside its frame as you slide it, so no button runs past the edge
+- **The ring:** 141 bars - 70 a side and one at the very top, so it stays mirrored - drawn at most 45 times a second, so the phone runs cooler; it moves just as fast
+- **Fixed:** on phones running an accessibility service (a password manager, a voice keyboard), a tap in a playlist of thousands of songs could freeze the app for many seconds
+
 **New in 7.0:**
 
 - **Karaoke:** the microphone in the player opens a full-screen karaoke view - the line being sung big, each word filling in as it's sung, the next line below, and three dots counting down before the singing starts again

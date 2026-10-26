@@ -119,7 +119,11 @@ body:has(#now.show) .mark.song{animation-play-state:paused}     /* not under the
 .order button[aria-pressed="true"]{color:var(--ink);background:var(--raise);box-shadow:inset 0 0 0 1px var(--pc1,var(--violet))}
 .order-label{display:block;color:var(--mist);font-size:13px;margin-top:12px}
 .songs{list-style:none;margin:0;padding:4px 0}
-.song{display:flex;align-items:center;gap:12px;padding:8px 16px;content-visibility:auto;contain-intrinsic-size:auto 60px}
+/* No row is skipped (no content-visibility:auto). When an accessibility service on the phone (a password
+   manager, a voice keyboard) reads the whole page, Chrome would build every skipped row out one at a time inside
+   a single tap (a style + layout round each, ~5 ms) - a playlist of thousands of songs froze for many seconds.
+   Now the list costs one ordinary layout instead. */
+.song{display:flex;align-items:center;gap:12px;padding:8px 16px}
 .song .th{flex:none;width:44px;height:44px;border-radius:8px;overflow:hidden;background:var(--raise)}
 .song .th img{width:100%;height:100%;object-fit:cover}
 .song .tx{flex:1;min-width:0}
@@ -265,7 +269,25 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
 #kBtn{--g1:#FF4D5E;--g2:#FF9A3C}          /* Backup: red - orange */
 #sndBtn{--g1:#FF4FD8;--g2:#8A3DFF}        /* Sound: pink - purple (was magenta - amber, too close to Backup) */
 #hiddenBtn{--g1:#5A6BFF;--g2:#FF5C8A}     /* Hidden songs: blue - pink-red */
-#folderBtn{--g1:#14D2C4;--g2:#3CBEFF}     /* Music folder: teal - light blue */
+/* Each home button in its own two tones, far apart from the others: Add songs emerald - lime (new
+   songs growing in), Update library blue - sky (a refresh), Music folder sunflower - amber (a folder),
+   Hidden songs pearl - slate grey (tucked away), Backup sand - brown (the safe box), Sound pink -
+   purple, Equalizer red - orange (the level lights). A soft light along the top edge, a faint glow of
+   its own. */
+.homefoot .hbtns>button{border:0;padding:10px 17px;color:#07050d;font-weight:700;
+  background:linear-gradient(90deg,var(--g1),var(--g2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(0,0,0,.18),0 3px 10px -5px var(--g1)}
+#scan{--g1:#3C78FF;--g2:#5CCBFF}
+#folderBtn{--g1:#FFE066;--g2:#F0A92E}
+#hiddenBtn{--g1:#E8E5F0;--g2:#9893AE}
+#kBtn{--g1:#EBCB9F;--g2:#A87249}
+#sndBtn{--g1:#FF5FCB;--g2:#9A55FF}
+#eqBtn{--g1:#FF4F4F;--g2:#FF9B3D}
+/* The row fades out a little inside the frame, so a sliding button melts away before it reaches the
+   frame's edge */
+#home .hbtns{padding:4px 14px 9px;margin-bottom:-5px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12px,#000 calc(100% - 12px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12px,#000 calc(100% - 12px),transparent)}
 /* The bar at the bottom wears the playing song's two colours (the same ones
    the player takes from its picture, set in setColors), easing from one song's to the next. Its two
    buttons are filled too, each in its own two colours. */
@@ -317,11 +339,11 @@ footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
 .dgo{background:linear-gradient(90deg,#E62B3B,#FF4D5E);color:#07050d;font-weight:700}   /* delete a playlist - red */
 /* Add songs violet - aqua, the cool one among the
    warm home buttons; a playlist's Play red - hot pink. (Other main buttons keep Carmen Musicum's five.) */
-#addBtn{background:linear-gradient(90deg,#8A5CFF,#3CD6FF)}
+#addBtn{--g1:#22D3A0;--g2:#A6E35A}   /* emerald - lime */
 #playall{background:linear-gradient(90deg,#E62B3B,#FF4FA3);font-weight:700}   /* red - hot pink */
 .mini b{font-weight:600}
-/* the Sound sheet - switches, the crossfade slider, the equalizer's bands */
-#sndsheet .sheetcard{max-height:88vh;overflow-y:auto}
+/* the Sound and Equalizer sheets - switches, the crossfade slider, the equalizer's bands */
+:is(#sndsheet,#eqsheet) .sheetcard{max-height:88vh;overflow-y:auto}
 .srow.sw{position:relative;padding-right:66px}
 .srow.sw::after{content:"";position:absolute;right:6px;top:50%;width:44px;height:26px;margin-top:-13px;border-radius:13px;background:var(--line);transition:background .2s}
 .srow.sw::before{content:"";position:absolute;right:27px;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%;background:var(--mist);z-index:1;transition:right .2s,background .2s}
@@ -331,13 +353,13 @@ footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
 .sndx small{display:block;color:var(--mist);font-size:13px;margin-top:2px}
 .sndhd{display:flex;justify-content:space-between;align-items:baseline}
 .sndhd b{font-weight:600}
-#sndsheet input[type=range]{width:100%;margin:10px 0 6px;accent-color:var(--magenta)}
+:is(#sndsheet,#eqsheet) input[type=range]{width:100%;margin:10px 0 6px;accent-color:var(--magenta)}
 /* Every slider here runs purple - magenta - blue - light blue - green, left to right;
    the part past the knob is dimmed so you can see where it sits (--p, set by the page) */
-#sndsheet input[type=range]{-webkit-appearance:none;appearance:none;height:30px;background:transparent;--p:50%}
-#sndsheet input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;
+:is(#sndsheet,#eqsheet) input[type=range]{-webkit-appearance:none;appearance:none;height:30px;background:transparent;--p:50%}
+:is(#sndsheet,#eqsheet) input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;
   background:linear-gradient(90deg,transparent var(--p),rgba(18,14,31,.66) var(--p)),var(--grad)}
-#sndsheet input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin-top:-9px;
+:is(#sndsheet,#eqsheet) input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;margin-top:-9px;
   border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(7,5,13,.55),0 0 12px rgba(255,255,255,.35)}
 #sndEqBox{padding:4px 4px 10px}
 #sndPre .chip.on{background:var(--grad);color:#07050d;border-color:transparent}
@@ -595,6 +617,10 @@ button,a,input,.song,.pl{touch-action:manipulation}
   box-shadow:0 0 0 1px rgba(255,255,255,.07),0 10px 40px -8px rgba(0,0,0,.9)}
 .now .vinyl .label{inset:20%;box-shadow:0 0 0 2px #050506,0 0 18px -4px rgba(0,0,0,.8)}
 .meta h3{font-size:clamp(24px,7vw,30px);font-weight:600;letter-spacing:.01em}
+/* the song's whole name - up to four lines (was two, cut off), smaller the longer it is */
+.meta h3{-webkit-line-clamp:4}
+.meta h3.long{font-size:clamp(21px,5.9vw,25px)}
+.meta h3.longer{font-size:clamp(18px,5vw,21px)}
 .wave{display:block;position:relative;height:34px;gap:0;margin-top:2px}
 .trk{position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:rgba(255,255,255,.16)}
 .trk .fill{position:absolute;inset:0;border-radius:2px;background:linear-gradient(90deg,var(--c1),color-mix(in srgb,var(--c1) 55%,var(--c2)));
@@ -689,6 +715,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
       <button id="hiddenBtn" class="ghost hidden">Hidden songs</button>
       <button id="kBtn" class="ghost">Backup</button>
       <button id="sndBtn" class="ghost">Sound</button>
+      <button id="eqBtn" class="ghost">Equalizer</button>
     </div>
     <span id="made"></span>
   </div>
@@ -809,11 +836,23 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <b id="sndTitle">Sound</b>
     <button id="sndLevel" class="srow sw" aria-pressed="true">Even out the volume<small id="sndLevelSub"></small></button>
     <div class="srow sndx">
+      <div class="sndhd"><span>Louder on Bluetooth</span><b id="sndBoV"></b></div>
+      <input id="sndBo" type="range" min="0" max="12" step="1" aria-label="Louder on Bluetooth, in dB">
+      <small id="sndBoSub"></small>
+    </div>
+    <div class="srow sndx">
       <div class="sndhd"><span>Crossfade</span><b id="sndXfV"></b></div>
       <input id="sndXf" type="range" min="0" max="12" step="1" aria-label="Crossfade in seconds">
       <small>Each song blends into the next, starting where its music ends - silence at the ends is skipped. Next and Previous blend quickly. 0 = off.</small>
     </div>
-    <button id="sndEq" class="srow sw" aria-pressed="false">Equalizer<small id="sndEqSub"></small></button>
+    <button id="sndClose" class="srow">Close</button>
+  </div>
+</div>
+<!-- the equalizer has its own button and sheet; Sound keeps evening out, Louder on Bluetooth and the crossfade -->
+<div id="eqsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="eqTitle">
+  <div class="sheetcard">
+    <b id="eqTitle">Equalizer</b>
+    <button id="sndEq" class="srow sw" aria-pressed="false">Use the equalizer<small id="sndEqSub"></small></button>
     <div id="sndEqBox" class="hidden">
       <p id="sndSum" class="sndsum"></p>
       <div id="sndPre" class="chips"></div>
@@ -821,7 +860,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
       <button id="sndAdv" class="sndadv" aria-expanded="false">Every band, one by one (advanced)</button>
       <div id="sndBands" class="hidden"></div>
     </div>
-    <button id="sndClose" class="srow">Close</button>
+    <button id="eqClose" class="srow">Close</button>
   </div>
 </div>
 
@@ -987,7 +1026,9 @@ button,a,input,.song,.pl{touch-action:manipulation}
    with little stars popping off the bars; the inner wave moves with the voice; a cloud of twinkling
    stars, a faint web and sparkles on the hi-hats. Runs on its own thread (Web Worker +
    OffscreenCanvas), or on the page itself on an older WebView. Messages: init, size, live, v (a
-   reading), col (the song's two colours), halt, draw. */
+   reading), col (the song's two colours), halt, draw.
+   141 bars: 70 a side and one at the very top, so the ring stays mirrored. At most 45 frames a second
+   (the phone stays cooler); motion is timed by the clock, not by frames, so it moves just as fast. */
 
 "use strict";
 const NB = 64;
@@ -1041,7 +1082,7 @@ let midAvg = -1, midPrev = 0, lastSyl = -1e9, hiAvg = -1, hiPrev = 0, lastHit = 
 const VA = new Float32Array(28), VB = new Float32Array(28), VS = new Float32Array(28);
 const PK = [], GL = [];
 /* sharpness that fits the phone: drawn at full sharpness first; if frames come too slowly while a
-   song plays (under ~40 a second), it steps down to 80%, then 64% of the pixels - never below */
+   song plays (under ~33 a second - was ~40), it steps down to 80%, then 64% of the pixels - never below */
 const RS = [1, .8, .64];
 let PXW = 0, lvl = 0, acc = 0, cnt = 0, warm = 0;
 function setPx() { const z = Math.round(PXW * RS[lvl]); if (z && z !== Z) { cv.width = cv.height = Z = z; } }
@@ -1132,10 +1173,10 @@ function hexAt(t) {
   return ease((u - SH_HEX - SH_FADE - SH_ROUND) / SH_FADE);
 }
 const ECH = [], ECHO_MS = 800;                                  /* the echoes going out (when, how hard); each lasts just under a beat (800 ms at most) */
-const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(136);   /* 136 bars */
+const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(141);   /* 141 bars */
 /* the bars as spikes of specks - each speck's fixed place across its bar, along it, its wobble and its drift past the
    tip (its own small random numbers, made once, so the specks stay put and only breathe) */
-const BJ = 96, BJT = new Float32Array(136 * BJ * 3);
+const BJ = 96, BJT = new Float32Array(141 * BJ * 3);
 { let h = 20261025; for (let k = 0; k < BJT.length; k++) { h = (Math.imul(h, 1103515245) + 12345) | 0; BJT[k] = ((h >>> 8) & 0xffff) / 65536; } }
 const TS = [];                                                  /* stars popping off the bar tips (where, when, how fast) */   /* the audio bars - each band smoothed, and its own recent top */
 let nShape = 0, pose = 0, lastPoseAt = -1e9, ivMed = 470, subLean = 0, style = "mix", styleNext = "mix";
@@ -1299,13 +1340,17 @@ function reading(s) {
 function kick() { if (!running) { running = true; still = 0; last = 0; warm = acc = cnt = 0; const id = ++loopId; nextFrame(t => frame(t, id)); } }
 
 let dtS = 0;                                                    /* seconds since the last frame, while playing */
+const FT = 1000 / 45;                                           /* at most 45 frames a second - less heat */
+let due = 0;
 function frame(t, id) {
   if (!running || id !== loopId) return;
+  if (last && t < due - 2) { nextFrame(t2 => frame(t2, id)); return; }   /* too soon - skip this screen refresh */
+  due = (t - due > FT ? t : due) + FT;
   const real = last ? Math.max(1, t - last) : 16.7, dt = Math.min(66, real), f = dt / 16.7;
   last = t; clock = t;
   if (live && lvl < 2 && (warm += real) > 500) {                 /* too slow for this phone? fewer pixels */
     acc += real;
-    if (++cnt >= 45 || acc > 1500) { if (acc / cnt > 24) { lvl++; setPx(); self.postMessage({t: "lvl", lvl}); } acc = cnt = 0; }
+    if (++cnt >= 45 || acc > 1500) { if (acc / cnt > 30) { lvl++; setPx(); self.postMessage({t: "lvl", lvl}); } acc = cnt = 0; }
   }
   const up = 1 - Math.pow(1 - .5, f), down = 1 - Math.pow(1 - .1, f);
   let moving = false, sum = 0;
@@ -1498,15 +1543,15 @@ function draw() {
 
   {
     const BL = Array.from({length: 6}, () => [new Path2D(), new Path2D(), new Path2D()]);   /* the bars' specks - six columns, three brightnesses */
-    const NBR = 68, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();       /* taller (was .34). 68 a side */
-    for (let j = 0; j < NBR; j++) {
+    const NBR = 70, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();       /* taller (was .34). 70 a side and one at the very top */
+    for (let j = 0; j <= NBR; j++) {   /* j = NBR is the single centre bar at the very top */
       /* a bar between two bands reads between them, so neighbours rise and fall smoothly, not in steps */
       const fb = Math.min(48, 1 + j * 47 / (NBR - 1)), b0 = Math.floor(fb), b1 = Math.min(48, b0 + 1), fr = fb - b0;   /* up to about 9 kHz - the very top is mostly empty */
       const bv = BV[b0] + (BV[b1] - BV[b0]) * fr, bg = BG[b0] + (BG[b1] - BG[b0]) * fr;
       const lv = .3 * bv + .7 * Math.min(1, bv / bg);
       const L = .02 + len * Math.pow(lv, 1.15);
-      const psi = Math.PI * (1 - (j + .5) / NBR);                     /* bottom (j = 0) .. top */
-      for (const sd of [-1, 1]) {
+      const extra = j === NBR, psi = extra ? 0 : Math.PI * (1 - (j + .5) / NBR);   /* bottom (j = 0) .. top */
+      for (const sd of extra ? [0] : [-1, 1]) {
         const ca = sd * Math.sin(psi), sa = -Math.cos(psi);
         const x0 = c + ca * base * R, y0 = c + sa * base * R, x1 = c + ca * (base + L) * R, y1 = c + sa * (base + L) * R;
         bp.moveTo(x0, y0); bp.lineTo(x1, y1);
@@ -1680,19 +1725,70 @@ const idle = window.requestIdleCallback ? (f, ms) => requestIdleCallback(f, {tim
 const afterPaint = f => requestAnimationFrame(() => setTimeout(f, 0));
 const PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 const PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-/* "TwinBeats - Jou Eyes Se Alles" by TwinBeats shows as "Jou Eyes Se Alles" (the artist is on the line below) */
+/* "TwinBeats - Jou Eyes Se Alles" by TwinBeats shows as "Jou Eyes Se Alles" (the artist is on the line below).
+   A channel's upload ("Artist - Song", tagged with the channel's name) shows the song as the name and the
+   artists from the title under it (A vs. B Ft. C = A, B, C - "&" stays: "Above & Beyond"); a featuring in the
+   name ("Song (feat. X)") moves to the artists; YouTube clutter goes ("(Official Music Video)", "[Lyrics]",
+   "| Car Music", a trailing HQ) - never a remix, edit, live... Everywhere a song's name shows. */
 const nameKey = x => String(x || "").normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
-function shownTitle(t, a) {
-  t = String(t || "").trim();
-  if (!a || !String(a).trim()) return t;
-  const m = t.match(/^(.+?)\s[-\u2010-\u2015]\s(.+)$/); if (!m) return t;
-  const l = m[1].trim(), r = m[2].trim(); if (!l || !r) return t;
-  const names = new Set([nameKey(a), ...String(a).trim().split(/\s*(?:,|&|;|\sx\s|\sand\s|\svs\.?\s|\sfeat\.?\s|\sft\.?\s|\sfeaturing\s)\s*/i).map(nameKey)]);
-  names.delete("");
-  return names.has(nameKey(l)) ? r : names.has(nameKey(r)) ? l : t;
+/* when the tag names neither side of the dash,
+   "Song - X Remix" (after the dash ends in remix/mix/edit/bootleg/rework/rmx, or is "Live at ...") is the song with
+   its version in brackets, by the tagged artists - "Play (Tobu Remix)"; "Song - Artists" (one of the tag's artists is
+   after the dash: "Low - MITCH DB, Karlie Chui, Navagio") is the song by the artists after the dash; a dash inside
+   brackets never splits ("War Pigs / Luke's Wall (2012 - Remaster)"). */
+function dashSplit(t) {
+  const re = /\s[-\u2010-\u2015]\s/g; let m;
+  while ((m = re.exec(t))) {
+    const l = t.slice(0, m.index);
+    if ((l.match(/[(\[]/g) || []).length <= (l.match(/[)\]]/g) || []).length) return [l.trim(), t.slice(m.index + m[0].length).trim()];
+  }
+  return null;
+}
+const NSPLIT = /\s*(?:,|&|;|\sx\s|\sand\s|\svs\.?\s|\sfeat\.?\s|\sft\.?\s|\sfeaturing\s)\s*/i,
+  NVER = /\b(remix|mix|edit|bootleg|rework|rmx)$|^live (at|from|in)\b/i, NTAILS = /(\s*[(\[][^()\[\]]*[)\]])+$/,
+  NSEP = /,|\uff0c|&|\sx\s|\svs\.?\s|\sfeat\.?\s|\sft\.?\s|\sfeaturing\s/i;
+const nameFt = x => nameFeats(nameClean(x).replace(/\s(feat|ft)\.(?=\S)/gi, " $1. "));
+/* the names a side of the dash is made of - not what is in its brackets, not its featurings */
+const namePieces = x => nameFt(x)[0].replace(/\s*[(\[][^()\[\]]*[)\]]/g, "").split(NSPLIT).map(nameKey).filter(Boolean);
+function addArtists(list, ft) {
+  for (const f of splitArtists(ft.replace(/\s(?:&|and)\s/gi, ", "))) if (!list.some(x => nameKey(x).includes(nameKey(f)))) list.push(f);
+}
+const splitArtists = x => String(x || "").split(/\s*(?:,|;|\s[x\u00d7]\s|\svs\.?\s|\sfeat\.?\s|\sft\.?\s|\sfeaturing\s|\swith\s)\s*/i).map(v => v.trim()).filter(Boolean);
+function nameFeats(t) {
+  let m = t.match(/^(.*?)\s*[(\[]\s*(?:feat\.?|ft\.?|featuring)\s+([^)\]]+)[)\]](.*)$/i);
+  if (m) return [(m[1] + " " + m[3]).replace(/\s{2,}/g, " ").trim(), m[2].trim()];
+  m = t.match(/^(.*?)\s+(?:feat\.?|ft\.?|featuring)\s+(.+)$/i);
+  if (m && !/[()\[\]]/.test(m[2])) return [m[1].trim(), m[2].trim()];
+  return [t, ""];
+}
+const NJUNK = /\b(official|video|visuali[sz]er|lyrics?|audio|hd|hq|4k|out now|free download)\b/i,
+  NKEEP = /\b(remix|mix|edit|version|cover|bootleg|mashup|live|acoustic|extended|vip|flip|rework|remaster(ed)?|instrumental|radio|original)\b/i;
+const nameClean = t => t.replace(/\s*[(\[]([^()\[\]]*)[)\]]/g, (g, x) => NJUNK.test(x) && !NKEEP.test(x) ? "" : g)
+  .replace(/\s+\|\s.*$/, "").replace(/\s+(HQ|HD)$/i, "").replace(/\s{2,}/g, " ").trim();
+function songParts(title, artist) {
+  let t = String(title || "").trim(), list = null;
+  const a = String(artist || "").trim(), m = dashSplit(t);
+  if (m && m[0] && m[1] && !/^(2k\d\d|(19|20)\d\d|remix|edit|mix|version|cover)\b/i.test(m[1])) {
+    const [l, r] = m;
+    const names = new Set([nameKey(a), ...a.split(NSPLIT).map(nameKey)]);
+    names.delete("");
+    const inTag = x => namePieces(x).some(k => names.has(k)), core = r.replace(NTAILS, "");
+    if (names.has(nameKey(l))) t = r;
+    else if (names.has(nameKey(r))) t = l;
+    else if (!inTag(l) && !NSEP.test(l) && NVER.test(core) && !/[()\[\]|]|\s[-\u2010-\u2015]\s/.test(core))
+      t = l + " (" + core + ")" + r.slice(core.length);                /* "Song - X Remix" */
+    else if (!inTag(l) && inTag(r)) { t = l; const [rs, rft] = nameFt(r); list = splitArtists(rs); addArtists(list, rft); }   /* "Song - Artists" */
+    else { t = r; list = splitArtists(l); }                          /* a channel's upload: "Artist - Song" */
+  }
+  const [song, ft] = nameFeats(t);
+  if (!list) list = a ? [a] : [];
+  addArtists(list, ft);
+  return {title: nameClean(song) || song || t, artists: list.join(", ")};
 }
 const TT = new WeakMap();
-const showName = s => { if (!s) return ""; let v = TT.get(s); if (v === undefined) TT.set(s, v = shownTitle(s.title, s.artist)); return v; };
+const partsOf = s => { let v = TT.get(s); if (v === undefined) TT.set(s, v = songParts(s.title, s.artist)); return v; };
+const showName = s => s ? partsOf(s).title : "";
+const showArtist = s => s ? partsOf(s).artists : "";
 /* a long list of artists: the first two and how many more (tap to see them all) */
 function artistLine(a) {
   const all = String(a || "").trim() || "Unknown artist", parts = all.split(/\s*,\s*/).filter(Boolean);
@@ -1711,23 +1807,18 @@ function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch
 function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
 /* the page's own settings, kept in the new-phone backup */
 const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff", "mm_favonly", "mm_slow", "mm_slowcall"];
-/* the page samples itself - Chrome's own JavaScript sampler,
-   allowed by the Document-Policy header MainActivity sends, a fresh one every 20 s - so when a freeze over 2 s
-   ends, the samples from inside it say which function the page was stuck in (and, through NLAST, the last call
-   to Android). That goes into Carmen Musicum backup/.freezes.txt (N.freezeNote -> Slow.java) next to what
-   Android's threads were doing - one look at that file names the cause. */
+/* when a freeze over 2 s ends, a line goes into Carmen Musicum backup/.freezes.txt (N.freezeNote -> Slow.java)
+   next to what Android's threads were doing: how long, which screen, the last call to Android (NLAST) and the
+   page's size. The page no longer samples itself (Chrome's JavaScript sampler) - sampling only made heat. */
 let PROF = null;
-function profStart() {
-  if (!window.Profiler) return;
-  try { if (PROF) PROF.stop().catch(() => {}); PROF = new Profiler({sampleInterval: 10, maxBufferSize: 9000}); } catch (e) { PROF = null; }
-}
-profStart(); setInterval(() => { if (!document.hidden) profStart(); }, 20000);
+function profStart() {}   /* the sampler is off - sampling every 10 ms only made heat;
+                             a freeze is still written down (head line + page size), just without the samples */
 function freezeTrace(t0, ms) {
   const head = "page froze " + (ms / 1000).toFixed(1) + " s on " + (location.hash || "#/") + " - last call to Android: " +
     (NLAST.k ? NLAST.k + ", " + ((Date.now() - NLAST.at) / 1000).toFixed(1) + " s before the end" : "none") + "\n  page: " + pageSize();   /* + its size */
   const send = t => { try { window.Native && window.Native.freezeNote && window.Native.freezeNote(t); } catch (e) {} };
   const p = PROF; PROF = null;
-  if (!p) { send(head + "\n  (no sampler on this phone)"); profStart(); return; }
+  if (!p) { send(head + "\n  (no sampler)"); profStart(); return; }
   p.stop().then(tr => {
     const nm = f => { const fr = tr.frames[f]; return fr ? (fr.name || "(anon)") + (fr.line ? ":" + fr.line : "") : "?"; };
     const stackOf = id => { const o = []; while (id !== undefined && id !== null && o.length < 8) { const st = tr.stacks[id]; if (!st) break; o.push(nm(st.frameId)); id = st.parentId; } return o.join(" < "); };
@@ -1813,7 +1904,7 @@ function favAll() {
   const key = "\u2665|" + sortBy + "|" + sortRev, here = PL ? PL.name : "";
   /* only the hearted songs are sorted (a few dozen), not every song of every playlist */
   if (!sortCache.has(key)) sortCache.set(key, sorted([].concat(...LIB.playlists.map(p => p.songs.filter(isFav)))));
-  const all = sortCache.get(key), tag = s => (showName(s) + "\u0001" + (s.artist || "")).toLowerCase(), seen = new Set(), out = [];
+  const all = sortCache.get(key), tag = s => (showName(s) + "\u0001" + showArtist(s)).toLowerCase(), seen = new Set(), out = [];
   for (const s of all) if (s.p === here && isFav(s)) seen.add(tag(s));
   for (const s of all) {
     if (!isFav(s)) continue;
@@ -1945,7 +2036,7 @@ function homeSearch() {
   const raw = $("#hq").value.trim(), q = raw.toLowerCase(), box = $("#hres"), pls = $("#pls");
   if (!q) { box.classList.add("hidden"); pls.classList.remove("hidden"); HQ = []; $("#hsongs2").innerHTML = ""; return; }
   pls.classList.add("hidden"); box.classList.remove("hidden");
-  const words = q.split(/\s+/), rank = s => { const t = showName(s).toLowerCase(); return t.startsWith(q) ? 0 : t.includes(q) ? 1 : (s.artist || "").toLowerCase().includes(q) ? 2 : 3; };
+  const words = q.split(/\s+/), rank = s => { const t = showName(s).toLowerCase(); return t.startsWith(q) ? 0 : t.includes(q) ? 1 : showArtist(s).toLowerCase().includes(q) ? 2 : 3; };
   const hits = [];
   for (const p of LIB.playlists) for (const s of p.songs) if (words.every(w => s.k.includes(w))) hits.push(s);
   hits.sort((a, b) => rank(a) - rank(b) || COLL.compare(showName(a), showName(b)) || COLL.compare(a.p, b.p));
@@ -1954,7 +2045,7 @@ function homeSearch() {
   $("#hfound").textContent = n ? (n === 1 ? "1 song" : n.toLocaleString() + " songs") + (n > HQ.length ? " - first " + HQ.length + " shown" : "") : "";
   $("#hsongs2").innerHTML = n ? HQ.map((s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '"><div class="th">' + (cur === s ? EQ : '') +
     '<img loading="lazy" alt="" src="' + artUrl(s.p, s.file) + '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' +
-    esc(s.artist || "Unknown artist") + ' <em class="frm">&middot; ' + esc(s.p) + '</em></span></div>' +
+    esc(showArtist(s) || "Unknown artist") + ' <em class="frm">&middot; ' + esc(s.p) + '</em></span></div>' +
     (FAV.has(keyOf(s)) ? '<i class="fv" aria-label="Favorite">' + HEART + '</i>' : '') + '<time>' + side(s) + '</time></li>').join("")
     : '<li class="empty">No song in any playlist matches "' + esc(raw) + '".</li>';
 }
@@ -1986,7 +2077,7 @@ function renderHidden() {
   const hs = LIB.hidden || [];
   $("#hcount").textContent = hs.length + (hs.length === 1 ? " song" : " songs");
   $("#hsongs").innerHTML = hs.length ? hs.map((s, i) => '<li class="song"><div class="tx"><b>' + esc(showName(s)) + '</b><span>' +
-    esc(s.artist || "Unknown artist") + '</span></div><button class="pill alt" data-i="' + i + '">Show again</button></li>').join("")
+    esc(showArtist(s) || "Unknown artist") + '</span></div><button class="pill alt" data-i="' + i + '">Show again</button></li>').join("")
     : '<li class="empty">No hidden songs.</li>';
 }
 $("#hsongs").addEventListener("click", e => {
@@ -2132,12 +2223,12 @@ if (!SORTS[sortBy]) sortBy = "artist";
 function sortedBy(songs, by) {
   const c = COLL.compare;
   const a = songs.map(s => ({s, p: playsOf(s)}));
-  const byTitle = (x, y) => c(showName(x.s), showName(y.s)) || c(x.s.artist || "~", y.s.artist || "~");
+  const byTitle = (x, y) => c(showName(x.s), showName(y.s)) || c(showArtist(x.s) || "~", showArtist(y.s) || "~");
   if (by === "title") a.sort(byTitle);
   else if (by === "new") a.sort((x, y) => (y.s.mtime || 0) - (x.s.mtime || 0) || byTitle(x, y));
   else if (by === "plays") a.sort((x, y) => y.p[0] - x.p[0] || y.p[1] - x.p[1] || byTitle(x, y));
   else if (by === "recent") a.sort((x, y) => y.p[1] - x.p[1] || byTitle(x, y));
-  else a.sort((x, y) => c(x.s.artist || "~", y.s.artist || "~") || byTitle(x, y));
+  else a.sort((x, y) => c(showArtist(x.s) || "~", showArtist(y.s) || "~") || byTitle(x, y));
   return a.map(x => x.s);
 }
 function sorted(songs) { const a = sortedBy(songs, sortBy); return sortRev ? a.reverse() : a; }
@@ -2169,7 +2260,7 @@ function sortedNow(pl) {
 function rowsOf(songs) {
   let r = ROWS.get(songs);
   if (!r || r.g !== playsGen) {
-    r = songs.map(s => { const p = playsOf(s); return [showName(s), s.artist || "", s.mtime || 0, p[0], p[1]]; });
+    r = songs.map(s => { const p = playsOf(s); return [showName(s), showArtist(s), s.mtime || 0, p[0], p[1]]; });
     r.g = playsGen; ROWS.set(songs, r);
   }
   return r;
@@ -2230,7 +2321,7 @@ function showSort() {
 let renderTok = 0, listDone = true, LIST_BASE = null;   /* the whole sorted playlist the screen was drawn from */
 const EQ = '<i class="eq" aria-hidden="true"><i></i><i></i><i></i></i>';     /* the playing song's bars */
 const rowHtml = (s, i) => '<li class="song' + (cur === s ? " on" : "") + '" data-i="' + i + '" data-k="' + esc(keyOf(s)) + '"><div class="th">' + (cur === s ? EQ : '') + '<img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
-  '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' + esc(s.artist || "Unknown artist") +
+  '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' + esc(showArtist(s) || "Unknown artist") +
   (PL && s.p !== PL.name ? ' <em class="frm">&middot; ' + esc(s.p) + '</em>' : '') +
   '</span></div>' + (FAV.has(keyOf(s)) ? '<i class="fv" aria-label="Favorite">' + HEART + '</i>' : '') + '<time>' + side(s) + '</time></li>';
 function renderList(top) {
@@ -2543,8 +2634,9 @@ function waveFor(s) {
   return out;
 }
 function showSong(s) {
-  $("#mtitle").textContent = $("#ntitle").textContent = showName(s);
-  const al = artistLine(s.artist), na = $("#nartist");
+  const al = artistLine(showArtist(s)), na = $("#nartist"), name = showName(s), nt = $("#ntitle");
+  $("#mtitle").textContent = nt.textContent = name;
+  nt.classList.toggle("long", name.length > 26 && name.length <= 48); nt.classList.toggle("longer", name.length > 48);   /* the whole name, smaller when long */
   $("#martist").textContent = al.all;
   na.textContent = al.short; na.dataset.short = al.short; na.dataset.all = al.all;
   na.classList.toggle("more", al.short !== al.all); na.classList.remove("all");
@@ -2756,7 +2848,7 @@ window.onBusy = m => toast(m);
 let sheetSong = null;
 function openSheet(s) {
   if (!s || !N) return;
-  sheetSong = s; $("#shTitle").textContent = showName(s); $("#shArtist").textContent = s.artist || "Unknown artist";
+  sheetSong = s; $("#shTitle").textContent = showName(s); $("#shArtist").textContent = showArtist(s) || "Unknown artist";
   $("#shFav").querySelector(".st").textContent = isFav(s) ? "Remove from favorites" : "Add to favorites";
   /* Wrong lyrics in this menu too, for the song that is playing */
   $("#shLyr").classList.toggle("hidden", !(cur && keyOf(cur) === keyOf(s)));
@@ -2816,7 +2908,7 @@ function renderUp() {
   if (!cur) return;
   const n = nxs[0];
   b.classList.toggle("q", !!ups.length);
-  $("#upTitle").textContent = n ? showName(n) + (n.artist ? " - " + n.artist : "") : "nothing - last song";
+  $("#upTitle").textContent = n ? showName(n) + (showArtist(n) ? " - " + showArtist(n) : "") : "nothing - last song";
   $("#upMore").textContent = ups.length > 1 ? ups.length + " queued" : ups.length ? "queued" : "";
   if (!$("#qsheet").classList.contains("hidden")) {
     const sig = (ST.up || []).join("\n") + "|" + (ST.nx || []).join("\n");
@@ -2827,7 +2919,7 @@ function renderQueue() {
   const ups = upList(), nxs = nxList(), rest = nxs.slice(ups.length);
   upSig = (ST.up || []).join("\n") + "|" + (ST.nx || []).join("\n");
   const row = (s, i, x) => '<div class="qrow"' + (x ? ' data-q="' + i + '"' : '') + '><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
-    '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' + esc(s.artist || "Unknown artist") +
+    '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' + esc(showArtist(s) || "Unknown artist") +
     '</span></div>' + (x ? '<button class="qx" aria-label="Take off the queue">&times;</button>' : '') + '</div>';
   let h = "";
   if (ups.length) h += '<div class="qhead">Queued</div>' + ups.map((s, i) => row(s, i, true)).join("");
@@ -3666,7 +3758,7 @@ function karTick() {
   if (!cur) { karClose(); return; }
   const key = keyOf(cur);
   if (KAR.key !== key) {
-    KAR.key = key; $("#kartitle").textContent = showName(cur); $("#karartist").textContent = cur.artist || "";
+    KAR.key = key; $("#kartitle").textContent = showName(cur); $("#karartist").textContent = showArtist(cur);
     $("#karbg").innerHTML = '<img alt="" src="' + artUrl(cur.p, cur.file, true) + '" onerror="this.remove()">';
   }
   const d = dur(), t = pos() + LEAD + lyrOff();
@@ -3740,7 +3832,7 @@ function openAddTo(s, move) {
   if (!N) return;
   addSong = s; addMove = !!move;
   $("#tTitle").textContent = addMove ? "Move to playlist" : "Add to playlist"; $("#tGo").textContent = addMove ? "Move" : "Add";
-  $("#tSong").textContent = showName(s) + " - " + (s.artist || "Unknown artist");
+  $("#tSong").textContent = showName(s) + " - " + (showArtist(s) || "Unknown artist");
   $("#tChips").innerHTML = LIB.playlists.map(p => p.name === s.p
       ? '<button class="chip" disabled aria-pressed="false">' + esc(p.name) + ' (here)</button>'
       : '<button class="chip" data-n="' + esc(p.name) + '" aria-pressed="false">' + esc(p.name) + '</button>').join("") +
@@ -3866,9 +3958,10 @@ const closeKit = () => $("#ksheet").classList.add("hidden");
 let SND = null, sndT = 0;
 const sendSound = o => { try { N.setSound(JSON.stringify(o)); } catch (e) {} };
 /* how far along each slider is, for its colour (CSS --p) */
-const sndFill = () => $("#sndsheet").querySelectorAll('input[type=range]').forEach(r => {
+const sndFill = () => document.querySelectorAll('#sndsheet input[type=range], #eqsheet input[type=range]').forEach(r => {
   const lo = +r.min || 0, hi = +r.max || 100; r.style.setProperty("--p", ((+r.value - lo) / (hi - lo) * 100).toFixed(1) + "%"); });
 const dbTxt = mb => (mb > 0 ? "+" : mb < 0 ? "\u2212" : "") + (Math.abs(mb) / 100).toFixed(Math.abs(mb) % 100 ? 1 : 0) + " dB";
+const boTxt = v => +v ? "+" + (+v) + " dB" : "Off";
 const hzTxt = hz => hz >= 1000 ? (hz / 1000).toFixed(hz % 1000 ? 1 : 0) + " kHz" : hz + " Hz";
 /* The bands are grouped into Bass (under 300 Hz), Middle (300 Hz - 3 kHz) and Treble (3 kHz and
    up). Each group has one slider; moving it moves every band in it. Every value is said in words. */
@@ -3895,13 +3988,14 @@ function sndToneShow() {
   $("#sndBands").querySelectorAll("input").forEach((r, k) => { r.value = E.lv[k]; r.nextElementSibling.textContent = dbTxt(E.lv[k]); });
   sndFill();
 }
-function openSound() {
+/* Sound and Equalizer are two sheets on the same settings */
+function openSound(id) {
   if (!N || !N.sound) return;
   try { SND = JSON.parse(N.sound()); } catch (e) { return; }
   renderSound(true);
-  $("#sndsheet").classList.remove("hidden");
+  $(id).classList.remove("hidden");
 }
-const closeSound = () => $("#sndsheet").classList.add("hidden");
+const closeSound = () => { $("#sndsheet").classList.add("hidden"); $("#eqsheet").classList.add("hidden"); };
 function sndPresetMark() {
   const E = SND.eq, same = (a, b) => a.length === b.length && a.every((v, i) => Math.abs(v - b[i]) < 1);
   $("#sndPre").querySelectorAll(".chip").forEach(c => {
@@ -3918,6 +4012,11 @@ function renderSound(full) {
         ? "Measured so far: " + done.toLocaleString() + " of " + S.total.toLocaleString() + " songs - the rest while music plays or the phone charges."
         : "Every song is measured.")
     : "Off - songs play as loud as they were made.";
+  /* how much louder a Bluetooth speaker, earbuds, the car or headphones play - the player adds it itself */
+  $("#sndBo").value = S.boost || 0;
+  $("#sndBoV").textContent = boTxt(S.boost);
+  $("#sndBoSub").textContent = "Bluetooth speakers, Alexa, earbuds, the car and headphones play this much louder - the phone's own speaker stays the same. " +
+    "The loudest moments are held back, so nothing crackles. 0 = off." + (S.outside ? " Playing through one now." : "");
   $("#sndXf").value = S.xfade;
   $("#sndXfV").textContent = S.xfade ? S.xfade + " s" : "Off";
   const E = S.eq || {}, b = $("#sndEq");
@@ -3945,7 +4044,8 @@ function renderSound(full) {
   sndToneShow();
   sndFill();
 }
-$("#sndBtn").onclick = openSound;
+$("#sndBtn").onclick = () => openSound("#sndsheet");
+$("#eqBtn").onclick = () => openSound("#eqsheet");
 $("#sndAdv").onclick = () => { const b = $("#sndAdv"), open = b.getAttribute("aria-expanded") !== "true";
   b.setAttribute("aria-expanded", open); $("#sndBands").classList.toggle("hidden", !open); };
 $("#sndSimple").addEventListener("input", e => {
@@ -3956,8 +4056,12 @@ $("#sndSimple").addEventListener("input", e => {
   clearTimeout(sndT); sndT = setTimeout(() => sendSound({eqLv: E.lv}), 120);
 });
 $("#sndClose").onclick = closeSound;
+$("#eqClose").onclick = closeSound;
 $("#sndsheet").addEventListener("click", e => { if (e.target.id === "sndsheet") closeSound(); });
+$("#eqsheet").addEventListener("click", e => { if (e.target.id === "eqsheet") closeSound(); });
 $("#sndLevel").onclick = () => { if (!SND) return; SND.level = !SND.level; sendSound({level: SND.level}); renderSound(); };
+$("#sndBo").oninput = e => { $("#sndBoV").textContent = boTxt(e.target.value); sndFill(); };
+$("#sndBo").onchange = e => { if (!SND) return; SND.boost = +e.target.value; sendSound({boost: SND.boost}); renderSound(); };
 $("#sndXf").oninput = e => { $("#sndXfV").textContent = +e.target.value ? e.target.value + " s" : "Off"; sndFill(); };
 $("#sndXf").onchange = e => { if (!SND) return; SND.xfade = +e.target.value; sendSound({xfade: SND.xfade}); renderSound(); };
 $("#sndEq").onclick = () => { const E = SND && SND.eq; if (!E || E.none) return; E.on = !E.on; sendSound({eqOn: E.on, eqLv: E.lv}); renderSound(); };

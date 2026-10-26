@@ -127,8 +127,12 @@ in the song's own colours). The **music note** shows the lyrics, the
   sound, picture and other tags stay exactly as they were.
 - **Sound:** every song at about the same loudness (measured once, the way
   broadcasters do it, with a limiter so nothing distorts), gapless
-  crossfade that starts where a song's music really ends, and an equalizer in
-  plain words - "more bass", not "60 Hz". Home screen > **Sound**.
+  crossfade that starts where a song's music really ends, and **Louder on
+  Bluetooth** - up to 12 dB more on speakers, earbuds, the car and headphones,
+  while the phone's own speaker stays as it was. Home screen > **Sound**.
+- **Equalizer:** in plain words - "more bass", not "60 Hz" - with Bass, Middle
+  and Treble sliders, your phone's presets and every band under Advanced.
+  Home screen > **Equalizer**.
 - **Queue:** **Play next** or **Add to queue** from the song menu. The player
   always shows what's **Up next**; tap it to see or change the queue.
 - **Favourites:** tap the heart in the player. The heart filter in any
@@ -169,8 +173,9 @@ in the song's own colours). The **music note** shows the lyrics, the
   tap.
 - **Also:** a neon home-screen widget in each song's own colours, from a
   one-row strip up to a big card; controls in the notification and on the
-  lock screen; shuffle and repeat; long "Artist - Song" names show just the
-  song, with the artist below; pick your own picture for a playlist.
+  lock screen; shuffle and repeat; song names show big with every artist
+  below ("Artist - Song" uploads, featurings and remixes sorted out, YouTube
+  clutter dropped); pick your own picture for a playlist.
 - **If something stalls:** should the app ever freeze for more than a couple
   of seconds, what it was doing is written to
   `Carmen Musicum backup/.freezes.txt` - attach that file to a bug report.

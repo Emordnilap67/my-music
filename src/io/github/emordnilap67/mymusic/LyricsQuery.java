@@ -213,22 +213,135 @@ final class LyricsQuery {
     /**
      * the song name to show. "TwinBeats - Jou Eyes Se Alles" by
      * TwinBeats shows as "Jou Eyes Se Alles"; "Ganjaman - Alfons" by Alfons
-     * as "Ganjaman". Anything else stays as it is.
+     * as "Ganjaman".
      */
     static String shownTitle(String title, String artist) {
-        String t = title == null ? "" : title.trim();
-        if (artist == null || artist.trim().isEmpty()) return t;
+        return shown(title, artist)[0];
+    }
+
+    /** the artists to show under it (empty when there are none) */
+    static String shownArtist(String title, String artist) {
+        return shown(title, artist)[1];
+    }
+
+    private static final int CI = Pattern.CASE_INSENSITIVE;
+    /** artists written in a title: "A vs. B Ft. C" = A, B, C ("&" stays - "Above & Beyond") */
+    private static final Pattern TITLE_ARTISTS = Pattern.compile("\\s*(?:,|;|\\s[x\u00d7]\\s|\\svs\\.?\\s|\\sfeat\\.?\\s|\\sft\\.?\\s|\\sfeaturing\\s|\\swith\\s)\\s*", CI);
+    private static final Pattern FEAT_GROUP = Pattern.compile("^(.*?)\\s*[(\\[]\\s*(?:feat\\.?|ft\\.?|featuring)\\s+([^)\\]]+)[)\\]](.*)$", CI);
+    private static final Pattern FEAT_TAIL = Pattern.compile("^(.*?)\\s+(?:feat\\.?|ft\\.?|featuring)\\s+(.+)$", CI);
+    private static final Pattern NAME_GROUP = Pattern.compile("\\s*[(\\[]([^()\\[\\]]*)[)\\]]");
+    private static final Pattern NAME_JUNK = Pattern.compile("\\b(official|video|visuali[sz]er|lyrics?|audio|hd|hq|4k|out now|free download)\\b", CI);
+    private static final Pattern NAME_KEEP = Pattern.compile("\\b(remix|mix|edit|version|cover|bootleg|mashup|live|acoustic|extended|vip|flip|rework|remaster(ed)?|instrumental|radio|original)\\b", CI);
+    private static final Pattern NOT_SONG = Pattern.compile("^(2k\\d\\d|(19|20)\\d\\d|remix|edit|mix|version|cover)\\b", CI);
+    private static final Pattern NAME_VERSION = Pattern.compile("\\b(remix|mix|edit|bootleg|rework|rmx)$|^live (at|from|in)\\b", CI);
+    private static final Pattern NAME_TAILS = Pattern.compile("(\\s*[(\\[][^()\\[\\]]*[)\\]])+$");
+    private static final Pattern NAME_SEP = Pattern.compile(",|\uff0c|&|\\sx\\s|\\svs\\.?\\s|\\sfeat\\.?\\s|\\sft\\.?\\s|\\sfeaturing\\s", CI);
+    private static final Pattern NAME_CORE_NO = Pattern.compile("[()\\[\\]|]|\\s[-\u2010-\u2015]\\s");
+
+    /**
+     * {song name, artists}, the same as the page's songParts(). A channel's upload ("Artist - Song", tagged with
+     * the channel's name) gives the song as the name and the artists from the title; a featuring in the name moves
+     * to the artists; YouTube clutter ("(Official Music Video)", "[Lyrics]", "| Car Music", a trailing HQ) goes -
+     * never a remix, edit, live... When the tag names neither side of the dash, "Song - X Remix" is the song with
+     * its version in brackets by the tagged artists, "Song - Artists" is the song by the artists after the dash,
+     * and a dash inside brackets never splits.
+     */
+    static String[] shown(String title, String artist) {
+        String t = title == null ? "" : title.trim(), a = artist == null ? "" : artist.trim();
+        List<String> list = null;
+        String[] m = dashSplit(t);
+        if (m != null && !m[0].isEmpty() && !m[1].isEmpty() && !NOT_SONG.matcher(m[1]).find()) {
+            String left = m[0], right = m[1];
+            java.util.Set<String> names = new java.util.HashSet<>();
+            names.add(key(a));
+            for (String x : SPLIT_ARTISTS.split(a)) names.add(key(x));
+            names.remove("");
+            String core = NAME_TAILS.matcher(right).replaceFirst("");
+            boolean leftIn = inTag(left, names);
+            if (names.contains(key(left))) t = right;
+            else if (names.contains(key(right))) t = left;
+            else if (!leftIn && !NAME_SEP.matcher(left).find() && NAME_VERSION.matcher(core).find() && !NAME_CORE_NO.matcher(core).find())
+                t = left + " (" + core + ")" + right.substring(core.length());      // "Song - X Remix"
+            else if (!leftIn && inTag(right, names)) {                             // "Song - Artists"
+                t = left;
+                String[] rf = nameFt(right);
+                list = titleArtists(rf[0]);
+                addArtists(list, rf[1]);
+            } else {                                                     // a channel's upload: "Artist - Song"
+                t = right;
+                list = titleArtists(left);
+            }
+        }
+        String[] sf = feats(t);
+        String song = sf[0], ft = sf[1];
+        if (list == null) {
+            list = new java.util.ArrayList<>();
+            if (!a.isEmpty()) list.add(a);
+        }
+        addArtists(list, ft);
+        String c = clean(song);
+        StringBuilder b = new StringBuilder();
+        for (String x : list) b.append(b.length() > 0 ? ", " : "").append(x);
+        return new String[]{!c.isEmpty() ? c : !song.isEmpty() ? song : t, b.toString()};
+    }
+
+    /** the first dash outside brackets */
+    private static String[] dashSplit(String t) {
         java.util.regex.Matcher m = DASH.matcher(t);
-        if (!m.find()) return t;
-        String left = t.substring(0, m.start()).trim(), right = t.substring(m.end()).trim();
-        if (left.isEmpty() || right.isEmpty()) return t;
-        java.util.Set<String> names = new java.util.HashSet<>();
-        names.add(key(artist));
-        for (String x : SPLIT_ARTISTS.split(artist.trim())) names.add(key(x));
-        names.remove("");
-        if (names.contains(key(left))) return right;
-        if (names.contains(key(right))) return left;
-        return t;
+        while (m.find()) {
+            String l = t.substring(0, m.start());
+            int open = 0, shut = 0;
+            for (int i = 0; i < l.length(); i++) {
+                char ch = l.charAt(i);
+                if (ch == '(' || ch == '[') open++;
+                else if (ch == ')' || ch == ']') shut++;
+            }
+            if (open <= shut) return new String[]{l.trim(), t.substring(m.end()).trim()};
+        }
+        return null;
+    }
+
+    /** {song, featuring}: "Song (feat. X)" / "Song feat. X" */
+    private static String[] feats(String t) {
+        java.util.regex.Matcher f = FEAT_GROUP.matcher(t);
+        if (f.find()) return new String[]{(f.group(1) + " " + f.group(3)).replaceAll("\\s{2,}", " ").trim(), f.group(2).trim()};
+        f = FEAT_TAIL.matcher(t);
+        if (f.find() && !f.group(2).matches(".*[()\\[\\]].*")) return new String[]{f.group(1).trim(), f.group(2).trim()};
+        return new String[]{t, ""};
+    }
+
+    private static String[] nameFt(String x) {
+        return feats(clean(x).replaceAll("(?i)\\s(feat|ft)\\.(?=\\S)", " $1. "));
+    }
+
+    /** one of the tag's artists is a name this side of the dash is made of (not its brackets, not its featurings) */
+    private static boolean inTag(String x, java.util.Set<String> names) {
+        for (String p : SPLIT_ARTISTS.split(nameFt(x)[0].replaceAll("\\s*[(\\[][^()\\[\\]]*[)\\]]", "")))
+            if (!key(p).isEmpty() && names.contains(key(p))) return true;
+        return false;
+    }
+
+    private static void addArtists(List<String> list, String ft) {
+        for (String x : titleArtists(ft.replaceAll("(?i)\\s(?:&|and)\\s", ", "))) {
+            boolean have = false;
+            for (String y : list) if (key(y).contains(key(x))) have = true;
+            if (!have) list.add(x);
+        }
+    }
+
+    private static List<String> titleArtists(String s) {
+        List<String> out = new java.util.ArrayList<>();
+        for (String x : TITLE_ARTISTS.split(s)) if (!x.trim().isEmpty()) out.add(x.trim());
+        return out;
+    }
+
+    private static String clean(String t) {
+        java.util.regex.Matcher g = NAME_GROUP.matcher(t);
+        StringBuffer b = new StringBuffer();
+        while (g.find()) g.appendReplacement(b, NAME_JUNK.matcher(g.group(1)).find() && !NAME_KEEP.matcher(g.group(1)).find()
+                ? "" : java.util.regex.Matcher.quoteReplacement(g.group()));
+        g.appendTail(b);
+        return b.toString().replaceAll("\\s+\\|\\s.*$", "").replaceAll("(?i)\\s+(HQ|HD)$", "").replaceAll("\\s{2,}", " ").trim();
     }
 
     static String firstArtist(String a) {
