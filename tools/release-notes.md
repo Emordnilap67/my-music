@@ -1,3 +1,15 @@
+**New in 9.0:**
+
+- **Spotify and Deezer links:** share or paste a song, album or playlist link from Spotify or Deezer. Their audio is locked, so Carmen Musicum reads the song names and finds each one on YouTube - the closest length wins, and anything without a clear match waits under **Find another copy**. (Spotify shows an app without an account only the first 100 songs of a playlist; Deezer gives them all)
+- **Several downloads at once:** up to three links download side by side, each into its own playlist - a second link for the same playlist waits for the first. One notification lists them all
+- **Download into a playlist:** hold a playlist's card > **Download into this playlist** opens Add songs with that playlist already picked
+- **Delete all songs:** hold a playlist's card > **Delete all songs** empties it (it asks first). The playlist stays, with its picture and its YouTube link - and songs already downloaded from that YouTube playlist don't come back
+- **Louder on Bluetooth, louder still:** on speakers, earbuds and the car no song is turned down any more - the boost goes on top, 12 dB to start and up to 18. The Sound page says which speaker it is playing through. Every song is levelled a little louder too
+- **Artists on one line:** the player shows as many artists as fit and a **+N** for the rest - tap it to see every artist, while the ring keeps its size
+- **Wrong lyrics for any song:** it's in the song menu for every song now, not only the one playing
+- **Rainbow menus:** the playlist menu runs red to violet down the list with the new rows in place
+- **Fixed:** a favourite song's heart showed empty when the app opened (and the first tap took the heart off); tapping the home search box left a screen of empty space instead of the playlists; the player bar flashed grey on play and pause; a grey scrollbar line showed while scrolling; a long "songs, hours" line under a playlist broke over three lines; the tagline is brighter
+
 **New in 8.0:**
 
 - **Song names done right:** the player shows the song's name big, with every artist underneath - "A vs. B Ft. C" lists all three, a featuring in the name moves to the artists, and YouTube clutter like "(Official Music Video)" or "[Lyrics]" drops off. Long names wrap to four lines instead of being cut off. The lock screen, notification and widget show the same

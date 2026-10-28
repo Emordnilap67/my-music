@@ -160,6 +160,9 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         });
 
         web = new WebView(this);
+        // no grey scrollbar line down the right edge while scrolling
+        web.setVerticalScrollBarEnabled(false);
+        web.setHorizontalScrollBarEnabled(false);
         web.setBackgroundColor(Color.BLACK);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -346,7 +349,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         if (sharedLink != null) js("window.onShared&&onShared(" + Library.q(sharedLink) + ")");
     }
 
-    /** a link shared from YouTube / YouTube Music: "Share > Carmen Musicum" */
+    /** a link shared from YouTube / YouTube Music: "Share > Carmen Musicum", or from Spotify / Deezer */
     private void shared(Intent i) {
         if (i == null || !Intent.ACTION_SEND.equals(i.getAction())) return;
         String text = i.getStringExtra(Intent.EXTRA_TEXT);
@@ -814,6 +817,24 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                     : "Adding to " + folder + " - songs show up as they come in";
         }
 
+        /** a short Spotify / Deezer share link, followed off the page's thread - the page hears back in onShared */
+        @JavascriptInterface
+        public void resolveLink(final String link) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final String real = Sources.resolve(link);
+                    h.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            js(real.isEmpty() ? "window.onBusy&&onBusy(" + Library.q("Could not open that share link - try the full link") + ")"
+                                    : "window.onShared&&onShared(" + Library.q(real) + ")");
+                        }
+                    });
+                }
+            }).start();
+        }
+
         /** songs on their way into playlists (see Pending) */
         @JavascriptInterface
         public String pending() {
@@ -853,7 +874,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 if (cm == null || !cm.hasPrimaryClip() || cm.getPrimaryClip().getItemCount() == 0) return "";
                 CharSequence t = cm.getPrimaryClip().getItemAt(0).getText();
                 String s = t == null ? "" : t.toString().trim();
-                return s.contains("youtu") ? s : "";
+                return s.contains("youtu") || Sources.is(s) ? s : "";      // Spotify and Deezer too
             } catch (Exception e) {
                 return "";
             }
@@ -1186,6 +1207,22 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 @Override
                 public void run() {
                     reread(Importer.deletePlaylist(MainActivity.this, t, folder), false);
+                }
+            }).start();
+        }
+
+        /** every song in a playlist goes, the playlist stays (the page asked first) */
+        @JavascriptInterface
+        public void emptyPlaylist(final String folder) {
+            final Uri t = Importer.tree(MainActivity.this);
+            if (t == null) {
+                js("window.onLibrary&&onLibrary(" + Library.q("Carmen Musicum needs its folder first - tap Add songs once and allow it") + ")");
+                return;
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    reread(Importer.emptyPlaylist(MainActivity.this, t, folder), false);
                 }
             }).start();
         }

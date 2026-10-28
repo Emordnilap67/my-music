@@ -479,6 +479,38 @@ final class Importer {
         return "Deleted " + folder + (paths.isEmpty() ? "" : " and its " + paths.size() + (paths.size() == 1 ? " song" : " songs"));
     }
 
+    /**
+     * Delete all songs: every song file in the playlist goes (hidden ones too) and the playlist itself stays - its picture, its
+     * YouTube link and its archive (the files starting with "."), so a followed playlist does not fetch them again.
+     */
+    static String emptyPlaylist(Context c, Uri tree, String folder) {
+        if (folder == null || folder.trim().isEmpty() || folder.contains("/") || folder.startsWith(".")
+                || folder.equalsIgnoreCase(Backup.DIR)) return "That is not a playlist";
+        String id = findFolder(c, tree, folder);
+        if (id == null) return "Could not find " + folder;
+        ContentResolver r = c.getContentResolver();
+        List<String> paths = new ArrayList<>();
+        int left = 0;
+        for (String[] ch : children(r, tree, id)) {
+            if (ch[1] == null || ch[1].startsWith(".") || ch[2] == null || !ch[2].startsWith("audio/")) continue;   // songs only
+            boolean ok;
+            try {
+                ok = DocumentsContract.deleteDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, ch[0]));
+            } catch (Exception e) {
+                ok = false;
+            }
+            if (ok) paths.add(pathOf(ch[0]));
+            else left++;
+        }
+        scan(c, paths);                                   // Android forgets the files
+        Missing.remove(c, folder, "*");
+        Library.load(c);
+        int n = paths.size();
+        String msg = n == 0 ? "No songs deleted from " + folder
+                : "Deleted " + n + (n == 1 ? " song" : " songs") + " from " + folder + " - the playlist stays";
+        return left == 0 ? msg : msg + " (" + left + " could not be deleted)";
+    }
+
     private static String join(List<String> a) {
         if (a.size() == 1) return a.get(0);
         StringBuilder b = new StringBuilder();

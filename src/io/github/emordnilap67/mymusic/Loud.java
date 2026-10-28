@@ -59,8 +59,9 @@ final class Loud {
         void measured(String key);
     }
 
-    /** where every song is brought to (LUFS) - about as loud as the loud setting of the big apps */
-    static final float TARGET = -11f;
+    /** where every song is brought to (LUFS) - about as loud as the loud setting of the big apps.
+     *  -9, was -11 - loud songs are turned down 2 dB less, quiet ones up 2 dB more */
+    static final float TARGET = -9f;
     /** the most a song is turned down / up (dB) */
     static final float MAX_CUT = 15f, MAX_BOOST = 6f;
     /** a song not measured yet: a guess for a typical modern song */

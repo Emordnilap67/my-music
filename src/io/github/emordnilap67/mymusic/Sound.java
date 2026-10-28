@@ -7,6 +7,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
 import android.media.audiofx.LoudnessEnhancer;
+import android.os.Build;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -22,6 +23,9 @@ import org.json.JSONObject;
  * - LOUDER ON BLUETOOTH (+8 dB unless changed, 0 = off): on a Bluetooth
  *   speaker, earbuds, the car, wired or USB headphones every song gets this much more, through the same
  *   LoudnessEnhancer (it holds the peaks back, so nothing clips). The phone's own speaker stays as it was.
+ * - on Bluetooth a song is never turned down any more (a loud EDM master was cut 4-6 dB to
+ *   even it out, and the boost only won that back), then the boost goes on top: 12 dB unless changed, up to 18.
+ *   The Sound sheet says which speaker it is playing through.
  * Settings live in the player's preferences, so the player uses them with the app closed.
  */
 final class Sound {
@@ -42,34 +46,64 @@ final class Sound {
         return Math.max(0, Math.min(12, prefs(c).getInt("xfade", 6))) * 1000;
     }
 
-    /** how many dB louder on Bluetooth and other outside speakers (0 = off) */
+    /** how many dB louder on Bluetooth and other outside speakers (0 = off) - 12 unless changed, up to 18 */
     static int boostDb(Context c) {
-        return Math.max(0, Math.min(12, prefs(c).getInt("boost", 8)));
+        return Math.max(0, Math.min(18, prefs(c).getInt("boost", 12)));
     }
 
     /** the music goes out to a Bluetooth / wired / USB device, not the phone's own speaker */
     static boolean outside(Context c) {
+        return outDevice(c) != null;
+    }
+
+    /** the same, also asking the player where its sound really goes right now */
+    static boolean outside(Context c, MediaPlayer m) {
+        if (outDevice(c) != null) return true;
+        if (m == null || Build.VERSION.SDK_INT < 28) return false;
+        try {
+            AudioDeviceInfo d = m.getRoutedDevice();
+            return d != null && isOut(d.getType());
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    /** the outside speaker's name, for the Sound sheet ("" = none) */
+    static String outName(Context c) {
+        AudioDeviceInfo d = outDevice(c);
+        if (d == null) return "";
+        CharSequence n = d.getProductName();
+        return n == null ? "" : n.toString().trim();
+    }
+
+    private static AudioDeviceInfo outDevice(Context c) {
         try {
             AudioManager am = (AudioManager) c.getSystemService(Context.AUDIO_SERVICE);
-            for (AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
-                switch (d.getType()) {
-                    case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
-                    case AudioDeviceInfo.TYPE_BLE_HEADSET:
-                    case AudioDeviceInfo.TYPE_BLE_SPEAKER:
-                    case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
-                    case AudioDeviceInfo.TYPE_WIRED_HEADSET:
-                    case AudioDeviceInfo.TYPE_USB_HEADSET:
-                    case AudioDeviceInfo.TYPE_USB_DEVICE:
-                    case AudioDeviceInfo.TYPE_LINE_ANALOG:
-                    case AudioDeviceInfo.TYPE_LINE_DIGITAL:
-                    case AudioDeviceInfo.TYPE_AUX_LINE:
-                        return true;
-                    default:
-                }
-            }
+            for (AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) if (isOut(d.getType())) return d;
         } catch (Throwable ignored) {
         }
-        return false;
+        return null;
+    }
+
+    private static boolean isOut(int type) {
+        switch (type) {
+            case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
+            case AudioDeviceInfo.TYPE_BLE_HEADSET:
+            case AudioDeviceInfo.TYPE_BLE_SPEAKER:
+            case AudioDeviceInfo.TYPE_BLE_BROADCAST:
+            case AudioDeviceInfo.TYPE_HEARING_AID:
+            case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
+            case AudioDeviceInfo.TYPE_WIRED_HEADSET:
+            case AudioDeviceInfo.TYPE_USB_HEADSET:
+            case AudioDeviceInfo.TYPE_USB_DEVICE:
+            case AudioDeviceInfo.TYPE_LINE_ANALOG:
+            case AudioDeviceInfo.TYPE_LINE_DIGITAL:
+            case AudioDeviceInfo.TYPE_AUX_LINE:
+            case AudioDeviceInfo.TYPE_DOCK:
+                return true;
+            default:
+                return false;
+        }
     }
 
     static boolean eqOn(Context c) {
@@ -172,6 +206,7 @@ final class Sound {
             o.put("xfade", xfadeMs(c) / 1000);
             o.put("boost", boostDb(c));
             o.put("outside", outside(c));
+            o.put("outName", outName(c));
             o.put("measured", Loud.count(c));
             o.put("total", Library.get(c).byKey.size());
             JSONObject e = new JSONObject();
@@ -222,7 +257,7 @@ final class Sound {
             SharedPreferences.Editor ed = prefs(c).edit();
             if (o.has("level")) ed.putBoolean("level", o.getBoolean("level"));
             if (o.has("xfade")) ed.putInt("xfade", Math.max(0, Math.min(12, o.getInt("xfade"))));
-            if (o.has("boost")) ed.putInt("boost", Math.max(0, Math.min(12, o.getInt("boost"))));
+            if (o.has("boost")) ed.putInt("boost", Math.max(0, Math.min(18, o.getInt("boost"))));
             if (o.has("eqOn")) ed.putBoolean("eqOn", o.getBoolean("eqOn"));
             if (o.has("eqLv")) {
                 JSONArray a = o.getJSONArray("eqLv");

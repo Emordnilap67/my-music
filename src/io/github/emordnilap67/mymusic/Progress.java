@@ -77,6 +77,31 @@ final class Progress {
                 .setOngoing(true).setOnlyAlertOnce(true).setContentIntent(open(c)).build();
     }
 
+    /** several downloads at once - one notification, a line for each playlist (folder -> {done, total}) */
+    static Notification manyNote(Context c, Map<String, int[]> counts) {
+        NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.createNotificationChannel(new NotificationChannel("progress", "Download progress", NotificationManager.IMPORTANCE_LOW));
+        int done = 0, total = 0;
+        StringBuilder all = new StringBuilder(), one = new StringBuilder();
+        for (Map.Entry<String, int[]> e : counts.entrySet()) {
+            int[] v = e.getValue();
+            done += Math.max(v[0], 0);
+            total += Math.max(v[1], 0);
+            String line = e.getKey() + ": " + (v[1] <= 0 ? "reading" : String.format(Locale.US, "%,d of %,d", v[0], v[1]));
+            if (all.length() > 0) {
+                all.append('\n');
+                one.append(" - ");
+            }
+            all.append(line);
+            one.append(line);
+        }
+        return new Notification.Builder(c, "progress").setSmallIcon(small(c, android.R.drawable.stat_sys_download))
+                .setContentTitle("Downloading into " + counts.size() + " playlists").setContentText(one.toString())
+                .setStyle(new Notification.BigTextStyle().bigText(all.toString()))
+                .setProgress(Math.max(total, 0), Math.max(done, 0), total <= 0)
+                .setOngoing(true).setOnlyAlertOnce(true).setContentIntent(open(c)).build();
+    }
+
     /** what came in (or why not), when a download ends */
     static void announce(Context c, String msg, String folder) {
         try {

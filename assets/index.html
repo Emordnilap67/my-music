@@ -45,8 +45,11 @@ body.playing .mark.song{animation-play-state:running}
 body:has(#now.show) .mark.song{animation-play-state:paused}     /* not under the player */
 @keyframes markflow{to{background-position:200% 0}}
 @media (prefers-reduced-motion:reduce){.mark.song{animation:none}}
-.tag{margin:12px 0 0;font-size:12px;letter-spacing:.28em;text-transform:uppercase;
-  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* the tagline's five colours each go about a third of the way to white -
+   lighter and softer, the same order - and its letters are a step bolder */
+.tag{margin:12px 0 0;font-size:12px;font-weight:500;letter-spacing:.28em;text-transform:uppercase;
+  background:linear-gradient(90deg,#B57EFF,#B57EFF 6%,#EA76D9 27%,#7693FF 48%,#76D2FF 66%,#70E6AE 84%,#70E6AE);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
 .rule{height:1px;margin:28px 0 8px;background:linear-gradient(90deg,transparent,var(--violet) 30%,var(--violet) 70%,transparent);opacity:.6}
 .pls{list-style:none;margin:0;padding:0}
 .pl{display:flex;align-items:center;gap:18px;width:100%;padding:16px 0;border-bottom:1px solid var(--line);text-align:left}
@@ -247,11 +250,11 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
 :is(#sheet,#psheet) #shCancel .st{font-size:21px}
 #sheet #shFav{--k:#FF2E3A}#sheet #shHide{--k:#FF7A1A}#sheet #shWrong{--k:#FFC21A}#sheet #shLyr{--k:#2EDB5C}#sheet #shShare{--k:#2F7BFF}#sheet #shAdd{--k:#3D5BFF}
 #sheet #shMoveLast{--k:#6A4DFF}#sheet #shMove{--k:#8A3DFF}#sheet #shQueue{--k:#C03DE6}#sheet #shNext{--k:#FF3D9E}#sheet #shDel{--k:#BDB8CC}#sheet #shCancel{--k:#FFFFFF}   /* "#sheet" in front: the colour beats the white default above */
-/* the
-   playlist menu is the same glowing cards, red to violet down the list, grey Delete, white Cancel */
-#psheet #psPlay{--k:#FF2E3A}#psheet #psShuf{--k:#FF7A1A}#psheet #psShare{--k:#FFC21A}#psheet #psPick{--k:#2EDB5C}#psheet #psReset{--k:#1FC7B6}
-#psheet #psFollow{--k:#2F7BFF}#psheet #psCheck{--k:#8A3DFF}#psheet #psDel{--k:#BDB8CC}#psheet #psCancel{--k:#FFFFFF}
-#psheet #psDel,#psheet #psCancel{background:var(--grain),radial-gradient(130% 160% at 0% 0%,color-mix(in srgb,var(--k) 16%,#050407),#050407 72%)}
+/* the playlist menu is the same glowing cards, red to violet down the list (Download into is the yellow under
+   Shuffle), grey Delete all songs and Delete, white Cancel */
+#psheet #psPlay{--k:#FF2E3A}#psheet #psShuf{--k:#FF7A1A}#psheet #psDl{--k:#FFC21A}#psheet #psShare{--k:#2EDB5C}#psheet #psPick{--k:#1FC7B6}
+#psheet #psReset{--k:#2FB5FF}#psheet #psFollow{--k:#2F7BFF}#psheet #psCheck{--k:#8A3DFF}#psheet #psEmpty{--k:#BDB8CC}#psheet #psDel{--k:#BDB8CC}#psheet #psCancel{--k:#FFFFFF}
+#psheet #psEmpty,#psheet #psDel,#psheet #psCancel{background:var(--grain),radial-gradient(130% 160% at 0% 0%,color-mix(in srgb,var(--k) 16%,#050407),#050407 72%)}
 #psheet #psCancel{align-items:center;margin-bottom:4px}
 #psheet #psCancel .st{font-size:21px}
 #psheet .srow.sw{padding-right:76px}
@@ -323,8 +326,7 @@ body:has(#home:not(.hidden)){background:radial-gradient(110% 45% at 22% 0%,#1c0f
 #home .hbtns{flex-basis:calc(100% + 28px);margin:0 -14px;padding:4px 14px}
 /* the 67 picture's black corners melt into the indigo (the record and the 67 themselves are untouched) */
 .hero img{-webkit-mask-image:radial-gradient(circle closest-side,#000 90%,transparent 100%);mask-image:radial-gradient(circle closest-side,#000 90%,transparent 100%)}
-/* 
-   the bar is full width and sits flat on the bottom edge, solid 
+/* The bar is full width and sits flat on the bottom edge, solid.
    It keeps the song's two colours, a few faint stars, and the back / play / next buttons. */
 footer.mini{background:radial-gradient(1.2px 1.2px at 18% 62%,rgba(255,255,255,.55),transparent),radial-gradient(1px 1px at 33% 30%,rgba(255,255,255,.35),transparent),
     radial-gradient(1.4px 1.4px at 52% 72%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 61% 22%,rgba(255,255,255,.3),transparent),
@@ -333,6 +335,10 @@ footer.mini{background:radial-gradient(1.2px 1.2px at 18% 62%,rgba(255,255,255,.
     radial-gradient(1px 1px at 27% 88%,rgba(255,255,255,.3),transparent),radial-gradient(1.2px 1.2px at 92% 84%,rgba(255,255,255,.4),transparent),
     linear-gradient(90deg,color-mix(in srgb,var(--c1) 38%,#090710),color-mix(in srgb,var(--c2) 38%,#090710))}
 footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
+/* the bar and its three buttons are each their own layer, so a new play / pause icon repaints only its button
+   (repainting the whole bar, stars and song colours, flashed it grey for a moment) */
+footer.mini{will-change:transform}
+footer.mini .ib{will-change:transform}
 /* Bold on every home button (Add songs too, so
    they match) and a step bolder for the song's name in the bar */
 .homefoot .pill.main{font-weight:700}
@@ -446,7 +452,7 @@ footer.mini .ib:active,footer.mini .ib.press{opacity:.75}
 .pl .plart:empty{background:#000}       /* no picture at all yet: plain black */
 .pl>div{min-width:0}
 .pl h2{font-size:15px;letter-spacing:.02em;line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
-.pl p{font-size:12px;line-height:1.3}
+.pl p{font-size:12px;line-height:1.3;white-space:pre-line}
 .pldots{display:flex;justify-content:center;gap:8px;margin:10px 0 0}
 .pldots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
 .pldots i.on{background:var(--ink)}
@@ -583,9 +589,23 @@ body.playing .now.show .infobg i.on{animation-play-state:running}
   50%{transform:translate3d(5%,3%,0) scale(1.2) rotate(6deg)}100%{transform:translate3d(-2%,6%,0) scale(1.1) rotate(-2deg)}}
 @media (prefers-reduced-motion:reduce){.infobg i{animation:none;transition:none}}
 .meta h3,.meta p,.times{text-shadow:0 1px 12px rgba(0,0,0,.5)}
-.meta p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* the artists under the song's name
+   are ONE line - as many as fit, then a "+N" pill - and every artist shows in a card (#nartall) over the ring on a tap */
+.meta>div{min-width:0}
+.meta p{display:flex;justify-content:center;align-items:center;gap:6px;white-space:nowrap;line-height:1.4;height:1.4em;overflow:hidden}
+.meta p .an{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.meta p .aplus{flex:none;font-size:12px;font-weight:600;line-height:1.3;padding:0 7px;border-radius:999px;color:#fff;text-shadow:none;
+  background:color-mix(in srgb,var(--c1,#8a5cff) 28%,transparent);border:1px solid color-mix(in srgb,var(--c1,#8a5cff) 60%,transparent)}
 .meta p.more{cursor:pointer}
-.meta p.all{-webkit-line-clamp:8}
+.artall{position:absolute;left:22px;right:22px;z-index:6;width:max-content;max-width:calc(100% - 44px);max-height:46vh;overflow-y:auto;margin:0 auto;
+  box-sizing:border-box;padding:10px 20px 12px;border-radius:18px;text-align:center;background:rgba(12,10,26,.95);
+  border:1px solid color-mix(in srgb,var(--c1,#8a5cff) 45%,transparent);
+  box-shadow:0 14px 40px rgba(0,0,0,.65),0 0 26px -6px color-mix(in srgb,var(--c1,#8a5cff) 60%,transparent)}
+.artall small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mist);margin-bottom:4px}
+.artall div{font-size:17px;line-height:1.5;color:#fff}
+.artall:not(.hidden){animation:artIn .16s ease-out}
+@keyframes artIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.artall:not(.hidden){animation:none}}
 @supports (width:1cqh){.stage{container-type:size}.now .vinyl{--s:min(86vw,50vh,420px,74cqh,74cqw)}}
 .lmsg .lretry{display:inline-block;margin:16px auto 0;border:1px solid var(--line);border-radius:999px;padding:8px 14px;color:var(--ink);font-size:14px}
 
@@ -772,7 +792,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="shFav" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M12 20.6l-1.3-1.2C5.8 15 3 12.4 3 9.1 3 6.4 5.1 4.3 7.8 4.3c1.5 0 3 .7 4.2 1.9 1.2-1.2 2.7-1.9 4.2-1.9C18.9 4.3 21 6.4 21 9.1c0 3.3-2.8 5.9-7.7 10.3L12 20.6z"/></svg><span class="tx"><span class="st">Add to favorites</span><small>Hearts it in this playlist. Tap the heart button in the playlist to see just your favorites.</small></span></button>
     <button id="shHide" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><circle class="fill" cx="12" cy="12" r="1.2"/></svg><span class="tx"><span class="st">Hide from Carmen Musicum</span><small>The file stays on the phone. Bring it back from Hidden songs.</small></span></button>
     <button id="shWrong" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span class="tx"><span class="st">Plays the wrong song</span><small>Pick the right one on YouTube - its audio goes in this song's place. The wrong file is kept under Hidden songs.</small></span></button>
-    <button id="shLyr" class="srow hidden"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg><span class="tx"><span class="st">Wrong lyrics</span><small>Look the words up again by the song's name and artist - type them the way the song is really called.</small></span></button>
+    <button id="shLyr" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg><span class="tx"><span class="st">Wrong lyrics</span><small>Look the words up again by the song's name and artist - type them the way the song is really called.</small></span></button>
     <button id="shShare" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4"/></svg><span class="tx"><span class="st">Share song</span><small>Sends the song file - Messages, Drive, Bluetooth, anything.</small></span></button>
     <button id="shAdd" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.2h8.5A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M12 10.5v6M9 13.5h6"/></svg><span class="tx"><span class="st">Add to another playlist</span><small>Copies the song into the playlists you pick. It stays here too.</small></span></button>
     <button id="shMoveLast" class="srow hidden"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.2h8.5A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M8.5 13.5h6.5M12.5 11l2.5 2.5-2.5 2.5"/></svg><span class="tx"><span class="st">Move to <span id="shMoveTo"></span></span><small>Where you moved the last song - one tap.</small></span></button>
@@ -789,7 +809,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <b id="aTitle">Add songs</b><span>Into which playlist?</span>
     <div class="chips" id="aChips"></div>
     <input id="aNew" class="search hidden" type="text" placeholder="New playlist name" autocomplete="off">
-    <input id="aLink" class="search" type="url" placeholder="Paste a YouTube or YouTube Music link" autocomplete="off">
+    <input id="aLink" class="search" type="url" placeholder="Paste a YouTube, Spotify or Deezer link" autocomplete="off">
     <button id="aGo" class="pill main wide">Download this link</button>
     <button id="aPhone" class="srow">Pick songs on this phone<small>Copies MP3s you already have into the playlist.</small></button>
     <button id="aCancel" class="srow">Cancel</button>
@@ -837,7 +857,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="sndLevel" class="srow sw" aria-pressed="true">Even out the volume<small id="sndLevelSub"></small></button>
     <div class="srow sndx">
       <div class="sndhd"><span>Louder on Bluetooth</span><b id="sndBoV"></b></div>
-      <input id="sndBo" type="range" min="0" max="12" step="1" aria-label="Louder on Bluetooth, in dB">
+      <input id="sndBo" type="range" min="0" max="18" step="1" aria-label="Louder on Bluetooth, in dB">
       <small id="sndBoSub"></small>
     </div>
     <div class="srow sndx">
@@ -940,11 +960,13 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <b id="psTitle"></b><span id="psSub">Playlist</span>
     <button id="psPlay" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M8 5v14l11-7z"/></svg><span class="tx"><span class="st">Play</span><small>From the top, in the order it is sorted.</small></span></button>
     <button id="psShuf" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c2.5 0 4 1.2 5.5 3.5l1 1.5c1.5 2.3 3 3.5 5.5 3.5H21M3 17h3.5c1.4 0 2.5-.4 3.5-1.2M14 8.2c1-.8 2.1-1.2 3.5-1.2H21M18.5 4.5 21 7l-2.5 2.5M18.5 14.5 21 17l-2.5 2.5"/></svg><span class="tx"><span class="st">Shuffle</span><small>Every song once, in a random order.</small></span></button>
+    <button id="psDl" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg><span class="tx"><span class="st">Download into this playlist</span><small>Paste a YouTube, Spotify or Deezer link - its songs come into this playlist.</small></span></button>
     <button id="psShare" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4"/></svg><span class="tx"><span class="st">Share playlist</span><small>Sends its name, its YouTube link if it has one, and every song in it.</small></span></button>
     <button id="psPick" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M21 15.5l-5-5-9 9"/></svg><span class="tx"><span class="st">Change picture</span><small>Pick any picture on your phone.</small></span></button>
     <button id="psReset" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg><span class="tx"><span class="st">Use the original picture</span></span></button>
     <button id="psFollow" class="srow sw hidden" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path class="fill" d="M10 9v6l5-3z"/></svg><span class="tx"><span class="st">Check YouTube for new songs</span><small id="psFollowSub"></small></span></button>
     <button id="psCheck" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span class="tx"><span class="st">Check for wrong audio</span><small>Finds songs that play a different song than the one shown, and fixes them.</small></span></button>
+    <button id="psEmpty" class="srow danger"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></svg><span class="tx"><span class="st">Delete all songs</span><small>Deletes every song in it from your phone. The playlist stays - its picture and YouTube link too.</small></span></button>
     <button id="psDel" class="srow danger"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg><span class="tx"><span class="st">Delete playlist</span><small>Deletes this playlist and the songs still in it from your phone. Songs you moved or copied to other playlists stay.</small></span></button>
     <button id="psCancel" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="tx"><span class="st">Cancel</span></span></button>
   </div>
@@ -992,6 +1014,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
   <div class="wave" id="wave" role="slider" aria-label="Song position" tabindex="0"><div class="trk"><span class="fill" id="pfill"></span><span class="kw" id="pknob"><span class="knob"></span></span></div></div>
   <div class="times"><span id="tcur">0:00</span><span id="tdur">0:00</span></div>
   </div>
+  <div class="artall hidden" id="nartall" aria-live="polite"></div>
   <div class="ctrl">
     <button class="ib tog" id="shuf" aria-label="Shuffle" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M10.6 9.2 5.4 4 4 5.4l5.2 5.2 1.4-1.4zM14.5 4l2 2L4 18.6 5.4 20 18 7.5l2 2V4h-5.5zm.3 9.4-1.4 1.4 3.1 3.1-2 2H20v-5.5l-2 2-3.2-3z"/></svg></button>
     <button class="ib" id="prev" aria-label="Previous song"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
@@ -1896,7 +1919,9 @@ async function getLib() {
 /* favourites: hearted songs, per playlist ("playlist/file") */
 const HEART = '<svg viewBox="0 0 24 24"><path d="M12 20.6l-1.3-1.2C5.8 15 3 12.4 3 9.1 3 6.4 5.1 4.3 7.8 4.3c1.5 0 3 .7 4.2 1.9 1.2-1.2 2.7-1.9 4.2-1.9C18.9 4.3 21 6.4 21 9.1c0 3.3-2.8 5.9-7.7 10.3L12 20.6z"/></svg>';
 let FAV = new Set();
-function loadFavs() { try { FAV = new Set((N && JSON.parse(N.favs())) || []); } catch (e) { FAV = new Set(); } dropFavSorts(); }
+/* Opening the app drew the playing song BEFORE the favourites were loaded, and the heart was never drawn again - it showed
+   empty while the song was still hearted, so the first tap took the heart off. Now the heart is drawn again once they are in. */
+function loadFavs() { try { FAV = new Set((N && JSON.parse(N.favs())) || []); } catch (e) { FAV = new Set(); } dropFavSorts(); showHeart(); }
 const dropFavSorts = () => { for (const k of [...sortCache.keys()]) if (k.startsWith("\u2665|")) sortCache.delete(k); };
 const isFav = s => !!s && FAV.has(keyOf(s));
 const favOnly = () => !!(PL && (load("mm_favonly") || {})[PL.name]);
@@ -1972,8 +1997,10 @@ const PL_COL = new Map();                          /* a picture's ring colours, 
 let homeSig = "", homeY = 0, homeX = [0, 0];      /* and how far the playlists and the buttons were slid */
 function plSub(p) {
   const secs = p.songs.reduce((a, s) => a + (s.duration || 0), 0), n = p.songs.length, w = waiting(pendOf(p.name));
-  let sub = n ? nSongs(n) + ", " + (secs < 3600 ? Math.round(secs / 60) + " min" : hours(secs)) : "";
-  if (w) sub = n ? sub + " - " + w.toLocaleString() + " on the way" : nSongs(w) + " on the way";
+  /* the songs and the
+     time are a line each on every card (.pl p keeps the line breaks) */
+  let sub = n ? nSongs(n) + "\n" + (secs < 3600 ? Math.round(secs / 60) + " min" : hours(secs)) : "";
+  if (w) sub = n ? sub + "\n" + w.toLocaleString() + " on the way" : nSongs(w) + " on the way";
   return sub;
 }
 function renderHome() {
@@ -2050,8 +2077,10 @@ function homeSearch() {
     : '<li class="empty">No song in any playlist matches "' + esc(raw) + '".</li>';
 }
 $("#hq").addEventListener("input", () => { clearTimeout(hqT); hqT = setTimeout(homeSearch, 120); });
-/* the keyboard covers the bottom half: the search box moves up to the top while you type */
-$("#hq").addEventListener("focus", () => setTimeout(() => { $("#hres").classList.remove("hidden"); $("#hq").scrollIntoView({block: "start", behavior: "smooth"}); }, 200));
+/* the keyboard covers the bottom half: the search box moves up to the top while you type. The empty result
+   area (a full screen tall) does not open on a tap - the playlists stay right under the box, and the results
+   take their place from the first letter typed */
+$("#hq").addEventListener("focus", () => setTimeout(() => $("#hq").scrollIntoView({block: "start", behavior: "smooth"}), 200));
 $("#hq").addEventListener("blur", () => { if (!$("#hq").value.trim()) $("#hres").classList.add("hidden"); });
 $("#hq").addEventListener("keydown", e => { if (e.key === "Enter") { e.target.blur(); homeSearch(); } });
 let hlpT = null, hlpDone = false, hlpX = 0, hlpY = 0;
@@ -2162,6 +2191,7 @@ function openPs(p) {
   $("#psReset").classList.toggle("hidden", !p.custom);
   ["#psPlay", "#psShuf", "#psShare"].forEach(x => $(x).classList.toggle("hidden", !n));
   $("#psShare").classList.toggle("hidden", !n || !N.sharePlaylist);
+  $("#psEmpty").classList.toggle("hidden", !n || !N.emptyPlaylist);
   psFollowFor(p.name);
   $("#psheet").classList.remove("hidden");
 }
@@ -2179,19 +2209,34 @@ function psFollowShow(on) {
 }
 $("#psFollow").onclick = () => { if (!sheetPl || !N) return; const on = $("#psFollow").getAttribute("aria-pressed") !== "true";
   N.setFollow(sheetPl.name, on); psFollowShow(on); toast(on ? "Checking YouTube for " + sheetPl.name : sheetPl.name + " no longer checks YouTube"); };
-let delPl = null;
+/* the Add songs sheet with this playlist already picked */
+$("#psDl").onclick = () => { const p = sheetPl; closePs(); if (p) openAdd("", p.name); };
+let delPl = null, delEmpty = false;
+/* Delete all songs - the same "are you sure" sheet; the playlist stays */
+$("#psEmpty").onclick = () => {
+  if (!sheetPl) return; delPl = sheetPl.name; delEmpty = true; closePs();
+  const n = (LIB.playlists.find(p => p.name === delPl) || {songs: []}).songs.length;
+  $("#dTitle").textContent = "Delete every song in " + delPl + "?";
+  $("#dSub").textContent = (n === 1 ? "Its 1 song is" : "Its " + n.toLocaleString() + " songs are") + " deleted from your phone for good (hidden ones too). The playlist stays, with its picture and YouTube link. Songs you already moved or copied to other playlists are safe.";
+  $("#dGo").textContent = "Delete " + n.toLocaleString() + (n === 1 ? " song" : " songs");
+  $("#dsheet").classList.remove("hidden");
+};
 $("#psDel").onclick = () => {
-  if (!sheetPl) return; delPl = sheetPl.name; closePs();
+  if (!sheetPl) return; delPl = sheetPl.name; delEmpty = false; closePs();
   const n = (LIB.playlists.find(p => p.name === delPl) || {songs: []}).songs.length;
   $("#dTitle").textContent = "Delete " + delPl + "?";
   $("#dSub").textContent = n ? "Its " + n.toLocaleString() + (n === 1 ? " song is" : " songs are") + " deleted from your phone for good. Songs you already moved or copied to other playlists are safe." : "It has no songs left. The playlist goes.";
   $("#dGo").textContent = n ? "Delete " + n.toLocaleString() + (n === 1 ? " song" : " songs") : "Delete playlist";
   $("#dsheet").classList.remove("hidden");
 };
-const closeDel = () => { $("#dsheet").classList.add("hidden"); delPl = null; };
+const closeDel = () => { $("#dsheet").classList.add("hidden"); delPl = null; delEmpty = false; };
 $("#dCancel").onclick = closeDel;
 $("#dsheet").addEventListener("click", e => { if (e.target.id === "dsheet") closeDel(); });
-$("#dGo").onclick = () => { const name = delPl; closeDel(); if (!name || !N || !N.deletePlaylist) return; go("#/"); toast("Deleting " + name + "..."); N.deletePlaylist(name); };
+$("#dGo").onclick = () => {
+  const name = delPl, empty = delEmpty; closeDel(); if (!name || !N) return;
+  if (empty) { if (N.emptyPlaylist) { toast("Deleting the songs in " + name + "..."); N.emptyPlaylist(name); } return; }
+  if (!N.deletePlaylist) return; go("#/"); toast("Deleting " + name + "..."); N.deletePlaylist(name);
+};
 $("#psCheck").onclick = () => { closePs(); if (sheetPl) checkAudio(sheetPl.name, ""); };
 $("#psReset").onclick = () => { closePs(); if (sheetPl) N.resetCover(sheetPl.name); };
 $("#pls").addEventListener("click", e => {
@@ -2638,9 +2683,7 @@ function showSong(s) {
   $("#mtitle").textContent = nt.textContent = name;
   nt.classList.toggle("long", name.length > 26 && name.length <= 48); nt.classList.toggle("longer", name.length > 48);   /* the whole name, smaller when long */
   $("#martist").textContent = al.all;
-  na.textContent = al.short; na.dataset.short = al.short; na.dataset.all = al.all;
-  na.classList.toggle("more", al.short !== al.all); na.classList.remove("all");
-  na.title = al.short !== al.all ? "Tap to see every artist" : "";
+  na.dataset.all = al.all; drawArtists(); artClose();     /* one line, every artist on a tap */
   $("#npl").textContent = s.p;
   showHeart();
   for (const [id, big] of [["#mart", false], ["#nart", true]]) { const im = $(id); im.style.visibility = "visible"; im.onerror = () => im.style.visibility = "hidden"; im.src = artUrl(s.p, s.file, big); }
@@ -2706,6 +2749,11 @@ const AUTO = "\u0001own";            /* "Its own playlist": named after the YouT
 /* a whole playlist, a song that is also in a playlist, or just a song */
 function linkKind(link) {
   link = link || "";
+  /* Spotify and Deezer: their albums and playlists are lists,
+     their songs are songs - each one is found on YouTube (Sources.java). A short share link is followed first. */
+  const src = /open\.spotify\.com\/(?:intl-[A-Za-z-]+\/)?(?:embed\/)?(track|album|playlist)\/|spotify:(track|album|playlist):|deezer\.com\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?(track|album|playlist)\/\d/.exec(link);
+  if (src) return {kind: (src[1] || src[2] || src[3]) === "track" ? "song" : "playlist", src: true};
+  if (/^https?:\/\/(spotify\.link|spoti\.fi|link\.deezer\.com|deezer\.page\.link|dzr\.page\.link)\//i.test(link.trim())) return {kind: "short"};
   const m = /[?&]list=([A-Za-z0-9_-]+)/.exec(link), video = /watch\?v=|youtu\.be\/|\/shorts\//.test(link);
   if (m && !video) return {kind: "playlist", id: m[1]};
   if (m && video && !/^(RD|UL|LL|WL)/.test(m[1])) return {kind: "both", id: m[1]};
@@ -2724,9 +2772,9 @@ function addChips() {
   $("#aNew").classList.toggle("hidden", !newOn);
   $("#aGo").textContent = list && addTo === AUTO ? "Add this playlist" : "Download this link";
 }
-function openAdd(link) {
+function openAdd(link, into) {
   if (!N) return;
-  addChose = false;
+  addChose = !!into; if (into) addTo = into;       /* from the playlist menu - that playlist is picked */
   let clip = ""; try { clip = link ? "" : N.clipboardLink(); } catch (e) {}
   $("#aLink").value = link || clip || ""; $("#aNew").value = "";
   addChips();
@@ -2753,6 +2801,10 @@ function startDownload(link, to) {
 $("#aGo").onclick = () => {
   let link = $("#aLink").value.trim(); const k = linkKind(link);
   if (!/^https?:\/\//.test(link)) { toast("Paste a link first"); return; }
+  if (k.kind === "short") {                    /* opened first, back in onShared - still into the playlist picked here */
+    shortInto = addChose && $("#aNew").classList.contains("hidden") && addTo !== AUTO ? addTo : ""; shortAt = Date.now();
+    closeAdd(); toast("Opening the share link..."); N.resolveLink(link); return;
+  }
   if (addTo === AUTO && k.kind !== "song" && $("#aNew").classList.contains("hidden")) {
     closeAdd(); startDownload(k.kind === "both" ? wholeList(k.id) : link, ""); return;
   }
@@ -2779,7 +2831,7 @@ function shareSong(link, whole) {
   $("#sSub").textContent = whole ? "Tap the playlist its songs go in." : "Tap the playlist it belongs in.";
   $("#sList").innerHTML = plOrder().map(i => { const p = LIB.playlists[i]; return '<button class="srow" data-i="' + i + '">' + esc(p.name) +
     '<small>' + countLine(p.songs.length, waiting(pendOf(p.name))) + '</small></button>'; }).join("") +
-    (whole ? '<button class="srow" id="sOwnBtn">Its own playlist<small>A new playlist named after the YouTube one.</small></button>' : '') +
+    (whole ? '<button class="srow" id="sOwnBtn">Its own playlist<small>A new playlist named after the shared one.</small></button>' : '') +
     '<button class="srow" id="sNewBtn">New playlist<small>Starts a new playlist with ' + (whole ? 'these songs' : 'this song') + '.</small></button>';
   $("#sNewRow").classList.add("hidden"); $("#sNew").value = "";
   $("#ssheet").classList.remove("hidden");
@@ -2800,9 +2852,13 @@ $("#sNewGo").onclick = () => {
 $("#sCancel").onclick = closeSong;
 $("#ssheet").addEventListener("click", e => { if (e.target.id === "ssheet") closeSong(); });
 let bothLink = "", bothId = "";
+let shortInto = "", shortAt = 0;
 window.onShared = link => {
   if (!N) return;
   const k = linkKind(link);
+  if (k.kind === "short") { toast("Opening the share link..."); try { N.resolveLink(link); } catch (e) {} return; }
+  if (shortInto && Date.now() - shortAt < 60000) { const to = shortInto; shortInto = ""; startDownload(k.kind === "both" ? wholeList(k.id) : link, to); return; }
+  shortInto = "";
   if (k.kind === "playlist") shareSong(link, true);
   else if (k.kind === "both") {
     bothLink = link; bothId = k.id;
@@ -2850,8 +2906,7 @@ function openSheet(s) {
   if (!s || !N) return;
   sheetSong = s; $("#shTitle").textContent = showName(s); $("#shArtist").textContent = showArtist(s) || "Unknown artist";
   $("#shFav").querySelector(".st").textContent = isFav(s) ? "Remove from favorites" : "Add to favorites";
-  /* Wrong lyrics in this menu too, for the song that is playing */
-  $("#shLyr").classList.toggle("hidden", !(cur && keyOf(cur) === keyOf(s)));
+  /* Wrong lyrics in this menu too, for every song - the menu is always the same */
   /* one tap to move it where the last one went (going through a big playlist) */
   const last = load("mm_movelast"), lastOk = last && last !== s.p && LIB.playlists.some(p => p.name === last);
   $("#shMoveLast").classList.toggle("hidden", !lastOk); if (lastOk) $("#shMoveTo").textContent = last;
@@ -2868,7 +2923,7 @@ const moveSong = (s, to) => { if (!s || !to || !N || !N.moveTo) return; store("m
 $("#shMove").onclick = () => { const s = sheetSong; closeSheet(); if (s) openAddTo(s, true); };
 $("#shMoveLast").onclick = () => { const s = sheetSong; closeSheet(); moveSong(s, load("mm_movelast")); };
 $("#shShare").onclick = () => { const s = sheetSong; closeSheet(); if (s) N.shareSong(keyOf(s)); };
-$("#shLyr").onclick = () => { closeSheet(); openLyricsFix(); };
+$("#shLyr").onclick = () => { const s = sheetSong; closeSheet(); openLyricsFix(s); };
 $("#shNext").onclick = () => { const s = sheetSong; closeSheet(); if (s) enqueue(s, true); };
 /* "Plays the wrong song": YouTube's matches for the name shown; the one tapped replaces this song's audio */
 $("#shWrong").onclick = () => {
@@ -2993,7 +3048,7 @@ function route(to) {
   const wasHome = !$("#home").classList.contains("hidden");
   if (wasHome && h !== "#/" && h !== "#/now") { homeY = scrollY; homeX = [$("#pls").scrollLeft, $(".hbtns").scrollLeft]; }
   if (h === "#/now") { if (!cur) { history.replaceState({d: 0}, "", lastView); return route(); } now.classList.add("show"); now.setAttribute("aria-hidden", "false"); nowShown(); return; }
-  now.classList.remove("show"); now.setAttribute("aria-hidden", "true"); ringStop(); document.body.classList.remove("nowup");
+  now.classList.remove("show"); now.setAttribute("aria-hidden", "true"); ringStop(); document.body.classList.remove("nowup"); artClose();
   lastView = h;
   $("#hid").classList.add("hidden");
   if (h === "#/hidden") {
@@ -3801,21 +3856,59 @@ function karTick() {
 $("#nkar").onclick = karOpen;
 $("#karclose").onclick = karClose;
 $("#karplay").onclick = () => { if (N) N.toggle(); };
+/* the line under the name holds as many artists as fit, then "+N"; a tap on it opens a
+   card above the name with every artist, one a line - over the ring, so the ring keeps its size. Any tap closes it. */
+let artCv = null;
+function fitArtists(na, parts) {
+  const w = na.clientWidth - 4, cs = getComputedStyle(na);
+  const c = artCv || (artCv = document.createElement("canvas").getContext("2d"));
+  const m = (t, f) => { c.font = f; return c.measureText(t).width; };
+  const font = cs.fontStyle + " " + cs.fontWeight + " " + cs.fontSize + " " + cs.fontFamily, pill = "600 12px " + cs.fontFamily;
+  const all = parts.join(", ");
+  if (w <= 0 || m(all, font) <= w) return {text: all, more: 0, cut: false};
+  for (let k = parts.length - 1; k >= 1; k--) {
+    const t = parts.slice(0, k).join(", "), n = parts.length - k;
+    if (m(t, font) + m("+" + n, pill) + 22 <= w) return {text: t, more: n, cut: true};
+  }
+  return {text: parts[0], more: parts.length - 1, cut: true};          /* the first name alone, cut short with ... */
+}
+function drawArtists() {
+  const na = $("#nartist"), parts = (na.dataset.all || "").split(/\s*,\s*/).filter(Boolean);
+  if (!parts.length) { na.textContent = ""; na.classList.remove("more"); return; }
+  const f = fitArtists(na, parts);
+  na.innerHTML = '<span class="an">' + esc(f.text) + '</span>' + (f.more ? '<b class="aplus">+' + f.more + '</b>' : '');
+  na.classList.toggle("more", f.cut); na.title = f.cut ? "Tap to see every artist" : "";
+}
+function artOpen() {
+  const na = $("#nartist"), card = $("#nartall"), parts = (na.dataset.all || "").split(/\s*,\s*/).filter(Boolean);
+  card.innerHTML = '<small>' + (parts.length > 1 ? "Artists" : "Artist") + '</small>' + parts.map(a => '<div>' + esc(a) + '</div>').join("");
+  const m = na.closest(".meta").getBoundingClientRect(), n = $("#now").getBoundingClientRect();
+  card.style.bottom = Math.round(n.bottom - m.top + 8) + "px";           /* just above the song's name */
+  card.classList.remove("hidden");
+  document.addEventListener("pointerdown", artAway, true);
+}
+function artClose() { $("#nartall").classList.add("hidden"); document.removeEventListener("pointerdown", artAway, true); }
+function artAway(e) { if (!e.target.closest("#nartist")) artClose(); }
 $("#nartist").addEventListener("click", () => {
-  const p = $("#nartist"); if (!p.classList.contains("more")) return;
-  const all = !p.classList.contains("all"); p.classList.toggle("all", all); p.textContent = all ? p.dataset.all : p.dataset.short;
+  if (!$("#nartist").classList.contains("more")) return;
+  if ($("#nartall").classList.contains("hidden")) artOpen(); else artClose();
 });
+addEventListener("resize", () => { if (cur) drawArtists(); });
+if (document.fonts) document.fonts.ready.then(() => { if (cur) drawArtists(); });     /* measured again in the real font */
 /* "Search by name": the song and artist to look the lyrics up by (kept for this song) */
-function openLyricsFix() {
-  if (!cur || !N) return;
-  const d = LYR.data || {};
-  $("#lTrack").value = d.track || cur.title || ""; $("#lArtist").value = d.artist || cur.artist || "";
+let lfixSong = null;          /* the song being fixed - any song from the menu, else the playing one */
+function openLyricsFix(s) {
+  s = s || cur; if (!s || !N) return;
+  lfixSong = s;
+  const k = keyOf(s), d = (cur && keyOf(cur) === k ? LYR.data : LYR.cache.get(k)) || {};
+  $("#lTrack").value = d.track || s.title || ""; $("#lArtist").value = d.artist || s.artist || "";
   $("#lsheet").classList.remove("hidden");
 }
 const closeLfix = () => $("#lsheet").classList.add("hidden");
 function lyricsAs(track, artist) {
-  if (!cur || !N) return;
-  const k = keyOf(cur); closeLfix(); LYR.cache.delete(k); useLyrics({key: k, status: "loading"});
+  if (!lfixSong || !N) return;
+  const k = keyOf(lfixSong); closeLfix(); LYR.cache.delete(k);
+  if (cur && keyOf(cur) === k) useLyrics({key: k, status: "loading"}); else toast("Looking the words up again - they show when it plays");
   N.lyricsAs(k, track, artist);
 }
 $("#lGo").onclick = () => { const t = $("#lTrack").value.trim(); if (!t) { $("#lTrack").focus(); return; } lyricsAs(t, $("#lArtist").value.trim()); };
@@ -4015,8 +4108,10 @@ function renderSound(full) {
   /* how much louder a Bluetooth speaker, earbuds, the car or headphones play - the player adds it itself */
   $("#sndBo").value = S.boost || 0;
   $("#sndBoV").textContent = boTxt(S.boost);
-  $("#sndBoSub").textContent = "Bluetooth speakers, Alexa, earbuds, the car and headphones play this much louder - the phone's own speaker stays the same. " +
-    "The loudest moments are held back, so nothing crackles. 0 = off." + (S.outside ? " Playing through one now." : "");
+  /* on Bluetooth no song is turned down any more, and the sheet names the speaker it is playing through */
+  $("#sndBoSub").textContent = "Bluetooth speakers, Alexa, earbuds, the car and headphones: no song is turned down, and every song plays this much louder - the phone's own speaker stays the same. " +
+    "The loudest moments are held back, so nothing crackles. 0 = off." +
+    (S.outside ? " Playing through " + (S.outName || "one") + " now." : " Nothing connected right now.");
   $("#sndXf").value = S.xfade;
   $("#sndXfV").textContent = S.xfade ? S.xfade + " s" : "Off";
   const E = S.eq || {}, b = $("#sndEq");

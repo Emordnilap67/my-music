@@ -729,7 +729,8 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             Library.Song s = key == null ? null : Library.get(this).byKey.get(key);
             db = s == null ? Loud.UNKNOWN_DB : Loud.gainDb(this, key, s.size);
         }
-        if (Sound.outside(this)) db = Math.min(12f, db + Sound.boostDb(this));    // Bluetooth, Alexa, the car - louder
+        if (Sound.outside(this, m))                                               // Bluetooth, Alexa, the car - louder
+            db = Math.min(18f, Math.max(0f, db) + Sound.boostDb(this));           // never turned down there, then the boost
         v[0] = db < 0 ? (float) Math.pow(10, db / 20.0) : 1f;
         Sound.Fx f = fx.get(m);
         if (f != null) f.boost(db);

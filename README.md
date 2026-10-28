@@ -91,6 +91,12 @@ in the song's own colours). The **music note** shows the lyrics, the
   as an MP3 with its cover picture and tags, with the download's progress
   shown song by song. Share a single song and you pick which playlist it goes
   in. Share a playlist again later and only the new songs come in.
+- **Spotify and Deezer links too:** share or paste a song, album or playlist
+  link - Carmen Musicum reads the names and finds each song on YouTube.
+  (Spotify shows an app without an account the first 100 songs of a playlist.)
+- **Several at once:** up to three links download side by side, each into
+  its own playlist, with one notification listing them all. Hold a
+  playlist's card > **Download into this playlist** to add straight to it.
 - **YouTube's speed limit:** YouTube only lets a few hundred songs an hour
   through. When it pauses the downloads, Carmen Musicum waits and carries on by
   itself.
@@ -128,8 +134,9 @@ in the song's own colours). The **music note** shows the lyrics, the
 - **Sound:** every song at about the same loudness (measured once, the way
   broadcasters do it, with a limiter so nothing distorts), gapless
   crossfade that starts where a song's music really ends, and **Louder on
-  Bluetooth** - up to 12 dB more on speakers, earbuds, the car and headphones,
-  while the phone's own speaker stays as it was. Home screen > **Sound**.
+  Bluetooth** - 12 dB more to start (up to 18) on speakers, earbuds, the car
+  and headphones, where no song is turned down; the phone's own speaker stays
+  as it was. Home screen > **Sound**.
 - **Equalizer:** in plain words - "more bass", not "60 Hz" - with Bass, Middle
   and Treble sliders, your phone's presets and every band under Advanced.
   Home screen > **Equalizer**.
@@ -145,7 +152,8 @@ in the song's own colours). The **music note** shows the lyrics, the
   copies of the same song count as one.
 - **Move and tidy:** move a song to another playlist (its plays and heart go
   with it; after the first move, the same playlist is one tap away), delete a
-  playlist when you're done sorting it, hide or delete songs.
+  playlist when you're done sorting it - or **Delete all songs** to empty it
+  and keep the playlist - hide or delete songs.
 - **Wrong audio check:** hold a playlist's card > **Check for wrong audio**
   finds songs that play a different song than the name says (common with
   files saved by title from other downloaders) and downloads the right ones.

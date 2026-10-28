@@ -44,14 +44,31 @@ public class DownloadService extends Service {
     private static final long WAIT_MS = 60L * 60 * 1000;           // YouTube's pause: try again in an hour
     private final LinkedList<String[]> jobs = new LinkedList<>();
     private int lastStartId;
-    private Thread worker;
-    private volatile String[] running;             // the job being fetched now
-    private volatile boolean quietJob;             // a Sync check - says something only when songs came in
-    private volatile Process proc;
-    private volatile boolean stopping;
     private volatile String limitNote;
-    private String lastFolder;                     // where the last job really went
-    private String lastPend;                       // and what its songs wait under (see pendKey)
+    /*
+     * Up to AT_ONCE links download side by side, each in a
+     * worker of its own with its own state (Now) and its own work folder. Never two into the same playlist at
+     * once - its archive and its waiting list would cross - so a second link for a playlist waits for the first.
+     * One quiet YouTube check (Sync) at a time, so the background checks don't add to YouTube's load.
+     */
+    static final int AT_ONCE = 3;
+    private int workers;                                     // worker threads alive (guarded by jobs)
+    private final List<Now> busy = new ArrayList<>();        // the downloads in hand (guarded by jobs)
+    private final ThreadLocal<Now> mine = new ThreadLocal<>();
+    private final Map<String, int[]> counts = new LinkedHashMap<>();   // folder -> {done, total}: the one notification
+
+    /** one download in hand */
+    private static final class Now {
+        String[] job;
+        boolean quiet;                             // a Sync check - says something only when songs came in
+        volatile Process proc;
+        volatile boolean stopping;
+        String lastFolder;                         // where the job really went
+        String lastPend;                           // and what its songs wait under (see pendKey)
+        String sourceNote;                         // what a Spotify / Deezer link could not give (said at the end)
+        String hold;                               // the playlist it writes into - no other download may meanwhile
+        int slot;                                  // its own work folder: dl, dl1, dl2
+    }
 
     static void start(Context c, String link, String folder) {
         Intent i = new Intent(c, DownloadService.class).setAction(A_START).putExtra("link", link).putExtra("folder", folder);
@@ -123,32 +140,21 @@ public class DownloadService extends Service {
                 }
             }
             if (A_STOP.equals(a)) {
-                stopping = true;
                 jobs.clear();
-                Process p = proc;
-                if (p != null) p.destroy();
+                stopAll();
             }
             for (String[] j : add) {
                 if (queued(j[0])) continue;            // the same link twice: once is enough
                 Progress.update(label(j[1]), "reading", 0, 0, "Starting");
                 jobs.add(j);
             }
-            if (jobs.isEmpty() && worker == null) {
+            if (jobs.isEmpty() && workers == 0) {
                 stopForeground(true);
                 stopSelfResult(startId);
                 return START_NOT_STICKY;
             }
-            if (worker == null && !jobs.isEmpty()) {
-                stopping = false;
-                limitNote = null;
-                worker = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        work();
-                    }
-                });
-                worker.start();
-            }
+            if (workers == 0) limitNote = null;
+            spawn();
         }
         MainActivity.progress();
         return START_NOT_STICKY;
@@ -156,10 +162,124 @@ public class DownloadService extends Service {
 
     private boolean queued(String link) {
         String l = same(link);
-        String[] r = running;
-        if (r != null && same(r[0]).equals(l) && !stopping) return true;
+        for (Now n : busy) if (same(n.job[0]).equals(l) && !n.stopping) return true;
         for (String[] j : jobs) if (same(j[0]).equals(l)) return true;
         return false;
+    }
+
+    /** every download in hand stops (Stop, Android's daily limit) - called holding jobs */
+    private void stopAll() {
+        for (Now n : busy) {
+            n.stopping = true;
+            Process p = n.proc;
+            if (p != null) p.destroy();
+        }
+    }
+
+    /** how many waiting links may start beside the ones in hand (other playlists) - called holding jobs */
+    private int startable() {
+        Set<String> using = using();
+        boolean quiet = quietBusy();
+        int n = 0;
+        for (String[] j : jobs) {
+            if (!free(j, using, quiet)) continue;
+            n++;
+            if (!j[1].isEmpty()) using.add(j[1].toLowerCase(Locale.ROOT));
+            if (isSync(j)) quiet = true;
+        }
+        return n;
+    }
+
+    /** the first waiting link that may start now (take = also off the list) - called holding jobs */
+    private String[] pick(boolean take) {
+        Set<String> using = using();
+        boolean quiet = quietBusy();
+        for (java.util.Iterator<String[]> it = jobs.iterator(); it.hasNext(); ) {
+            String[] j = it.next();
+            if (!free(j, using, quiet)) continue;
+            if (take) it.remove();
+            return j;
+        }
+        return null;
+    }
+
+    private Set<String> using() {
+        Set<String> u = new java.util.HashSet<>();
+        for (Now n : busy) {
+            if (n.hold != null) u.add(n.hold.toLowerCase(Locale.ROOT));
+            if (!n.job[1].isEmpty()) u.add(n.job[1].toLowerCase(Locale.ROOT));
+        }
+        return u;
+    }
+
+    private boolean quietBusy() {
+        for (Now n : busy) if (n.quiet) return true;
+        return false;
+    }
+
+    private static boolean isSync(String[] j) {
+        return j.length > 2 && "sync".equals(j[2]);
+    }
+
+    private static boolean free(String[] j, Set<String> using, boolean quietBusy) {
+        if (isSync(j) && quietBusy) return false;
+        return j[1].isEmpty() || !using.contains(j[1].toLowerCase(Locale.ROOT));
+    }
+
+    /** more workers while links can start beside the ones running (AT_ONCE at most) - called holding jobs */
+    private void spawn() {
+        while (workers < AT_ONCE && workers - busy.size() < startable()) {
+            workers++;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    work();
+                }
+            }).start();
+        }
+    }
+
+    /** the lowest work folder no download in hand uses */
+    private int freeSlot() {
+        for (int k = 0; ; k++) {
+            boolean used = false;
+            for (Now n : busy) if (n.slot == k) used = true;
+            if (!used) return k;
+        }
+    }
+
+    /**
+     * a link that found its playlist only now (a new YouTube playlist, or the one it went to before) waits
+     * while another download is writing into that playlist, then holds it. False: stopped meanwhile.
+     */
+    private boolean hold(Now me, String folder, String card) throws InterruptedException {
+        boolean said = false;
+        while (true) {
+            synchronized (jobs) {
+                if (me.stopping) return false;
+                boolean other = false;
+                for (Now n : busy)
+                    if (n != me && (folder.equalsIgnoreCase(n.hold) || folder.equalsIgnoreCase(n.job[1]))) other = true;
+                if (!other) {
+                    me.hold = folder;
+                    return true;
+                }
+                if (said) {
+                    jobs.wait(2000);
+                    continue;
+                }
+            }
+            said = true;
+            progress(card, "reading", 0, 0, "Waiting - another download is going into " + folder);
+        }
+    }
+
+    /** a download's card and its line in the notification go */
+    private void ended(String folder) {
+        Progress.update(folder, null, 0, 0, null);
+        synchronized (counts) {
+            counts.remove(folder);
+        }
     }
 
     /** one form for the same link (YouTube Music and YouTube, with or without the share tag) */
@@ -175,11 +295,9 @@ public class DownloadService extends Service {
     public void onTimeout(int startId) {
         limitNote = "Android's 6-hour download time for today ran out";
         synchronized (jobs) {
-            stopping = true;
             jobs.clear();
+            stopAll();
         }
-        Process p = proc;
-        if (p != null) p.destroy();
         stopForeground(true);
         stopSelf();
     }
@@ -209,38 +327,49 @@ public class DownloadService extends Service {
     private void loop() {
         while (true) {
             String[] job;
+            final Now me = new Now();
             synchronized (jobs) {
                 // Stop empties the list, so anything still in it was shared after the Stop
-                job = jobs.poll();
+                job = pick(true);
                 if (job != null) {
-                    stopping = false;
-                    limitNote = null;
-                    running = job;
-                    quietJob = job.length > 2 && "sync".equals(job[2]);
+                    if (busy.isEmpty()) limitNote = null;
+                    me.job = job;
+                    me.quiet = isSync(job);
+                    me.hold = job[1].isEmpty() ? null : job[1];
+                    me.slot = freeSlot();
+                    busy.add(me);
+                    spawn();                               // the next link starts beside this one
                 } else {
-                    running = null;
-                    worker = null;
-                    stopForeground(true);
-                    stopSelfResult(lastStartId);           // false if a newer link is on its way
+                    workers--;                             // what is left waits for a playlist in use - its worker takes it
+                    if (workers == 0) {
+                        stopForeground(true);
+                        stopSelfResult(lastStartId);       // false if a newer link is on its way
+                    }
                     break;
                 }
             }
+            mine.set(me);
             String msg;
-            lastFolder = job[1];
-            lastPend = null;
+            me.lastFolder = job[1];
             try {
                 msg = run(job[0], job[1]);
+                if (me.sourceNote != null) msg += " " + me.sourceNote;
             } catch (Exception e) {
                 msg = "Download failed: " + (e.getMessage() == null ? e.toString() : e.getMessage());
-                if (!stopping) Pending.finish(this, lastPend != null ? lastPend : lastFolder);
+                if (!me.stopping) Pending.finish(this, me.lastPend != null ? me.lastPend : me.lastFolder);
+            } finally {
+                synchronized (jobs) {
+                    busy.remove(me);
+                    jobs.notifyAll();                      // a link waiting for this playlist goes on
+                }
             }
-            String where = lastFolder == null || lastFolder.isEmpty() ? READING : lastFolder;
-            Progress.update(label(job[1]), null, 0, 0, null);
-            Progress.update(where, null, 0, 0, null);
+            String where = me.lastFolder == null || me.lastFolder.isEmpty() ? READING : me.lastFolder;
+            ended(label(job[1]));
+            ended(where);
             MainActivity.progress();
-            boolean cameIn = !quietJob || msg.startsWith("Added ") || msg.contains(" new song");
+            boolean cameIn = !me.quiet || msg.startsWith("Added ") || msg.contains(" new song");
             if (cameIn) PlayerService.run(this, MainActivity.LIBRARY_CHANGED);   // a check that found nothing changes nothing
-            if (quietJob) {
+            if (me.quiet) {
                 // a Sync check speaks only when new songs came in
                 Matcher n = Pattern.compile("^Added (\\d+) song").matcher(msg);
                 if (n.find()) {
@@ -267,7 +396,13 @@ public class DownloadService extends Service {
         Progress.update(folder, phase, done, total, text);
         try {
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            nm.notify(FG_ID, Progress.progressNote(this, folder, phase, done, total, text));
+            android.app.Notification n;
+            synchronized (counts) {
+                counts.put(folder, new int[]{done, "reading".equals(phase) ? 0 : total});
+                // several at once - one notification, a line for each
+                n = counts.size() < 2 ? Progress.progressNote(this, folder, phase, done, total, text) : Progress.manyNote(this, counts);
+            }
+            nm.notify(FG_ID, n);
         } catch (Exception ignored) {
         }
         MainActivity.progress();
@@ -334,6 +469,81 @@ public class DownloadService extends Service {
         return name.isEmpty() ? "From YouTube" : name;
     }
 
+    /** how many songs one search run looks up, and how many uploads it hears about for each */
+    private static final int BATCH = 10, HITS = 5;
+
+    /**
+     * a Spotify / Deezer link read (Sources) and each song found on YouTube - into meta (id -> {title,
+     * artist, seconds}, as from a YouTube playlist), the rest into unmatched ({id, title, artist, seconds, why},
+     * for "Find another copy"). Ten songs to a search run. {the list's name, YouTube's last error}
+     */
+    private String[] fromSource(String link, String card, Map<String, String[]> meta, List<String[]> unmatched) throws Exception {
+        final Now me = mine.get();
+        Sources.Got g = Sources.read(link);
+        if (g.songs.isEmpty()) throw new Exception(g.from + " showed no songs for that link");
+        int n = g.songs.size(), found = 0;
+        if (g.total > n)
+            me.sourceNote = g.from + " shows only the first " + n + " of this playlist's " + g.total + " songs to an app without an account - the other "
+                    + (g.total - n) + " were not added.";
+        String err = "";
+        for (int i = 0; i < n && !me.stopping; i += BATCH) {
+            List<String[]> part = g.songs.subList(i, Math.min(n, i + BATCH));
+            progress(card, "reading", 0, 0, "Finding the " + g.from + " songs on YouTube: " + i + " of " + n);
+            List<String> a = new ArrayList<>(Arrays.asList("--flat-playlist", "--no-warnings",
+                    "--print", "MMID\t%(playlist_title|)s\t%(id)s\t%(title)s\t%(duration)s\t%(channel,uploader|)s",
+                    "--extractor-retries", "3"));
+            for (String[] s : part) a.add("ytsearch" + HITS + ":" + Sources.query(s));
+            Map<String, List<String[]>> hits = new LinkedHashMap<>();
+            Process p = me.proc = Ytdl.start(this, a);
+            BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
+            String line;
+            try {
+                while ((line = r.readLine()) != null) {
+                    if (line.startsWith("MMID\t")) {
+                        String[] f = line.split("\t", -1);
+                        if (f.length < 6 || !ID.matcher(f[2].trim()).matches()) continue;
+                        List<String[]> l = hits.get(f[1].trim());
+                        if (l == null) hits.put(f[1].trim(), l = new ArrayList<>());
+                        l.add(new String[]{f[2].trim(), na(f[3]), na(f[5]), na(f[4])});
+                    } else if (line.trim().startsWith("ERROR")) {
+                        err = line.trim();
+                    }
+                    if (me.stopping) break;
+                }
+            } catch (java.io.IOException e) {
+                if (!me.stopping) throw e;
+            }
+            if (me.stopping) p.destroy();
+            p.waitFor();
+            me.proc = null;
+            if (me.stopping) break;
+            boolean none = true;
+            for (String[] s : part) {
+                List<String[]> l = hits.get(Sources.query(s));
+                if (l != null) none = false;
+                String id = l == null ? null : Sources.best(l, s);
+                if (id == null) {
+                    unmatched.add(new String[]{s[0], s[1], s[2], s[3], "No clear match on YouTube yet"});
+                    continue;
+                }
+                for (String[] x : l) {
+                    if (!x[0].equals(id)) continue;
+                    if (!meta.containsKey(id)) meta.put(id, new String[]{x[1], x[2].replaceAll("\\s*-\\s*Topic$", ""), x[3]});
+                    found++;
+                    break;
+                }
+            }
+            if (none && held(err)) {
+                // YouTube is pausing this phone: what was not looked up yet waits under "Find another copy"
+                for (String[] s : g.songs.subList(Math.min(n, i + BATCH), n))
+                    unmatched.add(new String[]{s[0], s[1], s[2], s[3], "YouTube paused - not looked up yet"});
+                break;
+            }
+            Thread.sleep(1500);                                      // gently, between search runs
+        }
+        return new String[]{g.name.isEmpty() ? "From " + g.from : g.name, found == 0 ? err : ""};
+    }
+
     /** YouTube holding this phone back (bot check, too many requests) - not the song's fault */
     static boolean held(String line) {
         if (line.contains("confirm your age")) return false;          // age-restricted: the song's own problem
@@ -355,21 +565,29 @@ public class DownloadService extends Service {
     }
 
     private String run(String link, String wanted) throws Exception {
+        final Now me = mine.get();
         String card = label(wanted);
         if (Ytdl.needsSetup(this)) progress(card, "reading", 0, 0, "Setting up the downloader (first time, about a minute)");
         Ytdl.init(this);
-        progress(card, "reading", 0, 0, "Checking for a newer yt-dlp");
-        Ytdl.maybeUpdate(this);
+        boolean alone;
+        synchronized (jobs) {
+            alone = busy.size() <= 1;
+        }
+        if (alone) {                         // a new yt-dlp only while no other download is using it
+            progress(card, "reading", 0, 0, "Checking for a newer yt-dlp");
+            Ytdl.maybeUpdate(this);
+        }
         Uri tree = Importer.tree(this);
         if (tree == null) return "Carmen Musicum needs a music folder first - tap Music folder on the home screen";
 
         link = link.trim().replace("music.youtube.com", "www.youtube.com");
         boolean restore = link.startsWith(Backup.IDS);           // "Get the songs back" after a new phone
-        String listId = restore ? null : listId(link);
-        boolean playlist = listId != null;
+        boolean source = !restore && Sources.is(link);           // a Spotify / Deezer link - found on YouTube
+        String listId = restore || source ? null : listId(link);
+        boolean playlist = listId != null || source;
 
         // 1. every song in the link: id, title, length, artist (+ the playlist's own title)
-        progress(card, "reading", 0, 0, quietJob ? "Checking YouTube for new songs" : playlist ? "Reading the playlist" : "");
+        progress(card, "reading", 0, 0, me.quiet ? "Checking YouTube for new songs" : source ? "Reading the link" : playlist ? "Reading the playlist" : "");
         List<String> a = new ArrayList<>(Arrays.asList("--flat-playlist", "--no-warnings",
                 "--print", "MMID\t%(id)s\t%(title)s\t%(duration)s\t%(channel,uploader|)s",
                 "--extractor-retries", "10", "--retry-sleep", "extractor:exp=2:30"));
@@ -383,11 +601,12 @@ public class DownloadService extends Service {
         Map<String, String[]> meta = new LinkedHashMap<>();       // id -> {title, artist, seconds}
         // what it waits under until it has a name (a new playlist is named after the YouTube one)
         String pkey = !wanted.isEmpty() ? pendKey(wanted, listId) : "?" + (listId != null ? listId : Integer.toHexString(link.hashCode()));
-        lastPend = pkey;
+        me.lastPend = pkey;
         String plTitle = "", lastErr = "", lastLine = "";
-        if (stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
+        if (me.stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
         Map<String, String> restoreNames = new LinkedHashMap<>();   // id -> the file name it had
         Map<String, String> restoreAs = new LinkedHashMap<>();      // the same, as written (it comes back under it)
+        List<String[]> unmatched = new ArrayList<>();               // no clear match on YouTube
         Process p = null;
         BufferedReader r = null;
         String line;
@@ -399,8 +618,14 @@ public class DownloadService extends Service {
             }
             plTitle = wanted;
             if (meta.isEmpty()) return "Nothing to get back for " + wanted;
+        } else if (source) {
+            String[] got = fromSource(link, card, meta, unmatched);
+            plTitle = got[0];
+            lastErr = got[1];
+            if (meta.isEmpty() && !unmatched.isEmpty() && !held(lastErr))
+                return "No clear match on YouTube for " + (unmatched.size() == 1 ? "this song" : "any of these " + unmatched.size() + " songs");
         } else {
-        p = proc = Ytdl.start(this, a);
+        p = me.proc = Ytdl.start(this, a);
         r = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
         try {
             while ((line = r.readLine()) != null) {
@@ -417,19 +642,19 @@ public class DownloadService extends Service {
                     if (t.startsWith("ERROR")) lastErr = t;
                     else if (!t.isEmpty()) lastLine = t;
                 }
-                if (stopping) break;
+                if (me.stopping) break;
             }
         } catch (java.io.IOException e) {
-            if (!stopping) throw e;
+            if (!me.stopping) throw e;
         }
-        if (stopping) p.destroy();
+        if (me.stopping) p.destroy();
         p.waitFor();
-        proc = null;
+        me.proc = null;
         }
         if (lastErr.isEmpty()) lastErr = lastLine;
-        if (stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
+        if (me.stopping) return limitNote != null ? limitNote : "Stopped before anything came in";
         if (meta.isEmpty()) {
-            if (quietJob) return "Nothing new checked for " + wanted;      // offline or held - the next check tries again
+            if (me.quiet) return "Nothing new checked for " + wanted;      // offline or held - the next check tries again
             if (held(lastErr)) {
                 // YouTube is pausing this phone right now: keep the link and try again by itself
                 if (playlist || !wanted.isEmpty()) {
@@ -453,11 +678,12 @@ public class DownloadService extends Service {
         // where it goes: the playlist picked, the one it went to before, the one that already has
         // most of these songs, or a new playlist named after the YouTube one
         String folder = wanted.isEmpty() ? pickFolder(tree, listId, meta.keySet(), plTitle) : wanted;
+        if (!hold(me, folder, card)) return limitNote != null ? limitNote : "Stopped before anything came in";
         final String pf = pendKey(folder, listId);
-        if (!folder.equals(card)) Progress.update(card, null, 0, 0, null);
+        if (!folder.equals(card)) ended(card);
         if (!pf.equals(pkey)) Pending.finish(this, pkey);           // it waited under a temporary name
-        lastFolder = folder;
-        lastPend = pf;
+        me.lastFolder = folder;
+        me.lastPend = pf;
         // poured into a playlist that follows another YouTube playlist (its own), it comes in
         // once and is not followed - that playlist keeps following its own list
         if (listId != null && pf.equals(folder)) getSharedPreferences("lists", Context.MODE_PRIVATE).edit().putString(listId, folder).apply();
@@ -512,8 +738,13 @@ public class DownloadService extends Service {
             items.add(new String[]{id, v[0], v[1], v[2]});
         }
         if (!deadOnes.isEmpty()) Missing.add(this, folder, deadOnes);
+        if (!unmatched.isEmpty()) {
+            Missing.add(this, folder, unmatched);                    // picked by hand (or by AutoCopy later)
+            me.sourceNote = (me.sourceNote == null ? "" : me.sourceNote + " ") + unmatched.size()
+                    + (unmatched.size() == 1 ? " song has" : " songs have") + " no clear match on YouTube yet - open the playlist to pick one under Find another copy.";
+        }
         if (!alreadyHere.isEmpty()) Importer.appendArchive(this, tree, fid, alreadyHere);    // checked once, not again
-        if (quietJob && listId != null) {
+        if (me.quiet && listId != null) {
             // songs new since the last check first, then from the end of the playlist; at most Sync.MAX -
             // the rest come at the next check
             List<Integer> pick = Sync.order(todo, Sync.seen(this, listId), Sync.MAX);
@@ -538,7 +769,7 @@ public class DownloadService extends Service {
         Pending.start(this, pf, link, wanted, plTitle, items);
 
         // 2. fetch them, one after another, at the same polite pace as playlist.sh
-        File work = new File(getCacheDir(), "dl");
+        File work = new File(getCacheDir(), me.slot == 0 ? "dl" : "dl" + me.slot);      // one each
         Ytdl.delete(work);
         work.mkdirs();
         File batch = new File(work, "todo.txt");
@@ -572,11 +803,11 @@ public class DownloadService extends Service {
         long shownAt = System.currentTimeMillis(), pctAt = 0;
         int shownAdded = 0;
         progress(folder, "downloading", 0, total, "");
-        if (stopping) {
+        if (me.stopping) {
             if (limitNote == null) Pending.finish(this, pf);
             return limitNote != null ? limitNote : "Stopped before anything came in";
         }
-        p = proc = Ytdl.start(this, d);
+        p = me.proc = Ytdl.start(this, d);
         r = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
         try {
             while ((line = r.readLine()) != null) {
@@ -674,14 +905,14 @@ public class DownloadService extends Service {
                         progress(folder, "downloading", done, total, "");
                     }
                 }
-                if (stopping) break;
+                if (me.stopping) break;
             }
         } catch (java.io.IOException e) {
-            if (!stopping && !paused) throw e;
+            if (!me.stopping && !paused) throw e;
         }
-        if (stopping || paused) p.destroy();
+        if (me.stopping || paused) p.destroy();
         p.waitFor();
-        proc = null;
+        me.proc = null;
         int tail = newIds.size() % 10;
         if (tail > 0) Importer.appendArchive(this, tree, fid, newIds.subList(newIds.size() - tail, newIds.size()));
         Ytdl.delete(work);
@@ -692,7 +923,7 @@ public class DownloadService extends Service {
 
         int left = Math.max(0, total - done);
         gone += goneNow;
-        if (stopping && limitNote == null) {
+        if (me.stopping && limitNote == null) {
             Pending.finish(this, pf);              // Stop: forget the rest
             return finishText(folder, added, dupes + local, notSaved, gone, failed, true, null, 0, 0);
         }
