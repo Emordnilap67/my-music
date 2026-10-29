@@ -134,9 +134,10 @@ in the song's own colours). The **music note** shows the lyrics, the
 - **Sound:** every song at about the same loudness (measured once, the way
   broadcasters do it, with a limiter so nothing distorts), gapless
   crossfade that starts where a song's music really ends, and **Louder on
-  Bluetooth** - 12 dB more to start (up to 18) on speakers, earbuds, the car
-  and headphones, where no song is turned down; the phone's own speaker stays
-  as it was. Home screen > **Sound**.
+  Bluetooth** - the quieter songs lifted up to 18 dB more on speakers, earbuds,
+  the car and headphones (a song that's already loud plays as it is), coming in
+  on the top steps of the phone's volume so every step up is louder; the
+  phone's own speaker stays as it was. Home screen > **Sound**.
 - **Equalizer:** in plain words - "more bass", not "60 Hz" - with Bass, Middle
   and Treble sliders, your phone's presets and every band under Advanced.
   Home screen > **Equalizer**.

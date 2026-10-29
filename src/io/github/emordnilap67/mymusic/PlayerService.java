@@ -239,6 +239,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         session.setActive(true);
         // 4 = RECEIVER_NOT_EXPORTED (Android 13+ wants it said; a system broadcast still arrives)
         registerReceiver(noisy, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), 4);
+        registerReceiver(volume, new IntentFilter("android.media.VOLUME_CHANGED_ACTION"), 4);   // the phone's volume
         am.registerAudioDeviceCallback(devices, MAIN);
         instance = this;
         Loud.done = new Loud.Done() {               // a song just measured - the one on now (or next) takes its level
@@ -313,6 +314,10 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         MAIN.removeCallbacks(release);
         try {
             unregisterReceiver(noisy);
+        } catch (Exception ignored) {
+        }
+        try {
+            unregisterReceiver(volume);
         } catch (Exception ignored) {
         }
         am.unregisterAudioDeviceCallback(devices);
@@ -724,13 +729,15 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private void level(MediaPlayer m, String key) {
         float[] v = m == null ? null : vol.get(m);
         if (v == null) return;
-        float db = 0f;
-        if (Sound.levelOn(this)) {
-            Library.Song s = key == null ? null : Library.get(this).byKey.get(key);
-            db = s == null ? Loud.UNKNOWN_DB : Loud.gainDb(this, key, s.size);
+        Library.Song s = key == null ? null : Library.get(this).byKey.get(key);
+        float meas = s == null ? Loud.UNKNOWN_DB : Loud.gainDb(this, key, s.size);   // + = quieter than the rest
+        float db = Sound.levelOn(this) ? meas : 0f;
+        if (Sound.outside(this, m)) {                                             // Bluetooth, Alexa, the car - louder
+            // never turned down there, then the boost - only for a song quieter than the rest (on a loud one it
+            // only squeezed the sound, quieter), and all of it only at the top of the phone's volume
+            float out = meas > 0f ? Math.min(18f, Math.max(0f, db) + Sound.boostDb(this)) : 0f;
+            db += (out - db) * Sound.topShare(this, m);
         }
-        if (Sound.outside(this, m))                                               // Bluetooth, Alexa, the car - louder
-            db = Math.min(18f, Math.max(0f, db) + Sound.boostDb(this));           // never turned down there, then the boost
         v[0] = db < 0 ? (float) Math.pow(10, db / 20.0) : 1f;
         Sound.Fx f = fx.get(m);
         if (f != null) f.boost(db);
@@ -905,6 +912,17 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     };
 
     /** the Sound settings changed: every player takes them now */
+    /** the phone's volume moved - on an outside speaker the lift and the boost follow it (Sound.topShare) */
+    private final BroadcastReceiver volume = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent i) {
+            if (i.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1) != AudioManager.STREAM_MUSIC) return;
+            if (!Sound.outside(PlayerService.this)) return;
+            level(mp, countKey);
+            level(pre, preKey);
+        }
+    };
+
     void soundChanged() {
         for (java.util.Map.Entry<MediaPlayer, Sound.Fx> e : fx.entrySet()) e.getValue().equalize(this);
         level(mp, countKey);

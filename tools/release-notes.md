@@ -1,3 +1,9 @@
+**New in 10.0:**
+
+- **The phone's volume works all the way up on Bluetooth:** with the equalizer or Louder on Bluetooth on, the volume buttons stopped getting any louder past about half. Now the equalizer keeps its sound without turning everything down, and the extra lift comes in over the top steps of the phone's volume - every step up is louder, all the way to max
+- **Louder on Bluetooth never makes a song quieter:** it lifts the songs that are quieter than the rest; a song that's already loud plays as it is (a boost on a loud master only squeezed it, quieter)
+- **Fixed:** the player bar at the bottom flashed empty for a moment on every play and pause - its colours and stars are now painted once and kept
+
 **New in 9.0:**
 
 - **Spotify and Deezer links:** share or paste a song, album or playlist link from Spotify or Deezer. Their audio is locked, so Carmen Musicum reads the song names and finds each one on YouTube - the closest length wins, and anything without a clear match waits under **Find another copy**. (Spotify shows an app without an account only the first 100 songs of a playlist; Deezer gives them all)

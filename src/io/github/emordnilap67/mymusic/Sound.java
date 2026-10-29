@@ -26,6 +26,15 @@ import org.json.JSONObject;
  * - on Bluetooth a song is never turned down any more (a loud EDM master was cut 4-6 dB to
  *   even it out, and the boost only won that back), then the boost goes on top: 12 dB unless changed, up to 18.
  *   The Sound sheet says which speaker it is playing through.
+ * - THE PHONE'S VOLUME ON BLUETOOTH works all the way to the top (with the equalizer and the boost on, it went
+ *   no louder past about half - with them off it did, and a boost on a loud song made it quieter):
+ *   . the equalizer keeps its shape but never adds volume on an outside speaker - its top band sits at 0 dB and the
+ *     rest below it. Android's equalizer, when a band goes UP, turns the whole sound down by more than that and holds
+ *     it there from about half the phone's volume up (that was the dead top half);
+ *   . Louder on Bluetooth only lifts a song quieter than the common loudness - one already loud plays as it is
+ *     (lifting it only squeezed it, quieter);
+ *   . the lift and the boost follow the phone's volume (topShare): none on the lower part of the slider, all of it
+ *     at the top, coming in over its top TOP_DB - every step up is louder, all the way to max.
  * Settings live in the player's preferences, so the player uses them with the app closed.
  */
 final class Sound {
@@ -106,6 +115,30 @@ final class Sound {
         }
     }
 
+    /** the dB over which the lift and the boost come in, at the top of the phone's volume */
+    static final float TOP_DB = 10f;
+
+    /** how much of the lift and the boost play at the phone's volume now - 0 low on the slider, 1 at the top */
+    static float topShare(Context c, MediaPlayer m) {
+        try {
+            AudioManager am = (AudioManager) c.getSystemService(Context.AUDIO_SERVICE);
+            int i = am.getStreamVolume(AudioManager.STREAM_MUSIC), max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            if (max <= 0 || i >= max) return 1f;
+            if (i <= 0) return 0f;
+            float db = Float.NaN;
+            if (Build.VERSION.SDK_INT >= 28) {             // Android's own dB for this step on this speaker
+                AudioDeviceInfo d = outDevice(c);
+                if (d == null && m != null) d = m.getRoutedDevice();
+                int t = d != null ? d.getType() : AudioDeviceInfo.TYPE_BLUETOOTH_A2DP;
+                db = am.getStreamVolumeDb(AudioManager.STREAM_MUSIC, i, t) - am.getStreamVolumeDb(AudioManager.STREAM_MUSIC, max, t);
+            }
+            if (Float.isNaN(db) || Float.isInfinite(db) || db > 0f) db = 40f * (float) Math.log10((double) i / max);   // about the same
+            return Math.max(0f, Math.min(1f, 1f + db / TOP_DB));
+        } catch (Throwable e) {
+            return 1f;
+        }
+    }
+
     static boolean eqOn(Context c) {
         return prefs(c).getBoolean("eqOn", false);
     }
@@ -173,9 +206,11 @@ final class Sound {
                 int[] lv = eqLevels(c);
                 short n = eq.getNumberOfBands();
                 short[] r = eq.getBandLevelRange();
+                int top = 0;                                 // on an outside speaker the top band sits at 0 dB
+                if (outside(c)) for (short b = 0; b < n; b++) top = Math.max(top, Math.min(r[1], b < lv.length ? lv[b] : 0));
                 for (short b = 0; b < n; b++) {
                     int v = b < lv.length ? lv[b] : 0;
-                    eq.setBandLevel(b, (short) Math.max(r[0], Math.min(r[1], v)));
+                    eq.setBandLevel(b, (short) Math.max(r[0], Math.min(r[1], v) - top));
                 }
                 eq.setEnabled(true);
             } catch (Throwable ignored) {
