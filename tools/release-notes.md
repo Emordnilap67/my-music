@@ -1,3 +1,13 @@
+**New in 11.0:**
+
+- **The ring changes shape:** the outer ring is a true shape at every angle now - hexagon, triangle, circle, pentagon, square, kite, hexagram (a six-pointed star) and diamond - melting straight from one into the next. Every loop plays all eight, and the order shifts a little each loop: every shape turns into every other in time, and none comes back until (nearly) all the others have had their turn. The inner ring takes the same shape and turns with it; round the sharp ones (triangle, kite, hexagram, diamond) the record sits inside, held by the shape
+- **The circle swells:** as the ring turns into a circle it swells out to the bars, stays there a moment, and comes back in
+- **One steady turn:** the outer ring turns once every 52 seconds for every song, with a faint afterimage trailing it. The inner ring follows the voice; the outer one follows it just a little
+- **A barred spiral galaxy:** the galaxy behind the record has a warm glowing bar through its middle, thicker arms, and is seen more face-on. Its stars, and the background's, are real kinds - red and orange dwarfs, yellow Sun-like stars, white, blue-white and rare blue giants - each in its own colour, size and brightness
+- **Supernovas:** every few minutes while a song plays, a star in the galaxy flares up and fades - now and then a big bright one, mostly small and faint
+- **Bars and colours:** the bars are wider with bigger, brighter specks, a thin beaded ring sits under them, and colours are a touch less saturated so bright songs aren't overpowering
+- **Lyrics learn:** lyrics the phone wrote by ear are checked against the online library every day the song plays (it was weekly), so real timed lyrics replace them as soon as the library has them
+
 **New in 10.0:**
 
 - **The phone's volume works all the way up on Bluetooth:** with the equalizer or Louder on Bluetooth on, the volume buttons stopped getting any louder past about half. Now the equalizer keeps its sound without turning everything down, and the extra lift comes in over the top steps of the phone's volume - every step up is louder, all the way to max

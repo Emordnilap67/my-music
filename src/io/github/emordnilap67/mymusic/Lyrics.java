@@ -44,8 +44,9 @@ final class Lyrics {
     private static final long RETRY_SOON_MS = 6L * 3600 * 1000;
     /** captions found while the library was busy: look in the library again after this */
     private static final long RECHECK_MS = 2L * 60 * 1000;
-    /** machine-made lyrics (the phone's own, YouTube's automatic captions): ask the library again after this */
-    private static final long MACHINE_RECHECK_MS = 7L * 24 * 3600 * 1000;
+    /** machine-made lyrics (the phone's own, YouTube's automatic captions): ask the library again after this - a day:
+     *  by-ear words are only a stand-in, so the library is asked again each day the song plays */
+    private static final long MACHINE_RECHECK_MS = 24L * 3600 * 1000;
     /** untimed lyrics: the video's captions are asked for their timing again after this */
     private static final long TIME_RETRY_MS = 7L * 24 * 3600 * 1000;
     /**
@@ -151,7 +152,8 @@ final class Lyrics {
                 boolean keep = !"none".equals(st)
                         || kept.optInt("v") >= V && age < (kept.optBoolean("soon") ? RETRY_SOON_MS : RETRY_NONE_MS);
                 if (keep && "none".equals(st) && Heard.get(c, s) != null) keep = false;     // the phone has written some since
-                boolean machine = "heard".equals(ksrc) || "auto".equals(ksrc);
+                boolean machine = "heard".equals(ksrc) || "auto".equals(ksrc)
+                        || "file".equals(ksrc) && Heard.get(c, s) != null;      // by-ear words come back from the song file too
                 boolean recheck = "ok".equals(st)
                         && (kept.optBoolean("recheck") && age > RECHECK_MS || "auto".equals(ksrc) && kept.optInt("v") < V
                         || machine && age > MACHINE_RECHECK_MS);
@@ -353,7 +355,9 @@ final class Lyrics {
                                   LyricsQuery likely, Done done) throws Exception {
         done.got(pageOf(c, key, kept, likely));
         String was = kept.optString("src", "");
-        boolean captions = "auto".equals(was) || "cc".equals(was) || "heard".equals(was);
+        Library.Song song = Library.get(c).byKey.get(key);
+        boolean captions = "auto".equals(was) || "cc".equals(was) || "heard".equals(was)
+                || "file".equals(was) && song != null && Heard.get(c, song) != null;   // by-ear words that came back from the file
         Map<String, String> memo = new HashMap<>();
         JSONObject hit = null;
         boolean loose = false;

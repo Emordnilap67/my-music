@@ -566,14 +566,26 @@ body.playing .now.show .nowbg i.on{animation-play-state:running}
 .gx{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
   -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 56%,rgba(0,0,0,.35) 76%,transparent 92%);
   mask-image:linear-gradient(180deg,#000 0%,#000 56%,rgba(0,0,0,.35) 76%,transparent 92%)}
-.gxt{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:0;height:0;transform:rotate(-22deg) scaleY(.56)}
+.gxt{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:0;height:0;transform:rotate(-22deg) scaleY(.8)}
+/* seen more face-on - the bar
+   and the arms keep their real shape (was squashed to .56, a steep side view) */
 .gxs{position:absolute;width:var(--gd,800px);height:var(--gd,800px);left:calc(var(--gd,800px) / -2);top:calc(var(--gd,800px) / -2);
-  will-change:transform;animation:gxspin 420s linear infinite;animation-play-state:paused}
+  will-change:transform;animation:gxspin 415s linear infinite;animation-play-state:paused}   /* one turn in 415 s */
 .gxs canvas{position:absolute;inset:0;width:100%;height:100%}
 .gxs .gxc{opacity:0;transition:opacity 1.4s ease}
 .gxs .gxc.on{opacity:.9}
 body.playing .now.show .gxs{animation-play-state:running}
 @keyframes gxspin{to{transform:rotate(-360deg)}}
+/* a star in the galaxy flares up white-blue and fades through warm orange,
+   now and then, somewhere new (placed by supernova() - it turns and tilts with the galaxy) */
+.gxs .sn{position:absolute;width:var(--sn,40px);height:var(--sn,40px);margin:calc(var(--sn,40px) / -2) 0 0 calc(var(--sn,40px) / -2);
+  border-radius:50%;pointer-events:none;opacity:0;will-change:transform,opacity;
+  background:radial-gradient(circle,#fff 0,rgba(255,255,255,.95) 6%,rgba(205,222,255,.75) 14%,rgba(255,196,150,.32) 32%,rgba(255,150,120,.1) 52%,transparent 70%);
+  animation:supernova 6.5s ease-out forwards}
+.gxs .sn.big{background:radial-gradient(circle,#fff 0,#fff 9%,rgba(220,232,255,.9) 18%,rgba(255,205,155,.45) 36%,rgba(255,150,120,.14) 56%,transparent 72%)}
+@keyframes supernova{0%{opacity:0;transform:scale(.15)}6%{opacity:var(--snp,1);transform:scale(.55)}18%{opacity:calc(var(--snp,1) * .95);transform:scale(.9)}
+  45%{opacity:calc(var(--snp,1) * .55);transform:scale(1.25)}100%{opacity:0;transform:scale(1.7)}}
+@media (prefers-reduced-motion:reduce){.gxs .sn{display:none}}
 .cglow{position:absolute;left:-12%;right:-12%;bottom:0;height:52%;z-index:-1;pointer-events:none;opacity:.74;
   transform-origin:50% 72%;will-change:opacity,transform}
 .cglow i{position:absolute;inset:0;opacity:0;transition:opacity 1.3s ease}
@@ -1094,8 +1106,10 @@ const rgba = (c, a) => "rgba(" + c.map(Math.round).join(",") + "," + a + ")";
 /* the colours as drawn: a third less saturated than the song's ("too much saturation") */
 /* the song's colours are now its picture's own (not pushed to neon first), so only a STRONG
    colour is calmed here - a soft one (brown, pastel, grey) is drawn as it is */
+/* every colour, strong or soft, 10% nearer its own grey on top of that */
+const DESAT = .9;
 const tone = c => { const g = .3 * c[0] + .59 * c[1] + .11 * c[2], d = (Math.max(...c) - Math.min(...c)) / 255;
-  const k = d > .38 ? (.38 + (d - .38) * .2) / d : 1;
+  const k = (d > .38 ? (.38 + (d - .38) * .2) / d : 1) * DESAT;
   return c.map(v => Math.max(0, Math.min(255, (g + (v - g) * k) * .95))); };
 SC = schemeOf(null, DEF5);
 let TC = toneS(SC);
@@ -1191,17 +1205,128 @@ const POSES = {
   voice: [[[3, .8], [6, -.3]], [[4, .7], [2, .3]]],         /* carried by the voice: gentle, flowing */
   mix:   [[[2, .7], [4, -.4]], [[3, -.7], [6, -.35]]]       /* anything else */
 };
-let spin = 0, spinV = 0;                                       /* the outer hexagon's turn (radians) and speed (radians a second) */
-/* the outer ring's hexagon <-> circle. shapeT = ms of music played (it stops when paused);
-   HEX = 1 a hexagon .. 0 round */
-const SH_HEX = 16000, SH_FADE = 7000, SH_ROUND = 10000, SH_ALL = 2 * SH_FADE + SH_HEX + SH_ROUND;
-let shapeT = 0, HEX = 1;
-function hexAt(t) {
-  const u = t % SH_ALL, ease = k => k * k * k * (k * (k * 6 - 15) + 10);   /* soft start, soft end */
-  if (u < SH_HEX) return 1;
-  if (u < SH_HEX + SH_FADE) return 1 - ease((u - SH_HEX) / SH_FADE);
-  if (u < SH_HEX + SH_FADE + SH_ROUND) return 0;
-  return ease((u - SH_HEX - SH_FADE - SH_ROUND) / SH_FADE);
+let spin = 0, spinV = 0, spinIn = 0, spinInV = 0;              /* the outer ring's turn (radians) and speed (radians a second); the inner one's */
+/* the outer ring's shapes: each a TRUE polygon - the exact radius of the shape at every angle - melting straight into the
+   next, each held a moment, so it never shows lobes or a squeeze on the way. shapeT = ms of music played (the clock stops
+   when paused). Every setting is in RING_CONFIG */
+const RING_CONFIG = {
+  /* one fixed set of shapes, played in a set order that changes a little each loop (LOOPS) - no randomness */
+  order: [6, 3, 0, 5, 4, 41, 62, 40],          /* hexagon, triangle, circle (0), pentagon, square, kite (41), hexagram (62),
+                                              diamond (40) - each loop plays all of them, in a new order each loop (LOOPS) */
+  holdMs: {0: 20000, 3: 18000, 4: 18000,   /* how long each shape stays (the circle 20 s - see circleStayMs) */
+           5: 13000, 6: 13000, 62: 18000, 41: 18000, 40: 13000},   /* the hexagon, pentagon and diamond 13 s; the triangle, square, kite
+                                              and hexagram 18 s */
+  fadeMs: 6250,                            /* each change, eased - always this long */
+  circleSwell: .38,                        /* the circle swells out toward the bars and back once while it holds - the ribbon 1.66 -> 2.04,
+                                              its lines packed in above it up to 2.09 */
+  circleSwellMs: 7500,                     /* the swell out (and back in) takes this long - it starts as the change into the circle starts */
+  circleStayMs: 7500,                      /* .. and stays out there this long before going back; then a plain circle a moment before it
+                                              changes */
+  innerTurnMs: 0,                          /* unused - the inner ring turns WITH the outer one (outerTurnMs) */
+  outerTurnMs: 52000,                      /* the outer ring's one steady turn, every song alike; the inner ring turns with it */
+  innerJiggle: .85,                        /* how much of the voice's ripples and shape the inner ring shows (1 = all of it) */
+  outerJiggle: 1 / 7,                      /* the inner ribbon's voice breath, ripples and shape - this much of them - on every outer line:
+                                              the inner ring does the heavy lifting, the outer one follows along, subtly */
+  afterimageMs: 600,                       /* how far behind the outer ring its faint copy trails (in its turn) */
+  glow: true,                              /* the outer ring's soft glowing band */
+  afterimage: true,                        /* a faint copy of the outer ring trailing its turn */
+  cornerWeighting: false,                  /* a heavier outer line while it is a polygon, lighter as it rounds */
+  innerTicks: "none"                       /* "dashes": a dashed line turning with the inner ring | "none" */
+};
+/* each polygon's exact radius round the ring (its average = the circle's, so the ring keeps its size). The triangle is a
+   TRUE one - straight sides, sharp corners - drawn whole (PEAK = its ribbon's corners at 2.06, just short of the bars;
+   its sides pass just outside the record, 1.03), with inner triangles inside it, turning with it, the record in their middle */
+const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8};   /* SQZ: how much closer the outer lines keep to it */
+const SHAPES = RING_CONFIG.order.filter(n => n);
+/* the sharp ones - corners out at PEAK, the lines round them smaller copies, the inner ring nested inside them with the
+   record in its middle (its lines go behind the record) */
+const SHARP = {3: 1, 62: 1, 41: 1, 40: 1};
+/* the KITE's corners (as its ribbon has them): the long point 2.06 (a 61 degree tip), the crossbar's ends 1.48, the short
+   point 1.22 (a 119 degree tip) - every side 1.05 from the middle, so the record is the circle that fits inside it */
+const KITE = [[2.06, 0], [-.368, 1.439], [-1.22, 0], [-.368, -1.439]];
+/* the DIAMOND (a rhombus) - long points 2.06 (61 degree tips), short points 1.22 (119 degrees), every side 1.05 from
+   the middle like the kite's: the record fits inside it */
+const DIAMOND = [[2.06, 0], [0, 1.22], [-2.06, 0], [0, -1.22]];
+const CORNERS = {41: KITE, 40: DIAMOND};
+const outlineAt = (V, t) => {              /* how far out a shape's outline is at angle t: the nearest side along that line */
+  let r = Infinity;
+  for (let i = 0; i < V.length; i++) {
+    const [x1, y1] = V[i], [x2, y2] = V[(i + 1) % V.length], nx = y2 - y1, ny = x1 - x2;
+    const d = (x1 * nx + y1 * ny) / (Math.cos(t) * nx + Math.sin(t) * ny);
+    if (d > 0) r = Math.min(r, d);
+  }
+  return r;
+};
+for (const n of SHAPES) {
+  const k0 = n === 62 ? 3 : n, seg = 2 * Math.PI / k0, P = new Float32Array(M1), f = SOFT[n] || 1;
+  const side = t => { const local = ((t % seg) + seg) % seg; return Math.cos(Math.PI / k0) / Math.cos(local - Math.PI / k0); };
+  let sum = 0;
+  for (let m = 0; m <= M; m++) {
+    const t = 2 * Math.PI * m / M;
+    P[m] = n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
+    if (m < M) sum += P[m];
+  }
+  for (let m = 0; m <= M; m++) P[m] = f * P[m] * M / sum + 1 - f;
+  if (PEAK[n]) { const k = PEAK[n] / (1.66 * Math.max(...P)); for (let m = 0; m <= M; m++) P[m] *= k; }
+  POLY[n] = P;
+}
+/* the inner ring is always a smaller copy of the outer ring's shape, turning with it, sized for each shape so its innermost
+   line stays outside the record and its outermost clear of the outer ring (.2 inside its sides): INK = those two sizes as
+   parts of the outer ring's. The sharp shapes have only a sliver of room between the record and their sides, so their
+   lines are .68 .. .84 of the outer one's size, the record sitting in their middle. ROOM: the voice moves the inner lines
+   less where there is little room */
+const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1};
+for (const n of [0, ...SHAPES]) {
+  const s = n ? 1.66 * Math.min(...POLY[n]) : 1.66;               /* the outer ribbon at the middle of a side */
+  INK[n] = SHARP[n] ? [.68, .84] : [1.04 / s, (s - .2) / s];
+}
+/* the voice's ripples and shape, times this - the sharper the shape the livelier, the hexagon as it was, the circle
+   calmest (0 = the circle) */
+const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25};
+let shapeT = 0, SHN = 6, SHP = 1;          /* the shape it mostly is now (for the stroke weight) and how much polygon it is: 1 .. 0 round */
+const ONES = new Float32Array(M1).fill(1);  /* the circle */
+const SHI = new Float32Array(M1), OJ = new Float32Array(M1), OMIN = new Float32Array(M1);   /* the shape as the inner ring takes it; the outer ring's share of the voice; its innermost line */
+/* the shape it is changing from, to, how far (0 .. 1), the outer lines' squeeze, the circle's swell; SHT how sharp it
+   is, SHJ the voice's strength, SHKA / SHKB the inner ring's size (INK), SHR its room (ROOM) */
+let SHA = POLY[6], SHB = POLY[6], SHQ = 0, SHZ = SQZ[6], SHE = 0, SHT = 0, SHJ = 1, SHKA = INK[6][0], SHKB = INK[6][1], SHR = 1;
+const CORNER = 2.04;                       /* past this a corner is eased in (the bars start at 2.1) */
+const LOOPS = (() => {                     /* the loops shapeAt plays: each loop is the last one with neighbours
+                                              swapped (places 0-1, 2-3 .. one loop, 1-2, 3-4 .. the next) - a shape moves at most one place
+                                              a loop, so it comes back only after (nearly) all the others, and every shape still goes to
+                                              every other in turn. 2n loops, then again */
+  const O = RING_CONFIG.order, n = O.length, out = [];
+  let cur = O.slice();
+  for (let L = 0; L < 2 * n; L++) {
+    out.push(cur.slice());
+    for (let p = L % 2; p + 1 < n; p += 2) { const t = cur[p]; cur[p] = cur[p + 1]; cur[p + 1] = t; }
+  }
+  return out;
+})();
+/* the whole round: the loops one after another, then again. SEQT = when each shape starts */
+const SEQ = [], SEQT = [];
+let CYC = 0;
+for (const L of LOOPS) for (const n of L) { SEQT.push(CYC); SEQ.push(n); CYC += RING_CONFIG.holdMs[n] + RING_CONFIG.fadeMs; }
+function shapeAt(t) {
+  const ease = q => .5 - .5 * Math.cos(Math.PI * q), F = RING_CONFIG.fadeMs, N = SEQ.length;
+  /* which shape now is found by halving (SEQT = when each starts); never a shape twice in a row */
+  let u = t % CYC, j = 0, hi = N - 1;
+  while (j < hi) { const m = (j + hi + 1) >> 1; if (SEQT[m] <= u) j = m; else hi = m - 1; }
+  u -= SEQT[j];
+  const a = SEQ[j], b = SEQ[(j + 1) % N], h = RING_CONFIG.holdMs[a];
+  const q = u < h ? 0 : ease(Math.min(1, (u - h) / F));
+  /* the circle: the swell starts WITH the change into the circle - out slowly, stays out a moment, back in, then a
+     plain circle a little before it changes. e = how long since the change into the circle began */
+  const SW = RING_CONFIG.circleSwellMs, st = RING_CONFIG.circleStayMs;
+  const e = !b && a && u >= h ? u - h : !a && u < h ? u + F : -1;
+  SHE = e < 0 ? 0 : e < SW ? ease(e / SW) : e < SW + st ? 1 : e < 2 * SW + st ? ease(1 - (e - SW - st) / SW) : 0;
+  SHA = a ? POLY[a] : ONES; SHB = b ? POLY[b] : ONES; SHQ = q;
+  SHZ = (1 - q) * (a ? SQZ[a] : 0) + q * (b ? SQZ[b] : 0);
+  SHP = (1 - q) * (a ? 1 : 0) + q * (b ? 1 : 0);
+  SHT = (1 - q) * (SHARP[a] || 0) + q * (SHARP[b] || 0);   /* how sharp (triangle, kite, hexagram, diamond) */
+  SHJ = (1 - q) * SHAPEJIG[a] + q * SHAPEJIG[b];
+  SHKA = (1 - q) * INK[a][0] + q * INK[b][0]; SHKB = (1 - q) * INK[a][1] + q * INK[b][1];
+  SHR = (1 - q) * ROOM[a] + q * ROOM[b];
+  SHN = (q < .5 ? a : b) || a || b;
 }
 const ECH = [], ECHO_MS = 800;                                  /* the echoes going out (when, how hard); each lasts just under a beat (800 ms at most) */
 const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(141);   /* 141 bars */
@@ -1419,12 +1544,15 @@ function frame(t, id) {
     const beatRate = IV.length >= 3 ? 1000 / ivMed : 0;              /* beats a second */
     const bz = Math.max(0, Math.min(1, (beatRate - 1.2) / 1.8)), hz = Math.max(0, Math.min(1, hitRate / 9));
     const bsy = Math.min(1, .6 * bz + .4 * hz);
-    spinAim = 2 * Math.PI / (26 - 19 * bsy);                         /* one turn in 26 s (calm) .. 7 s (busy) */
+    spinAim = RING_CONFIG.outerTurnMs > 0 ? 2 * Math.PI * 1000 / RING_CONFIG.outerTurnMs   /* one steady turn in 58 s */
+      : 2 * Math.PI / (26 - 19 * bsy);                               /* (before: one turn in 26 s calm .. 7 s busy) */
   }
   spinV += (spinAim - spinV) * Math.min(1, dt / (live ? 1600 : 700));
   if (!live && spinV < .002) spinV = 0;
   spin = (spin + spinV * dt / 1000) % (2 * Math.PI);
-  if (live) { shapeT += dt; HEX = hexAt(shapeT); }                 /* hexagon <-> circle, only while playing */
+  spinInV += ((live && RING_CONFIG.innerTurnMs > 0 ? 2 * Math.PI * 1000 / RING_CONFIG.innerTurnMs : 0) - spinInV) * Math.min(1, dt / (live ? 1600 : 700));
+  spinIn = (spinIn - spinInV * dt / 1000) % (2 * Math.PI);        /* the inner ring's own turn (unused: it turns with the outer one), eases to a stop when paused */
+  if (live) { shapeT += dt; shapeAt(shapeT); }                    /* the shapes change only while playing */
   /* the warp: each outer wave flows into the new shape (two soft steps, so it starts smoothly),
      the cloud a little slower; the shape eases back to plain when the beats stop */
   const wd = Math.exp(-dt / (live ? 2200 : 450));
@@ -1520,48 +1648,94 @@ function draw() {
   x.globalAlpha = .24 + .12 * hit; x.lineWidth = px1 * 1.3; x.stroke(ax);
 
   /* 2. the waves */
-  const sc0 = Math.cos(spin), sn0 = Math.sin(spin);
-  const ptsOf = (W, off, grow) => {
-    const turn = W.r0 >= 1.6, cs = turn ? sc0 : 1, sn = turn ? sn0 : 0, g = grow || 1;
-    const p = new Path2D(), q1 = W.p1 + W.w1 * phase, q2 = W.p2 + W.w2 * phase;
-    const b1 = W.a1 * (.8 + .2 * Math.cos(q1)) * (1 + 3 * off), b2 = W.a2 * Math.cos(q2) * (1 + 12 * off);
+  const sc0 = Math.cos(spin), sn0 = Math.sin(spin), sci = Math.cos(spinIn), sni = Math.sin(spinIn), SA = SHA, SB = SHB, sq = SHQ;
+  /* the shape both rings take now (they turn together), and the outer ring's fifth of the voice (the inner ribbon's
+     ripples and shape - RING_CONFIG.outerJiggle) */
+  const ojk = RING_CONFIG.outerJiggle * RING_CONFIG.innerJiggle * SHJ;
+  /* OMIN = the outer ring's
+     innermost line at each point - the inner ring is held clear of it, however loud the voice */
+  const baseO = 1.66 + RING_CONFIG.circleSwell * SHE, inO = -.085 * (1 - .5 * SHE) + .075 * vox * RING_CONFIG.outerJiggle;
+  for (let m = 0; m <= M; m++) {
+    SHI[m] = SA[m] + (SB[m] - SA[m]) * sq;
+    OJ[m] = ojk * (.05 * ripAt(DS[m] + .042) * (1 - .7 * TIP[m]) + .06 * VP[m]);
+    OMIN[m] = baseO * SHI[m] + inO * (1 - SHT + .2 * SHT * SHI[m]) + OJ[m];
+  }
+  const ptsOf = (W, off, grow, rot) => {
+    const turn = W.r0 >= 1.6, g = grow || 1, p = new Path2D();
     const lift = W.vg * vox;                                        /* the voice's breath: all the way round */
-    const tipR = 1.9 + .04 * off * 10 + lift * .9;
-    /* the outer ring's six sides fade in and out (hx); round, the corners' breathing becomes
-       the whole ring puffing out and in evenly (puff), a touch wider so it keeps its size */
-    const hx = turn ? HEX : 1, rd = 1 - hx;
-    const puff = rd ? rd * (Math.abs(W.a1) * (.3 * Math.cos(q1) + .35) + Math.abs(b2) * .6 * Math.cos(q2 * .5)) : 0;
+    if (turn) {
+      /* the outer ring - a true polygon at every angle, blended into a circle (no lobes, no squeeze, no warp);
+         the lines beyond the ribbon follow it a set step further out (a little closer in for the square). rot: the
+         turn to draw it at (the afterimage), else the ring's own */
+      const cs = rot === undefined ? sc0 : Math.cos(rot), sn = rot === undefined ? sn0 : Math.sin(rot);
+      const step = (W.r0 - 1.66) * (1 - SHZ) * (1 - .85 * SHE), base = 1.66 + RING_CONFIG.circleSwell * SHE;   /* the lines tuck in as the circle swells */
+      const cap = CORNER + .06 * SHE + .1 * SHT, o2 = off * (1 - .5 * SHE);   /* the swollen circle reaches the bars (2.1); the sharp shapes' corners are their own */
+      const add = step + o2 + .075 * vox * RING_CONFIG.outerJiggle, fl = 1.04 - .04 * SHT;   /* the inner ribbon's breath, a seventh */
+      for (let m = 0; m <= M; m++) {
+        const sh = SHI[m];                                             /* one shape melting into the next */
+        let r = base * sh + add * (1 - SHT + .2 * SHT * sh) + OJ[m];   /* round the sharp shapes the lines are smaller copies of them - straight too; + the voice */
+        if (r > cap) r = cap + (r - cap) * .2;                         /* the corners eased in just short of the bars (they start at 2.1) */
+        r = Math.min(LIM, Math.max(fl, r) * g);
+        const cx = CT[m] * cs - ST[m] * sn, cy = ST[m] * cs + CT[m] * sn;   /* the outer ring turns */
+        const px = c + cx * r * R, py = c + cy * r * R;
+        if (m === 0) p.moveTo(px, py); else p.lineTo(px, py);
+      }
+      return p;
+    }
+    /* the inner ring and its lines: smaller copies of the outer ring's shape, melting along with it, turning with the outer
+       ring always, sized for each shape between the record and the outer ring (INK). The voice's breath, ripples and shape,
+       the beat's warp and the slow waves move them - the ripples and shape stronger or lighter with the shape (SHAPEJIG),
+       all of it less where there is little room (ROOM) */
+    const q1 = W.p1 + W.w1 * phase, q2 = W.p2 + W.w2 * phase;
+    const b1 = .2 * W.a1 * Math.cos(q1) * (1 + 3 * off), b2 = W.a2 * Math.cos(q2) * (1 + 12 * off);
+    const fi = Math.max(0, Math.min(1, (W.r0 - 1.13) / .41)), ks = 1.66 * (SHKA + (SHKB - SHKA) * fi) + off;
     for (let m = 0; m <= M; m++) {
-      const wv = W.wg ? W.wv[m] : 0;                                /* the beat's warp (outer waves) */
-      let r = W.r0 + off + hx * (b1 * C6[m] + b2 * C12[m]) + puff + lift + wv;
-      if (W.rg) r += W.rg * ripAt(DS[m] + W.lag) * (1 - .7 * TIP[m]) + W.pg * VP[m];
-      r += (tipR + wv - r) * TIP[m] * W.tip * hx;                    /* drawn to the tip at the left and right (the tips warp too); not when round */
-      r = Math.min(LIM, Math.max(1.04, r) * g);
-      const cx = CT[m] * cs - ST[m] * sn, cy = ST[m] * cs + CT[m] * sn;
+      const wv = W.wg ? W.wv[m] : 0;                                /* the beat's warp (the line just inside the outer ribbon) */
+      const jig = W.rg ? (W.rg * ripAt(DS[m] + W.lag) * (1 - .7 * TIP[m]) + W.pg * VP[m]) * RING_CONFIG.innerJiggle * SHJ : 0;   /* a tad calmer */
+      let r = ks * SHI[m] + b1 + b2 * C12[m] + (lift + wv + jig) * SHR;
+      const lim = OMIN[m] - .04;                                    /* never reaching the outer ring - eased in, then stopped */
+      if (r > lim - .05) r = Math.min(lim, lim - .05 + (r - lim + .05) * .3);
+      r = Math.min(LIM, Math.max(.5, r) * g);                        /* below 1 it is behind the record */
+      const cx = CT[m] * sc0 - ST[m] * sn0, cy = ST[m] * sc0 + CT[m] * sn0;   /* turning with the outer ring */
       const px = c + cx * r * R, py = c + cy * r * R;
       if (m === 0) p.moveTo(px, py); else p.lineTo(px, py);
     }
     return p;
   };
+  {                                                               /* the inner lines go behind the record where they reach it */
+    const cp = new Path2D(); cp.rect(0, 0, Z, Z); cp.moveTo(c + R, c); cp.arc(c, c, R, 0, 2 * Math.PI);
+    x.save(); x.clip(cp, "evenodd");
+  }
   for (const W of WAV) {
     if (W.kind === "ribbon") {
-      const outer = W.wg > 0, wide = outer ? 1 : 1 + .3 * vox, lit = outer ? 1 + .12 * hit : 1 + .25 * vox;
+      const outer = W.wg > 0, wide = outer ? 1 : 1 + .3 * vox, lit = outer ? 1 + .12 * hit : 1 + .25 * vox;   /* the outer one keeps its size */
+      const cw = outer && RING_CONFIG.cornerWeighting ? 1 + .25 * SHP : 1;   /* heavier while a polygon (off unless turned on) */
       const core = ptsOf(W, 0);
       x.strokeStyle = g0;
-      x.globalAlpha = .18 * lit; x.lineWidth = R * .26 * wide; x.stroke(core);   /* the soft glowing band */
-      x.globalAlpha = .26 * lit; x.lineWidth = R * .14 * wide; x.stroke(core);
-      x.globalAlpha = .4; x.lineWidth = R * .075; x.stroke(core);
+      if (outer && RING_CONFIG.afterimage && spinV > .01) {        /* a faint copy trailing the turn */
+        x.globalAlpha = .12; x.lineWidth = R * .06; x.stroke(ptsOf(W, 0, 1, spin - spinV * RING_CONFIG.afterimageMs / 1000));
+      }
+      if (!outer || RING_CONFIG.glow) {
+        x.globalAlpha = .18 * lit; x.lineWidth = R * .26 * wide * cw; x.stroke(core);   /* the soft glowing band */
+        x.globalAlpha = .26 * lit; x.lineWidth = R * .14 * wide * cw; x.stroke(core);
+      }
+      x.globalAlpha = .4; x.lineWidth = R * .075 * cw; x.stroke(core);
       const c1 = ptsOf(W, -.022), c2 = ptsOf(W, .022);              /* two bright strands at its heart */
       x.globalAlpha = .45; x.lineWidth = R * .035; x.stroke(c1); x.stroke(c2);
       x.strokeStyle = g4; x.globalAlpha = .8; x.lineWidth = Math.max(px1, R * .013); x.stroke(c1); x.stroke(c2);
       x.strokeStyle = g2;                                          /* fine lines running along it */
       for (const o of [-.085, -.062, -.045, .045, .062, .085]) { x.globalAlpha = .55; x.lineWidth = px1; x.stroke(ptsOf(W, o)); }
+      if (!outer && RING_CONFIG.innerTicks === "dashes" && x.setLineDash) {   /* dashes turning with the inner hexagon, so its turn shows */
+        x.setLineDash([R * .05, R * .065]); x.strokeStyle = g4; x.globalAlpha = .45; x.lineWidth = Math.max(px1, R * .012);
+        x.stroke(core); x.setLineDash([]);
+      }
     } else {
       const pth = ptsOf(W, 0);
       x.strokeStyle = g0; x.globalAlpha = .16; x.lineWidth = R * .035; x.stroke(pth);
       x.strokeStyle = g2; x.globalAlpha = .58; x.lineWidth = px1; x.stroke(pth);
     }
   }
+  x.restore();
 
   const OUTW = WAV[1];
   for (const E of ECH) {
@@ -1574,6 +1748,8 @@ function draw() {
 
   {
     const BL = Array.from({length: 6}, () => [new Path2D(), new Path2D(), new Path2D()]);   /* the bars' specks - six columns, three brightnesses */
+    /* each spike 30% wider, its specks 20% bigger, brighter and more opaque */
+    const BAR_WIDE = 1.3, BAR_SPECK = 1.2;
     const NBR = 70, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();       /* taller (was .34). 70 a side and one at the very top */
     for (let j = 0; j <= NBR; j++) {   /* j = NBR is the single centre bar at the very top */
       /* a bar between two bands reads between them, so neighbours rise and fall smoothly, not in steps */
@@ -1590,14 +1766,14 @@ function draw() {
         /* the bar's specks - thickest and brightest at its foot, narrowing to a point at its tip, each one
            breathing a little; past the tip of a lively bar a few drift outward and fade */
         {
-          const ib = (j * 2 + (sd > 0 ? 1 : 0)) * BJ * 3, n = Math.min(BJ, Math.max(4, Math.round(L / .0075))), hw = R * (.022 + .03 * lv);
+          const ib = (j * 2 + (sd > 0 ? 1 : 0)) * BJ * 3, n = Math.min(BJ, Math.max(4, Math.round(L / .0075))), hw = R * (.022 + .03 * lv) * BAR_WIDE;
           const nx = -sa, ny = ca, ph = clock * .0016;
           for (let k = 0; k < n; k++) {
             const q0 = BJT[ib + k * 3], q1 = BJT[ib + k * 3 + 1], q2 = BJT[ib + k * 3 + 2];
             const u = Math.min(1, (k + q1) / n), taper = Math.pow(1 - u, 1.3);
             const across = (q0 + q2 - 1) * hw * taper + .12 * hw * Math.sin(ph + q2 * 6.283) * taper;
             const rr = (base + u * L) * R, px = c + ca * rr + nx * across, py = c + sa * rr + ny * across;
-            const al = (1 - .65 * u) * (1 - .4 * Math.abs(q0 + q2 - 1)), sz = px1 * (.55 + (1 - u)) * (.9 + .4 * lv);
+            const al = (1 - .65 * u) * (1 - .4 * Math.abs(q0 + q2 - 1)), sz = px1 * (.55 + (1 - u)) * (.9 + .4 * lv) * BAR_SPECK;
             BL[colOf(px)][al > .62 ? 2 : al > .36 ? 1 : 0].rect(px - sz, py - sz, sz * 2, sz * 2);
           }
           if (lv > .25) for (let k = 0; k < 5; k++) {
@@ -1615,10 +1791,21 @@ function draw() {
     /* each bar is now a spike of light specks in the song's colours - wide and bright
        at its foot, tapering to a point - over a faint trace of the old line, so it still reads as a bar. Same bars,
        same movement; the stars off the tips stay. (Was: a solid line, .75 bright, with a core and a glow.) */
-    x.strokeStyle = g0; x.globalAlpha = .14; x.lineWidth = R * .075; x.stroke(gp);   /* a soft glow on the taller ones */
-    x.strokeStyle = g2; x.globalAlpha = .28; x.lineWidth = R * .014; x.stroke(bp);   /* the faint trace */
-    for (let sd = 0; sd < 6; sd++) for (let i = 0; i < 3; i++) {
-      x.fillStyle = rgb(mix(TC.CC[sd], [255, 255, 255], [.18, .36, .62][i])); x.globalAlpha = [.5, .76, 1][i]; x.fill(BL[sd][i]);
+    /* a hair-thin ring just under their feet with a bead
+       under and between every bar, in the bars' own colours. It never moves */
+    {
+      const RB = 2.075, NBD = 282;
+      x.strokeStyle = g2; x.globalAlpha = .16; x.lineWidth = px1 * .6;
+      x.beginPath(); x.arc(c, c, RB * R, 0, 2 * Math.PI); x.stroke();
+      for (let i = 0; i < NBD; i++) {
+        const a = 2 * Math.PI * (i + .5) / NBD, px = c + Math.cos(a) * RB * R, py = c + Math.sin(a) * RB * R, sz = px1 * (i % 2 ? .55 : .75);
+        BL[colOf(px)][0].rect(px - sz, py - sz, sz * 2, sz * 2);
+      }
+    }
+    x.strokeStyle = g0; x.globalAlpha = .18; x.lineWidth = R * .085; x.stroke(gp);   /* a soft glow on the taller ones */
+    x.strokeStyle = g2; x.globalAlpha = .36; x.lineWidth = R * .018; x.stroke(bp);   /* the faint trace */
+    for (let sd = 0; sd < 6; sd++) for (let i = 0; i < 3; i++) {   /* brighter specks (were .18 .36 .62 white, .5 .76 1 opaque) */
+      x.fillStyle = rgb(mix(TC.CC[sd], [255, 255, 255], [.28, .46, .7][i])); x.globalAlpha = [.64, .88, 1][i]; x.fill(BL[sd][i]);
     }
     /* the stars off the tips: they float out, twinkle and fade */
     for (const T of TS) {
@@ -3320,6 +3507,20 @@ let bgFlip = 0;
 const rgba = (c, k) => "rgba(" + c.map(Math.round).join(",") + "," + k + ")";
 /* the galaxy behind the ring (CSS .stars above). Drawn once when the player is up, and again
    only when the screen size changes. The band runs through the record at -24 degrees. */
+/* 
+   each star a real kind - [how common, colour, size, brightness]. Most are small dim red and orange dwarfs; a few are hot
+   blue-white giants, big and bright (the brightest get the little cross of light) */
+const STYPES = [
+  [.30, "255,120,90", .8, .8],      /* M - red dwarfs: the most common, small, dim */
+  [.22, "255,175,95", .9, .9],      /* K - orange dwarfs */
+  [.18, "255,232,165", 1, 1],       /* G - yellow, like the Sun */
+  [.16, "245,247,255", 1.1, 1.05],  /* F and A - white */
+  [.09, "175,200,255", 1.4, 1.2],   /* B - blue-white */
+  [.05, "125,160,255", 1.85, 1.4]   /* O - hot blue giants: rare, big, bright */
+  /* the colours were too pale to tell
+     apart on dots this small - now clearly red, orange, yellow, white, blue, and the blue giants bigger and brighter */
+];
+const stype = q => { for (const t of STYPES) if ((q -= t[0]) < 0) return t; return STYPES[2]; };
 function drawStars() {
   const box = $("#nowstars"); if (!box) return;
   const w = box.offsetWidth, h = box.offsetHeight; if (!w || !h) return;
@@ -3337,16 +3538,17 @@ function drawStars() {
   const n = Math.round(w * h / 300);
   for (let i = 0; i < n; i++) {
     const x = r() * w, y = r() * h;
-    g.globalAlpha = .18 + .55 * r() * r(); g.fillStyle = "rgb(" + TINT[(r() * 4) | 0] + ")";
-    g.beginPath(); g.arc(x, y, r() < .88 ? .35 + .35 * r() : .7 + .5 * r(), 0, 6.2832); g.fill();
+    const st = stype(r());                                    /* a real kind of star - its colour, size and brightness */
+    g.globalAlpha = Math.min(1, (.18 + .55 * r() * r()) * st[3]); g.fillStyle = "rgb(" + st[1] + ")";
+    g.beginPath(); g.arc(x, y, (r() < .88 ? .35 + .35 * r() : .7 + .5 * r()) * st[2], 0, 6.2832); g.fill();
   }
   /* 2 and 3. brighter stars with a little glow - each set fades in and out in turn (the twinkle) */
   for (let k = 1; k <= 2; k++) {
     g = cvs[k].getContext("2d"); g.scale(dpr, dpr);
     for (let i = 0; i < Math.round(w * h / 5200); i++) {
-      const x = r() * w, y = r() * h, s = .6 + 1.1 * r() * r(), tint = TINT[(r() * 4) | 0];
+      const st = stype(r()), x = r() * w, y = r() * h, s = (.6 + 1.1 * r() * r()) * st[2], tint = st[1];   /* its kind */
       const rg = g.createRadialGradient(x, y, 0, x, y, s * 4);
-      rg.addColorStop(0, "rgba(" + tint + ",.9)"); rg.addColorStop(.25, "rgba(" + tint + ",.25)"); rg.addColorStop(1, "rgba(" + tint + ",0)");
+      rg.addColorStop(0, "rgba(" + tint + "," + Math.min(1, .9 * st[3]).toFixed(2) + ")"); rg.addColorStop(.25, "rgba(" + tint + ",.25)"); rg.addColorStop(1, "rgba(" + tint + ",0)");
       g.fillStyle = rg; g.fillRect(x - s * 4, y - s * 4, s * 8, s * 8);
       if (s > 1.3) { g.globalAlpha = .35; g.fillStyle = "rgb(" + tint + ")"; g.fillRect(x - s * 5, y - .3, s * 10, .6); g.fillRect(x - .3, y - s * 5, .6, s * 10); g.globalAlpha = 1; }
     }
@@ -3370,12 +3572,16 @@ function gxSize() {
 const GPITCH = 1 / Math.tan(15 * Math.PI / 180);          /* how tightly the arms wind */
 /* each arm wobbles in its own way, and the second one is turned a touch off the first.
    The angle grows going out, so at any distance the side facing the middle is angle + a bit */
-const armAt = (k, u) => k * Math.PI + (k ? .18 : 0) + Math.log(Math.max(u, .05) / .05) * GPITCH * .42
-  + .11 * Math.sin(u * 8.5 + k * 2.3) + .05 * Math.sin(u * 21 + k * 4.1);
+/* a BARRED spiral. A long warm bar runs through the middle (half-length BAR_L of the galaxy's radius - long enough
+   to show past the record), and the two arms leave its ends and sweep out about half a turn */
+const BAR_L = .4;
+const armAt = (k, u) => k * Math.PI + (k ? .1 : 0) + Math.log(Math.max(u, BAR_L) / BAR_L) * GPITCH * .9
+  + Math.min(1, Math.max(0, (u - BAR_L) / .15)) * (.08 * Math.sin(u * 8.5 + k * 2.3) + .04 * Math.sin(u * 21 + k * 4.1));
 const DUST_IN = .17;                                       /* how far inside the arm the dust runs (radians) */
+const ARM_THICK = 1.55;                                    /* how much thicker than thin the arms are */
 /* how strong an arm is along its length (0..1): it starts out of the bulge, thins and breaks in
    places, and fades out - arm 1 a little weaker and shorter */
-const armW = (k, u) => Math.max(0, Math.min(1, (u - .1) / .1)) * Math.max(0, 1 - Math.pow(u / (k ? .88 : .97), 6))
+const armW = (k, u) => Math.max(0, Math.min(1, (u - BAR_L + .03) / .08)) * Math.max(0, 1 - Math.pow(u / (k ? .9 : .98), 6))   /* from the bar's ends */
   * (k ? .82 : 1) * (.72 + .28 * Math.sin(u * 13 + k * 1.7));
 /* the plan - where the knots, pink clouds, spurs and feathers are, in galaxy units (u = 0..1
    out from the middle, a = angle). Made once, from a fixed seed. */
@@ -3423,7 +3629,10 @@ function galaxyStars() {
   const n = Math.round(D * D / 70);
   for (let i = 0; i < n; i++) {
     const q = r();
-    if (q < .2) {                                           /* the bulge: dense, warm, a little oval */
+    if (q >= .1 && q < .2) {                                /* along the bar - warm old stars, thickest in the middle */
+      const t = (r() * 2 - 1) * BAR_L, y = gauss() * .085 * (1.4 - Math.abs(t) / BAR_L);
+      dot(Math.hypot(t, y), Math.atan2(y, t), .3 + .5 * r(), size(), WARM[(r() * 3) | 0]);
+    } else if (q < .1) {                                    /* the bulge: dense, warm, a little oval */
       const u = Math.abs(gauss()) * .085 + Math.abs(gauss()) * .04;
       dot(u, r() * 6.2832, .3 + .55 * r(), size(), WARM[(r() * 3) | 0], .82);
     } else if (q < .38) {                                   /* round the knots, tightly - more round the big ones */
@@ -3432,7 +3641,7 @@ function galaxyStars() {
     } else if (q < .62) {                                   /* along the arms, thinner where an arm is weak */
       const k = r() < .55 ? 0 : 1, u = .1 + .9 * Math.pow(r(), .85), w = armW(k, u);
       if (r() > w + .08) continue;
-      dot(u, armAt(k, u) + gauss() * (.1 + .08 * u), (.2 + .55 * r()) * (.5 + .5 * w), size(), BLUE[(r() * 3) | 0]);
+      dot(u, armAt(k, u) + gauss() * (.1 + .08 * u) * ARM_THICK, (.2 + .55 * r()) * (.5 + .5 * w), size(), BLUE[(r() * 3) | 0]);
     } else if (q < .68) {                                   /* the spurs and the feathers */
       if (r() < .55) { const S = GXP.spurs[(r() * GXP.spurs.length) | 0], t = r(), P = spurAt(S, t);
         dot(P.u, P.a + gauss() * .06, (.2 + .45 * r()) * (1 - .7 * t), size(), BLUE[(r() * 3) | 0]); }
@@ -3440,7 +3649,7 @@ function galaxyStars() {
         dot(P.u, P.a + gauss() * .07, (.1 + .22 * r()) * Math.sin(Math.PI * t), size(), BLUE[(r() * 3) | 0]); }
     } else {                                                /* the disc: old stars, thinning outward */
       const u = Math.min(1, -Math.log(1 - r() * .97) * .3);
-      dot(u, r() * 6.2832, (.1 + .3 * r() * r()) * (1 - .6 * u), size(), r() < .5 ? WARM[(r() * 3) | 0] : BLUE[(r() * 3) | 0]);
+      dot(u, r() * 6.2832, (.1 + .3 * r() * r()) * (1 - .6 * u), size(), stype(r())[1]);   /* the disc's old stars, of every kind */
     }
   }
   g.globalAlpha = 1;
@@ -3476,7 +3685,7 @@ function galaxyFor(pal, now) {
     const u = .1 + .88 * i / 89, w = armW(k, u); if (w < .03) continue;
     const [x, y] = at(u, armAt(k, u) + (r() - .5) * .06);
     const col = mix(BLUE, mix(T[k], T2(k), Math.min(1, u * 1.25)), .45);
-    blob(x, y, Rg * (.075 + .12 * u) * (.8 + .4 * r()), col, (.15 * Math.pow(1 - u, .5) + .075) * w * (.65 + .7 * r()));
+    blob(x, y, Rg * (.075 + .12 * u) * (.8 + .4 * r()) * ARM_THICK, col, (.15 * Math.pow(1 - u, .5) + .075) * w * (.65 + .7 * r()));
   }
   for (const S of GXP.spurs) for (let i = 0; i <= 12; i++) {                  /* the spurs, fading as they go */
     const t = i / 12, P = spurAt(S, t), [x, y] = at(P.u, P.a);
@@ -3492,21 +3701,61 @@ function galaxyFor(pal, now) {
     else { blob(x, y, Rg * (.015 + .04 * K.s), mix([210, 222, 255], songMid, .15), .12 + .28 * K.s);
       if (K.s > .5) blob(x, y, Rg * .008, [245, 248, 255], .35 + .4 * K.s); }
   }
-  blob(h, h, Rg * .42, mix(WARM, songMid, .15), .2, .82);                    /* the bulge: a big warm glow, a little oval */
-  blob(h, h, Rg * .22, WARM, .4, .82);
-  blob(h, h, Rg * .09, CORE, .75, .85);                                       /* ...and its bright heart */
+  /* the BAR - a long warm golden glow through the middle, brightest at the core, the arms leaving its two ends */
+  for (let i = 0; i <= 48; i++) {
+    const t = i / 48 * 2 - 1, e = 1 - Math.abs(t);
+    blob(h + t * BAR_L * Rg, h, Rg * (.16 + .11 * e), mix(WARM, songMid, .1), .07 + .12 * e, .85);
+  }
+  for (const sg of [-1, 1]) blob(h + sg * BAR_L * Rg, h, Rg * .05, mix([210, 222, 255], songMid, .15), .16);   /* bright where the arms begin */
+  blob(h, h, Rg * .37, mix(WARM, songMid, .15), .22, .82);                   /* the bulge: a big warm glow round the record */
+  blob(h, h, Rg * .21, WARM, .42, .82);
+  blob(h, h, Rg * .07, CORE, .75, .85);                                       /* ...and its bright heart */
   g.globalCompositeOperation = "destination-out";                             /* dust: broken, patchy, inside each arm */
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 140; i++) {                /* the bar's two dust lanes - along its edges into the core */
+    const t = .05 + .95 * i / 139, sg = k ? -1 : 1;
+    const x = h + sg * t * BAR_L * Rg, y = h + sg * Rg * (.055 + .05 * t * t + .002 * Math.sin(t * 9 + k * 2));   /* smooth lanes, a touch out from the middle */
+    const rad = Rg * (.02 + .016 * r()), al = (.07 + .08 * r()) * (1 - .4 * t);
+    const rg = g.createRadialGradient(x, y, 0, x, y, rad);
+    rg.addColorStop(0, "rgba(0,0,0," + al + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
   for (let k = 0; k < 2; k++) for (let i = 0; i < 280; i++) {
     const u = .13 + .72 * i / 279, w = armW(k, u);
     if (Math.sin(u * 37 + k * 5) + .4 * Math.sin(u * 91 + k) < -.5 || w < .1) continue;   /* lanes that break in places */
     const [x, y] = at(u, armAt(k, u) + DUST_IN + .06 * (r() - .5));
-    const rad = Rg * (.025 + .03 * r()) * (.7 + .6 * u), al = (.06 + .12 * r()) * w;    /* many soft overlapping puffs - dust, not dots */
+    const rad = Rg * (.025 + .03 * r()) * (.7 + .6 * u) * (1 + (ARM_THICK - 1) * .6), al = (.06 + .12 * r()) * w;    /* many soft overlapping puffs - dust, not dots; wider with the arms */
     const rg = g.createRadialGradient(x, y, 0, x, y, rad);
     rg.addColorStop(0, "rgba(0,0,0," + al + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
     g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
   }
   c.classList.add("on"); cs[1 - GX.flip].classList.remove("on");
 }
+/* a supernova now and then (see .gxs .sn) - every 2.5 to 11 minutes, mostly in an arm, sometimes out in the disc, somewhere
+   new each time; only while the player is open and a song plays (otherwise it just waits for the next turn) */
+let snTimer = 0;
+const supernovaSoon = () => { clearTimeout(snTimer); snTimer = setTimeout(supernova, 150000 + Math.random() * 510000); };
+function supernova() {
+  supernovaSoon();
+  const box = $("#nowgx .gxs");
+  if (!box || document.hidden || !$("#now").classList.contains("show") || !document.body.classList.contains("playing")) return;
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const D = box.offsetWidth; if (!D) return;
+  const k = Math.random() < .55 ? 0 : 1, u = .3 + .6 * Math.random();
+  const a = Math.random() < .8 ? armAt(k, u) + (Math.random() - .5) * .16 * ARM_THICK : Math.random() * 6.2832;
+  const h = D / 2, Rg = h * .96, el = document.createElement("i");
+  el.className = "sn";
+  el.style.left = (h + Math.cos(a) * u * Rg).toFixed(1) + "px";
+  el.style.top = (h + Math.sin(a) * u * Rg).toFixed(1) + "px";
+  /* 2 in 5 are BIG and bright (2-4x the size, a white-hot core, 9 s), the rest small and faint (6 s) */
+  const big = Math.random() < .4;
+  if (big) el.classList.add("big");
+  el.style.setProperty("--sn", Math.round(D * (big ? .1 + .06 * Math.random() : .03 + .02 * Math.random())) + "px");
+  el.style.setProperty("--snp", big ? "1" : (.4 + .25 * Math.random()).toFixed(2));
+  el.style.animationDuration = big ? "9s" : "6s";
+  el.addEventListener("animationend", () => el.remove(), {once: true});
+  box.appendChild(el);
+}
+supernovaSoon();
 /* the glow behind the buttons: four of the song's colours, low on the screen; fades over the last */
 let glowFlip = 0;
 function glowFor(pal) {
