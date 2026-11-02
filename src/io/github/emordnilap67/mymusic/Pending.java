@@ -65,6 +65,11 @@ final class Pending {
     }
 
     /** everything, for the page */
+    /** read again from the file (a playlist got a new name - Rename.stores) */
+    static synchronized void reload() {
+        all = null;
+    }
+
     static synchronized String json(Context c) {
         return all(c).toString();
     }

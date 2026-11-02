@@ -28,6 +28,11 @@ final class Heard {
 
     private Heard() {}
 
+    /** look at the .lyrics folders again on the next ask (a playlist got a new name) */
+    static synchronized void reset() {
+        at = 0;
+    }
+
     /** every song that has phone-written lyrics waiting (looked at again at most once a minute) */
     static synchronized Set<String> keys(Context c) {
         refresh(c);

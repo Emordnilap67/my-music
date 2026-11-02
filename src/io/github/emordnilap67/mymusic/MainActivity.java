@@ -1211,6 +1211,45 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             }).start();
         }
 
+        /**
+         * Rename playlist: a playlist's new name - its plays, hearts,
+         * lyrics, picture, YouTube link and the list playing go with it. The page hears onRenamed, then onLibrary.
+         */
+        @JavascriptInterface
+        public void renamePlaylist(final String folder, final String name) {
+            final Uri t = Importer.tree(MainActivity.this);
+            if (t == null) {
+                js("window.onLibrary&&onLibrary(" + Library.q("Carmen Musicum needs its folder first - tap Add songs once and allow it") + ")");
+                return;
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final String[] r = Importer.renamePlaylist(MainActivity.this, t, folder, name);
+                    if (r[1] != null) {
+                        final String from = r[2], to = r[1];
+                        if (PlayerService.instance != null) {
+                            PlayerService.run(MainActivity.this, new PlayerService.Job() {
+                                @Override
+                                public void run(PlayerService p) {
+                                    p.renamedPl(from, to);          // it plays on under the new name
+                                }
+                            });
+                        } else {
+                            Rename.queueFiles(MainActivity.this, from, to);
+                        }
+                        h.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                js("window.onRenamed&&onRenamed(" + Library.q(from) + "," + Library.q(to) + ")");
+                            }
+                        });
+                    }
+                    reread(r[0], false);
+                }
+            }).start();
+        }
+
         /** every song in a playlist goes, the playlist stays (the page asked first) */
         @JavascriptInterface
         public void emptyPlaylist(final String folder) {

@@ -89,6 +89,27 @@ final class Queue {
         if (l != null) lens.put(to, l);
     }
 
+    /** a playlist got a new name - each of its songs keeps its place everywhere in the list */
+    void renamePl(String pre, String now) {
+        for (List<String> l : java.util.Arrays.asList(base, order, upNext, played, round2)) {
+            if (l != null) for (int k = 0; k < l.size(); k++) l.set(k, Rename.re(l.get(k), pre, now));
+        }
+        extra = Rename.re(extra, pre, now);
+        List<String> h = new ArrayList<>(heard);
+        heard.clear();
+        for (String k : h) heard.add(Rename.re(k, pre, now));
+        for (String k : new ArrayList<>(tags.keySet())) {
+            String n = Rename.re(k, pre, now), t = n.equals(k) ? null : tags.remove(k);
+            if (t != null) tags.put(n, t);
+        }
+        for (String k : new ArrayList<>(lens.keySet())) {
+            String n = Rename.re(k, pre, now);
+            Long l = n.equals(k) ? null : lens.remove(k);
+            if (l != null) lens.put(n, l);
+        }
+        if (src != null && (src + "/").equalsIgnoreCase(pre)) src = now.substring(0, now.length() - 1);
+    }
+
     private static void swap(List<String> l, String a, String b) {
         for (int k = 0; k < l.size(); k++) if (a.equals(l.get(k))) l.set(k, b);
     }

@@ -30,8 +30,8 @@ known as MY MUSIC.*
   full-screen **karaoke** mode, and badly timed lyrics are caught and
   replaced automatically.
 - **A player worth looking at.** The record sits inside a ring of light that
-  changes shape - hexagon, triangle, circle, pentagon, square, kite, star and
-  diamond - and dances to the music (bass, voice and treble each move their
+  changes shape - hexagon, triangle, circle, pentagon, square, kite, six-point
+  star, diamond and four-point star - and dances to the music (bass, voice and treble each move their
   own part), in colours taken from each song's own picture.
 - **Made for big libraries.** Thousands of songs in one playlist, sorted the
   way Spotify sorts, with a shuffle that never repeats a song until it has
@@ -65,8 +65,9 @@ which covers almost every phone made since 2017.
 swipe sideways for more. Each card shows the playlist's picture (or its first
 song's), ringed in that picture's colours. The search box finds any song in
 any playlist. **Hold a playlist's card** for its menu: Play, Shuffle, Share
-playlist, Change picture, Check YouTube for new songs, Check for wrong audio
-and Delete playlist.
+playlist, Rename playlist, Change picture, Check YouTube for new songs, Check
+for wrong audio and Delete playlist. A renamed playlist keeps its plays,
+favourites, lyrics, picture and YouTube link.
 
 **Inside a playlist**, tap a song to play it. The **...** button opens the
 menu for the song that's playing: favourite, hide, wrong song, wrong lyrics,
@@ -174,7 +175,7 @@ in the song's own colours). The **music note** shows the lyrics, the
   song - the bass sends echoes out on every beat, a ring of glowing particle
   bars follows the music (bass at the bottom, voice at the sides, treble at
   the top), the voice ripples the inner wave and the high notes make a cloud
-  of stars drift and twinkle. The ring melts from shape to shape - eight of
+  of stars drift and twinkle. The ring melts from shape to shape - nine of
   them, the order shifting a little every loop - and swells out to the bars
   as a circle. A barred spiral galaxy of real kinds of stars (red dwarfs to
   blue giants, with the odd supernova) turns slowly behind it. Every

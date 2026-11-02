@@ -75,6 +75,25 @@ final class Ids {
         return a != null && a.optLong(1) == new File(path).length() ? a.optString(0) : null;
     }
 
+    /** a playlist got a new name - its songs' paths change, their ids do not */
+    static synchronized void renamePl(Context c, String pre, String now) {
+        JSONObject o = all(c);
+        java.util.List<String> ks = new java.util.ArrayList<>();
+        Iterator<String> it = o.keys();
+        while (it.hasNext()) ks.add(it.next());
+        try {
+            for (String k : ks) {
+                String n = Rename.re(k, pre, now);
+                if (!n.equals(k)) {
+                    o.put(n, o.remove(k));
+                    dirty = true;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        save(c, null);
+    }
+
     /** forget files that are gone, and write the list down */
     static synchronized void save(Context c, Set<String> paths) {
         if (paths != null) {

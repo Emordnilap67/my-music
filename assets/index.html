@@ -252,7 +252,7 @@ body.playing:not(.nowup) .song.on .eq i{animation-play-state:running}
 #sheet #shMoveLast{--k:#6A4DFF}#sheet #shMove{--k:#8A3DFF}#sheet #shQueue{--k:#C03DE6}#sheet #shNext{--k:#FF3D9E}#sheet #shDel{--k:#BDB8CC}#sheet #shCancel{--k:#FFFFFF}   /* "#sheet" in front: the colour beats the white default above */
 /* the playlist menu is the same glowing cards, red to violet down the list (Download into is the yellow under
    Shuffle), grey Delete all songs and Delete, white Cancel */
-#psheet #psPlay{--k:#FF2E3A}#psheet #psShuf{--k:#FF7A1A}#psheet #psDl{--k:#FFC21A}#psheet #psShare{--k:#2EDB5C}#psheet #psPick{--k:#1FC7B6}
+#psheet #psPlay{--k:#FF2E3A}#psheet #psShuf{--k:#FF7A1A}#psheet #psDl{--k:#FFC21A}#psheet #psShare{--k:#2EDB5C}#psheet #psRen{--k:#22D39A}#psheet #psPick{--k:#1FC7B6}
 #psheet #psReset{--k:#2FB5FF}#psheet #psFollow{--k:#2F7BFF}#psheet #psCheck{--k:#8A3DFF}#psheet #psEmpty{--k:#BDB8CC}#psheet #psDel{--k:#BDB8CC}#psheet #psCancel{--k:#FFFFFF}
 #psheet #psEmpty,#psheet #psDel,#psheet #psCancel{background:var(--grain),radial-gradient(130% 160% at 0% 0%,color-mix(in srgb,var(--k) 16%,#050407),#050407 72%)}
 #psheet #psCancel{align-items:center;margin-bottom:4px}
@@ -981,6 +981,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="psShuf" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c2.5 0 4 1.2 5.5 3.5l1 1.5c1.5 2.3 3 3.5 5.5 3.5H21M3 17h3.5c1.4 0 2.5-.4 3.5-1.2M14 8.2c1-.8 2.1-1.2 3.5-1.2H21M18.5 4.5 21 7l-2.5 2.5M18.5 14.5 21 17l-2.5 2.5"/></svg><span class="tx"><span class="st">Shuffle</span><small>Every song once, in a random order.</small></span></button>
     <button id="psDl" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg><span class="tx"><span class="st">Download into this playlist</span><small>Paste a YouTube, Spotify or Deezer link - its songs come into this playlist.</small></span></button>
     <button id="psShare" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4"/></svg><span class="tx"><span class="st">Share playlist</span><small>Sends its name, its YouTube link if it has one, and every song in it.</small></span></button>
+    <button id="psRen" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19.5 8.5l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span class="tx"><span class="st">Rename playlist</span><small>Its plays, hearts, lyrics, picture and YouTube link stay with it under the new name.</small></span></button>
     <button id="psPick" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M21 15.5l-5-5-9 9"/></svg><span class="tx"><span class="st">Change picture</span><small>Pick any picture on your phone.</small></span></button>
     <button id="psReset" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg><span class="tx"><span class="st">Use the original picture</span></span></button>
     <button id="psFollow" class="srow sw hidden" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path class="fill" d="M10 9v6l5-3z"/></svg><span class="tx"><span class="st">Check YouTube for new songs</span><small id="psFollowSub"></small></span></button>
@@ -988,6 +989,15 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="psEmpty" class="srow danger"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></svg><span class="tx"><span class="st">Delete all songs</span><small>Deletes every song in it from your phone. The playlist stays - its picture and YouTube link too.</small></span></button>
     <button id="psDel" class="srow danger"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg><span class="tx"><span class="st">Delete playlist</span><small>Deletes this playlist and the songs still in it from your phone. Songs you moved or copied to other playlists stay.</small></span></button>
     <button id="psCancel" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="tx"><span class="st">Cancel</span></span></button>
+  </div>
+</div>
+
+<div id="rnsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="rnTitle">
+  <div class="sheetcard">
+    <b id="rnTitle">Rename playlist</b><span id="rnSub">Type the new name.</span>
+    <input id="rnName" class="search" type="text" autocomplete="off" spellcheck="false" maxlength="100" aria-label="New name">
+    <button id="rnGo" class="pill main wide">Rename</button>
+    <button id="rnCancel" class="srow">Cancel</button>
   </div>
 </div>
 
@@ -1211,10 +1221,10 @@ let spin = 0, spinV = 0, spinIn = 0, spinInV = 0;              /* the outer ring
    when paused). Every setting is in RING_CONFIG */
 const RING_CONFIG = {
   /* one fixed set of shapes, played in a set order that changes a little each loop (LOOPS) - no randomness */
-  order: [6, 3, 0, 5, 4, 41, 62, 40],          /* hexagon, triangle, circle (0), pentagon, square, kite (41), hexagram (62),
-                                              diamond (40) - each loop plays all of them, in a new order each loop (LOOPS) */
+  order: [6, 3, 0, 5, 4, 41, 62, 40, 44],      /* hexagon, triangle, circle (0), pentagon, square, kite (41), hexagram (62),
+                                              diamond (40), four-point star (44) - each loop plays all of them, in a new order each loop (LOOPS) */
   holdMs: {0: 20000, 3: 18000, 4: 18000,   /* how long each shape stays (the circle 20 s - see circleStayMs) */
-           5: 13000, 6: 13000, 62: 18000, 41: 18000, 40: 13000},   /* the hexagon, pentagon and diamond 13 s; the triangle, square, kite
+           5: 13000, 6: 13000, 62: 18000, 41: 18000, 40: 13000, 44: 13000},   /* the hexagon, pentagon, diamond and star 13 s; the triangle, square, kite
                                               and hexagram 18 s */
   fadeMs: 6250,                            /* each change, eased - always this long */
   circleSwell: .38,                        /* the circle swells out toward the bars and back once while it holds - the ribbon 1.66 -> 2.04,
@@ -1236,18 +1246,33 @@ const RING_CONFIG = {
 /* each polygon's exact radius round the ring (its average = the circle's, so the ring keeps its size). The triangle is a
    TRUE one - straight sides, sharp corners - drawn whole (PEAK = its ribbon's corners at 2.06, just short of the bars;
    its sides pass just outside the record, 1.03), with inner triangles inside it, turning with it, the record in their middle */
-const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8};   /* SQZ: how much closer the outer lines keep to it */
+const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8};   /* SQZ: how much closer the outer lines keep to it */
 const SHAPES = RING_CONFIG.order.filter(n => n);
 /* the sharp ones - corners out at PEAK, the lines round them smaller copies, the inner ring nested inside them with the
    record in its middle (its lines go behind the record) */
-const SHARP = {3: 1, 62: 1, 41: 1, 40: 1};
+const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1};
 /* the KITE's corners (as its ribbon has them): the long point 2.06 (a 61 degree tip), the crossbar's ends 1.48, the short
    point 1.22 (a 119 degree tip) - every side 1.05 from the middle, so the record is the circle that fits inside it */
 const KITE = [[2.06, 0], [-.368, 1.439], [-1.22, 0], [-.368, -1.439]];
 /* the DIAMOND (a rhombus) - long points 2.06 (61 degree tips), short points 1.22 (119 degrees), every side 1.05 from
    the middle like the kite's: the record fits inside it */
 const DIAMOND = [[2.06, 0], [0, 1.22], [-2.06, 0], [0, -1.22]];
-const CORNERS = {41: KITE, 40: DIAMOND};
+/* the four-point STAR (a record inside a four-point star): four points straight up, down, left and right at 2.06, the
+   inner corners between them 1.0 out, at the record's edge - each point's tip ~55 degrees */
+const STAR4 = [[2.06, 0], [.707, .707], [0, 2.06], [-.707, .707], [-2.06, 0], [-.707, -.707], [0, -2.06], [.707, -.707]];
+const CORNERS = {41: KITE, 40: DIAMOND, 44: STAR4};
+const CONCAVE = {44: 1};                   /* a star dips in - its outline is the side the line from the middle really crosses */
+const rayAt = (V, t) => {
+  const c = Math.cos(t), s = Math.sin(t);
+  let r = Infinity;
+  for (let i = 0; i < V.length; i++) {
+    const [x1, y1] = V[i], [x2, y2] = V[(i + 1) % V.length], ex = x2 - x1, ey = y2 - y1, den = c * ey - s * ex;
+    if (Math.abs(den) < 1e-12) continue;
+    const d = (x1 * ey - y1 * ex) / den, u = (x1 * s - y1 * c) / den;
+    if (d > 0 && u >= -1e-9 && u <= 1 + 1e-9) r = Math.min(r, d);
+  }
+  return r;
+};
 const outlineAt = (V, t) => {              /* how far out a shape's outline is at angle t: the nearest side along that line */
   let r = Infinity;
   for (let i = 0; i < V.length; i++) {
@@ -1263,7 +1288,7 @@ for (const n of SHAPES) {
   let sum = 0;
   for (let m = 0; m <= M; m++) {
     const t = 2 * Math.PI * m / M;
-    P[m] = n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
+    P[m] = n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : CONCAVE[n] ? rayAt(CORNERS[n], t) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
     if (m < M) sum += P[m];
   }
   for (let m = 0; m <= M; m++) P[m] = f * P[m] * M / sum + 1 - f;
@@ -1275,14 +1300,14 @@ for (const n of SHAPES) {
    parts of the outer ring's. The sharp shapes have only a sliver of room between the record and their sides, so their
    lines are .68 .. .84 of the outer one's size, the record sitting in their middle. ROOM: the voice moves the inner lines
    less where there is little room */
-const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1};
+const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1};
 for (const n of [0, ...SHAPES]) {
   const s = n ? 1.66 * Math.min(...POLY[n]) : 1.66;               /* the outer ribbon at the middle of a side */
   INK[n] = SHARP[n] ? [.68, .84] : [1.04 / s, (s - .2) / s];
 }
 /* the voice's ripples and shape, times this - the sharper the shape the livelier, the hexagon as it was, the circle
    calmest (0 = the circle) */
-const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25};
+const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3};
 let shapeT = 0, SHN = 6, SHP = 1;          /* the shape it mostly is now (for the stroke weight) and how much polygon it is: 1 .. 0 round */
 const ONES = new Float32Array(M1).fill(1);  /* the circle */
 const SHI = new Float32Array(M1), OJ = new Float32Array(M1), OMIN = new Float32Array(M1);   /* the shape as the inner ring takes it; the outer ring's share of the voice; its innermost line */
@@ -2024,7 +2049,7 @@ const keyOf = s => s.p + "/" + s.file;
 function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} pushPrefs(); }
 function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
 /* the page's own settings, kept in the new-phone backup */
-const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff", "mm_favonly", "mm_slow", "mm_slowcall"];
+const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff", "mm_favonly", "mm_slow", "mm_slowcall", "mm_plwas"];
 /* when a freeze over 2 s ends, a line goes into Carmen Musicum backup/.freezes.txt (N.freezeNote -> Slow.java)
    next to what Android's threads were doing: how long, which screen, the last call to Android (NLAST) and the
    page's size. The page no longer samples itself (Chrome's JavaScript sampler) - sampling only made heat. */
@@ -2225,7 +2250,7 @@ function renderHome() {
       const PL_RING = {};
       const cards = order.map(i => {
         const p = LIB.playlists[i], first = p.songs[0];
-        const ring = PL_RING[p.name.toLowerCase()], rs = ring ? ' style="--r1:' + ring[0] + ';--r2:' + ring[1] + ';--r3:' + ring[2] + '"' : '';
+        const ring = PL_RING[plKey(p.name)], rs = ring ? ' style="--r1:' + ring[0] + ';--r2:' + ring[1] + ';--r3:' + ring[2] + '"' : '';
         /* a playlist with no picture of its own shows its
            first song's picture, square like the others; one without PL_RING colours takes them from its picture */
         const auto = ring ? '' : ' data-auto';
@@ -2317,10 +2342,12 @@ window.onNoPermission = () => {
 /* the order of the playlists: any named in PL_FIRST (lower case) first, in that order; every other playlist
    after them, the most played first. Gives the order as indexes into LIB.playlists (the cards keep their data-i). */
 const PL_FIRST = [];
+/* a renamed playlist keeps the name these lists know it by (mm_plwas: new name -> the name it had) */
+const plKey = n => { const l = n.toLowerCase(), w = load("mm_plwas") || {}; return w[l] || l; };
 function plOrder() {
   const tot = {};
   for (const k in PLAYS) { const n = k.slice(0, k.indexOf("/")); tot[n] = (tot[n] || 0) + (PLAYS[k][0] || 0); }
-  const pin = p => { const r = PL_FIRST.indexOf(p.name.toLowerCase()); return r < 0 ? PL_FIRST.length : r; };
+  const pin = p => { const r = PL_FIRST.indexOf(plKey(p.name)); return r < 0 ? PL_FIRST.length : r; };
   return LIB.playlists.map((p, i) => i).sort((a, b) => { const p = LIB.playlists[a], q = LIB.playlists[b];
     return pin(p) - pin(q) || (tot[q.name] || 0) - (tot[p.name] || 0) || COLL.compare(p.name, q.name); });
 }
@@ -2387,6 +2414,7 @@ function openPs(p) {
   ["#psPlay", "#psShuf", "#psShare"].forEach(x => $(x).classList.toggle("hidden", !n));
   $("#psShare").classList.toggle("hidden", !n || !N.sharePlaylist);
   $("#psEmpty").classList.toggle("hidden", !n || !N.emptyPlaylist);
+  $("#psRen").classList.toggle("hidden", !N.renamePlaylist);
   psFollowFor(p.name);
   $("#psheet").classList.remove("hidden");
 }
@@ -2434,6 +2462,43 @@ $("#dGo").onclick = () => {
 };
 $("#psCheck").onclick = () => { closePs(); if (sheetPl) checkAudio(sheetPl.name, ""); };
 $("#psReset").onclick = () => { closePs(); if (sheetPl) N.resetCover(sheetPl.name); };
+/* Rename playlist - the folder takes the new name
+   and its plays, hearts, hidden songs, lyrics, picture, YouTube link and the list playing go with it (Java:
+   Importer.renamePlaylist + Rename.java); here its lyric timings, its ring colours and its place at the front follow
+   (onRenamed, plKey) */
+let renPl = null;
+$("#psRen").onclick = () => {
+  if (!sheetPl) return; renPl = sheetPl.name; closePs();
+  $("#rnTitle").textContent = "Rename " + renPl;
+  const i = $("#rnName"); i.value = renPl; $("#rnsheet").classList.remove("hidden");
+  setTimeout(() => { i.focus(); i.select(); }, 80);
+};
+const closeRen = () => { $("#rnsheet").classList.add("hidden"); renPl = null; $("#rnName").blur(); };
+$("#rnCancel").onclick = closeRen;
+$("#rnsheet").addEventListener("click", e => { if (e.target.id === "rnsheet") closeRen(); });
+$("#rnName").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#rnGo").click(); } });
+$("#rnGo").onclick = () => {
+  const from = renPl, to = $("#rnName").value.trim().replace(/\s+/g, " ");
+  if (!from || !N || !N.renamePlaylist) return;
+  if (!to) { toast("Type the new name first"); return; }
+  if (to === from) { closeRen(); return; }
+  if (/[\/\\]/.test(to)) { toast("A playlist name cannot have / in it"); return; }
+  if (to.startsWith(".")) { toast("A playlist name cannot start with a dot"); return; }
+  const other = LIB.playlists.find(p => p.name !== from && p.name.toLowerCase() === to.toLowerCase());
+  if (other) { toast("There is a playlist called " + other.name + " already"); return; }
+  closeRen(); toast("Renaming " + from + "..."); N.renamePlaylist(from, to);
+};
+window.onRenamed = (from, to) => {
+  const pre = (from + "/").toLowerCase(), re = k => k.toLowerCase().startsWith(pre) ? to + "/" + k.slice(pre.length) : k;
+  const m = lyrOffs(), o = {}; let ch = false;
+  Object.keys(m).forEach(k => { const n = re(k); if (n !== k) ch = true; o[n] = m[k]; });
+  if (ch) store("mm_lyroff", o);
+  if (load("mm_movelast") === from) store("mm_movelast", to);
+  const w = load("mm_plwas") || {}, lf = from.toLowerCase(), was = w[lf] || lf; delete w[lf];
+  if (to.toLowerCase() !== was) w[to.toLowerCase()] = was;
+  store("mm_plwas", w);
+  if (location.hash === "#/p/" + enc(from)) history.replaceState(history.state, "", "#/p/" + enc(to));
+};
 $("#pls").addEventListener("click", e => {
   if (plDone) { plDone = false; return; }
   const b = e.target.closest(".pl"); if (!b) return;
@@ -3219,6 +3284,7 @@ function goBack(fallback) {
 function popDone() { popFor = null; clearTimeout(popT); if (goNext) { const h = goNext; goNext = null; go(h); } }
 /* the phone's own Back button (MainActivity asks the page first): "1" = the page stepped back */
 window.appBack = () => { if (popFor !== null) return "1";
+  if (!$("#rnsheet").classList.contains("hidden")) { closeRen(); return "1"; }
   if (KAR.open) { karClose(); return "1"; }
   if (!$("#home").classList.contains("hidden") && !$("#now").classList.contains("show") && $("#hq").value) { $("#hq").value = ""; $("#hq").blur(); homeSearch(); return "1"; }
   if (history.state && history.state.d > 0) { goBack("#/"); return "1"; } return "0"; };

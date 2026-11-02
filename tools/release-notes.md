@@ -1,3 +1,8 @@
+**New in 12.0:**
+
+- **Rename a playlist:** hold its card and tap Rename playlist. Everything comes along under the new name - plays, favourites, hidden songs, lyrics and their timing, its picture, its YouTube link, and the song that's playing
+- **A ninth shape:** the four-point star - four sharp points out toward the bars, the record at its heart - joins the ring's loop
+
 **New in 11.0:**
 
 - **The ring changes shape:** the outer ring is a true shape at every angle now - hexagon, triangle, circle, pentagon, square, kite, hexagram (a six-pointed star) and diamond - melting straight from one into the next. Every loop plays all eight, and the order shifts a little each loop: every shape turns into every other in time, and none comes back until (nearly) all the others have had their turn. The inner ring takes the same shape and turns with it; round the sharp ones (triangle, kite, hexagram, diamond) the record sits inside, held by the shape

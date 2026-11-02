@@ -898,6 +898,30 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         saveQueue();
     }
 
+    /** a playlist got a new name - every song of it has a new key; the list and the song playing go on */
+    void renamedPl(String from, String to) {
+        String pre = from + "/", now = to + "/";
+        q.renamePl(pre, now);
+        countKey = Rename.re(countKey, pre, now);
+        preKey = Rename.re(preKey, pre, now);
+        goneKey = Rename.re(goneKey, pre, now);
+        artKey = Rename.re(artKey, pre, now);
+        artWait = Rename.re(artWait, pre, now);
+        prefs.edit().putString("cur", Rename.re(prefs.getString("cur", ""), pre, now)).apply();
+        final List<String> h = new ArrayList<>(q.heard);
+        try {
+            bg.execute(new Runnable() {
+                @Override
+                public void run() {
+                    writeList("heard.txt", h);
+                }
+            });
+        } catch (Exception ignored) {
+        }
+        opened();
+        saveQueue();
+    }
+
     /** a Bluetooth speaker or headphones came or went - the Bluetooth boost follows at once */
     private final AudioDeviceCallback devices = new AudioDeviceCallback() {
         @Override

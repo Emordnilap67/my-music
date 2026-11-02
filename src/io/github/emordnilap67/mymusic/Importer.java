@@ -480,6 +480,136 @@ final class Importer {
     }
 
     /**
+     * Rename playlist: the playlist folder gets its new name,
+     * its by-ear lyrics folder (.lyrics/Name) too, and everything the app keeps under the old name follows it
+     * (Rename.stores). Android's song list normally follows a folder rename by itself; if it has not, the songs
+     * are looked at again. Returns {message, the name it has now or null, the name it had}.
+     */
+    static String[] renamePlaylist(Context c, Uri tree, String from, String want) {
+        String to = want == null ? "" : want.trim().replaceAll("\\s+", " ");
+        if (from == null || from.trim().isEmpty() || from.contains("/") || from.startsWith(".")
+                || from.equalsIgnoreCase(Backup.DIR)) return new String[]{"That is not a playlist", null, null};
+        if (to.isEmpty()) return new String[]{"Type the new name first", null, null};
+        if (to.contains("/") || to.contains("\\")) return new String[]{"A playlist name cannot have / in it", null, null};
+        if (to.startsWith(".")) return new String[]{"A playlist name cannot start with a dot", null, null};
+        if (to.equalsIgnoreCase(Backup.DIR)) return new String[]{"That name is the backup folder's", null, null};
+        if (to.length() > 100) return new String[]{"That name is too long", null, null};
+        if (to.equals(from)) return new String[]{"It is called " + from + " already", null, null};
+        if (DownloadService.alive) return new String[]{"Songs are coming in right now - rename it when they are done", null, null};
+        ContentResolver r = c.getContentResolver();
+        String rootId = DocumentsContract.getTreeDocumentId(tree), id = null, had = null;
+        for (String[] ch : children(r, tree, rootId)) {
+            if (ch[1] == null) continue;
+            if (ch[1].equalsIgnoreCase(from) && DocumentsContract.Document.MIME_TYPE_DIR.equals(ch[2])) {
+                if (id == null || ch[1].equals(from)) {
+                    id = ch[0];
+                    had = ch[1];
+                }
+            } else if (ch[1].equalsIgnoreCase(to)) {
+                return new String[]{"There is a playlist called " + ch[1] + " already", null, null};
+            }
+        }
+        if (id == null) return new String[]{"Could not find " + from, null, null};
+        List<String> was = new ArrayList<>();                 // its songs (hidden ones too), to check Android's list after
+        Library lib = Library.get(c);
+        for (Library.Pl p : lib.playlists) if (p.name.equalsIgnoreCase(had)) for (Library.Song s : p.songs) was.add(s.path);
+        for (Library.Song s : lib.hiddenSongs) if (had.equalsIgnoreCase(s.pl)) was.add(s.path);
+        Uri done = renameDoc(r, tree, id, had, to);
+        if (done == null) return new String[]{"Could not rename " + had, null, null};
+        String nid = DocumentsContract.getDocumentId(done), name = nid.substring(nid.lastIndexOf('/') + 1);
+        // lyrics the phone heard are kept per playlist in .lyrics
+        for (String[] ch : children(r, tree, rootId)) {
+            if (Heard.DIR.equals(ch[1]) && DocumentsContract.Document.MIME_TYPE_DIR.equals(ch[2])) heardFolder(c, r, tree, ch[0], had, name);
+        }
+        String top = Library.rootPath() + "/";
+        int n = 0;
+        for (int i = 0; i < 6 && !was.isEmpty() && (n = songsUnder(c, top + name + "/")) < was.size(); i++) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+        }
+        if (!was.isEmpty() && n < was.size()) {
+            List<String> paths = new ArrayList<>(was);
+            for (String p : was) if (p.startsWith(top)) paths.add(top + name + p.substring(top.length() + had.length()));
+            scan(c, paths);
+        }
+        Rename.stores(c, had, name);
+        Library.load(c);
+        return new String[]{"Renamed " + had + " to " + name, name, had};
+    }
+
+    /** a folder's new name; only the capitals changing goes through a spare name (Android sees the same name) */
+    private static Uri renameDoc(ContentResolver r, Uri tree, String id, String from, String to) {
+        try {
+            Uri u = DocumentsContract.buildDocumentUriUsingTree(tree, id);
+            if (!to.equalsIgnoreCase(from)) return DocumentsContract.renameDocument(r, u, to);
+            Uri mid = DocumentsContract.renameDocument(r, u, to + " (renaming)");
+            if (mid == null) return null;
+            Uri done = null;
+            try {
+                done = DocumentsContract.renameDocument(r, mid, to);
+            } catch (Exception ignored) {
+            }
+            if (done == null) {
+                try {
+                    DocumentsContract.renameDocument(r, mid, from);       // back as it was
+                } catch (Exception ignored) {
+                }
+            }
+            return done;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** .lyrics/Old becomes .lyrics/New; if both are there, the old one's files go in (any already there stay) */
+    private static void heardFolder(Context c, ContentResolver r, Uri tree, String dir, String from, String to) {
+        String old = null, oldName = null, there = null;
+        for (String[] ch : children(r, tree, dir)) {
+            if (ch[1] == null || !DocumentsContract.Document.MIME_TYPE_DIR.equals(ch[2])) continue;
+            if (ch[1].equalsIgnoreCase(from)) {
+                old = ch[0];
+                oldName = ch[1];
+            } else if (ch[1].equalsIgnoreCase(to)) there = ch[0];
+        }
+        if (old == null) return;
+        if (there == null) {
+            renameDoc(r, tree, old, oldName, to);
+            return;
+        }
+        java.util.Map<String, String> have = names(c, tree, there);
+        for (String[] f : children(r, tree, old)) {
+            if (f[1] == null || have.containsKey(f[1].toLowerCase())) continue;
+            try {
+                DocumentsContract.moveDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, f[0]),
+                        DocumentsContract.buildDocumentUriUsingTree(tree, old), DocumentsContract.buildDocumentUriUsingTree(tree, there));
+            } catch (Exception ignored) {
+            }
+        }
+        if (children(r, tree, old).isEmpty()) {
+            try {
+                DocumentsContract.deleteDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, old));
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    /** how many songs Android's list has in this folder */
+    private static int songsUnder(Context c, String dir) {
+        Cursor cur = null;
+        try {
+            cur = c.getContentResolver().query(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{"_id"}, "_data LIKE ?", new String[]{dir + "%"}, null);
+            return cur == null ? 0 : cur.getCount();
+        } catch (Exception e) {
+            return 0;
+        } finally {
+            if (cur != null) cur.close();
+        }
+    }
+
+    /**
      * Delete all songs: every song file in the playlist goes (hidden ones too) and the playlist itself stays - its picture, its
      * YouTube link and its archive (the files starting with "."), so a followed playlist does not fetch them again.
      */

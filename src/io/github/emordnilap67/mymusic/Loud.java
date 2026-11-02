@@ -144,6 +144,18 @@ final class Loud {
         }
     }
 
+    /** a playlist got a new name - its songs keep their measurements (nothing is measured again) */
+    static void renamePl(Context c, String pre, String now) {
+        synchronized (Loud.class) {
+            load(c);
+            for (String k : new ArrayList<>(MAP.keySet())) {
+                String n = Rename.re(k, pre, now);
+                if (!n.equals(k)) MAP.put(n, MAP.remove(k));
+            }
+        }
+        save();
+    }
+
     /** what is known about this song (null = not measured, or its audio changed since) */
     static synchronized Info get(Context c, String key, long size) {
         if (key == null) return null;

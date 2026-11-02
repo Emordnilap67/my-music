@@ -336,6 +336,27 @@ final class Embed {
         }
     }
 
+    /** a playlist got a new name - the lyrics already in its songs stay counted (nothing is written again) */
+    static void renamePl(Context c, String pre, String now) {
+        synchronized (Embed.class) {
+            JSONObject d = done(c);
+            List<String> ks = new ArrayList<>();
+            java.util.Iterator<String> it = d.keys();
+            while (it.hasNext()) ks.add(it.next());
+            try {
+                for (String k : ks) {
+                    String n = Rename.re(k, pre, now);
+                    if (!n.equals(k)) d.put(n, d.remove(k));
+                }
+            } catch (Exception ignored) {
+            }
+            saveDone(c);
+            Set<String> p = pending(c), q = new LinkedHashSet<>();
+            for (String k : p) q.add(Rename.re(k, pre, now));
+            if (!q.equals(p)) savePending(c, q);
+        }
+    }
+
     private static void dropPending(Context c, Set<String> gone) {
         if (gone.isEmpty()) return;
         synchronized (Embed.class) {
