@@ -75,7 +75,9 @@ final class Rename {
                     JSONObject o = json(f);
                     for (String k : keys(o)) {
                         String n = re(k, pre, now);
-                        if (!n.equals(k)) o.put(n, o.remove(k));
+                        if (n.equals(k)) continue;
+                        Object v = o.remove(k);
+                        if (!o.has(n)) o.put(n, v);                // one already under the new name is newer - it stays
                     }
                     Backup.write(f, o.toString().getBytes("UTF-8"));
                 }
@@ -107,7 +109,7 @@ final class Rename {
                         if (!k.equalsIgnoreCase(from)) continue;
                         JSONObject mine = o.optJSONObject(k);
                         o.remove(k);
-                        if (mine == null) continue;
+                        if (mine == null || o.has(to)) continue;
                         JSONArray bad = mine.optJSONArray("bad");
                         for (int i = 0; bad != null && i < bad.length(); i++) {
                             JSONObject b = bad.optJSONObject(i);
@@ -129,15 +131,16 @@ final class Rename {
         for (Map.Entry<String, ?> x : lp.getAll().entrySet())
             if (x.getValue() instanceof String && ((String) x.getValue()).equalsIgnoreCase(from)) e.putString(x.getKey(), to);
         e.apply();
-        if (Sync.off(c, from)) {
-            Sync.setOff(c, from, false);
-            Sync.setOff(c, to, true);
+        if (!Sync.off(c, from)) {                          // switched on (off until it is turned on) - it stays on
+            Sync.setOff(c, from, true);
+            Sync.setOff(c, to, false);
         }
         // the picture: one he picked moves over; a built-in one (assets/covers) is copied in under the new name
         File pick = Covers.file(c, from), next = Covers.file(c, to);
-        if (pick.isFile()) {
+        if (next.isFile()) {
+            // a picture picked under the new name already: it stays
+        } else if (pick.isFile()) {
             next.getParentFile().mkdirs();
-            next.delete();
             if (!pick.renameTo(next)) copyAsset(c, null, pick, next);
         } else if (Covers.hasAsset(c, from)) {
             next.getParentFile().mkdirs();
@@ -201,7 +204,9 @@ final class Rename {
                 String n = null;
                 if (k.equalsIgnoreCase(from)) n = to;
                 else if (sep != null && k.toLowerCase(Locale.ROOT).startsWith(lowFrom + sep)) n = to + k.substring(from.length());
-                if (n != null) o.put(n, o.remove(k));
+                if (n == null) continue;
+                Object v = o.remove(k);
+                if (!o.has(n)) o.put(n, v);
             }
             Backup.write(f, o.toString().getBytes("UTF-8"));
         } catch (Exception ignored) {

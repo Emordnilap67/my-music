@@ -249,8 +249,8 @@ final class Mismatch {
         return new File(c.getFilesDir(), "mismatch.json");
     }
 
-    /** songs looked up one by one per run: by hand / in the background */
-    static final int SINGLE_HAND = 40, SINGLE_AUTO = 25;
+    /** songs looked up one by one per run (by hand only - there is no background check) */
+    static final int SINGLE_HAND = 40;
     /** with no playlist link and more unknown songs than this, the link is asked for (one read beats hundreds of look-ups) */
     static final int ASK_LINK_OVER = 60;
 
@@ -483,49 +483,6 @@ final class Mismatch {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    // ------------------------------------------------------------------ by itself
-
-    private static final java.util.concurrent.ExecutorService AUTO = java.util.concurrent.Executors.newSingleThreadExecutor(Low.THREADS);
-    private static volatile boolean autoRunning;
-    private static final long AUTO_GAP_MS = 6L * 3600 * 1000, RECHECK_MS = 7L * 24 * 3600 * 1000;
-
-    static void auto(Context c) {
-        final Context a = c.getApplicationContext();
-        if (autoRunning || Importer.tree(a) == null || !Ytdl.available(a) || Library.get(a).playlists.isEmpty()) return;
-        final android.content.SharedPreferences p = a.getSharedPreferences("mismatch", Context.MODE_PRIVATE);
-        final long now = System.currentTimeMillis();
-        if (now - p.getLong("tried", 0) < AUTO_GAP_MS) return;
-        p.edit().putLong("tried", now).apply();
-        autoRunning = true;
-        AUTO.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    java.util.Set<String> folders = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-                    for (Library.Pl pl : Library.get(a).playlists) folders.add(pl.name);
-                    for (String folder : folders) {
-                        String k = "ok:" + folder.toLowerCase(Locale.ROOT);
-                        if (System.currentTimeMillis() - p.getLong(k, 0) < RECHECK_MS) continue;
-                        JSONObject r = new JSONObject(check(a, folder, "", null, SINGLE_AUTO));
-                        if (r.has("error")) continue;                         // next time
-                        JSONArray bad = r.optJSONArray("bad");
-                        if (bad != null && bad.length() > 0) {
-                            String msg = fix(a, folder);
-                            MainActivity.tell(msg);
-                            io.github.emordnilap67.mymusic.Progress.announce(a, msg, null);
-                        }
-                        // all of it known now (or nothing more to learn without a link): rest a week
-                        if (r.optInt("left") == 0 || r.optBoolean("needLink")) p.edit().putLong(k, System.currentTimeMillis()).apply();
-                        if (r.optBoolean("held")) break;                      // YouTube is pausing the phone: the rest next time
-                    }
-                } catch (Exception ignored) {
-                } finally {
-                    autoRunning = false;
-                }
-            }
-        });
     }
 
     static String replace(Context c, Library.Song s, String newId, String t, String a, String secs) {

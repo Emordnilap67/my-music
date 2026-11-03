@@ -1,3 +1,11 @@
+**New in 13.0:**
+
+- **Galaxy only:** hold the middle of the player (or tap the record twice) and the record and the ring disappear - only the galaxy, its stars and supernovas stay. Hold or double-tap again to bring them back. The ring stops drawing while it's hidden, so it saves battery too
+- **A real galaxy core:** the middle of the galaxy is lit like a real barred spiral - a golden bar that fades along its length, a soft bulge with a small bright nucleus, a ring of young star clusters, and thick, patchy dust lanes curling in along the bar, with fine filaments, wisps and pink star-forming knots
+- **No YouTube unless you ask:** playlists no longer check YouTube for new songs by themselves - a shared playlist brings its songs in once. Switch **Check YouTube for new songs** on in a playlist's menu if you want one to follow its YouTube playlist. The background wrong-audio check is gone too; **Check for wrong audio** is still in the playlist menu
+- **Even timing:** every shape in the ring now holds 18 seconds, and the circle 21 - its swell comes back in just as it changes into the next shape
+- **Safer renames:** renaming a playlist never overwrites anything already saved under the new name
+
 **New in 12.0:**
 
 - **Rename a playlist:** hold its card and tap Rename playlist. Everything comes along under the new name - plays, favourites, hidden songs, lyrics and their timing, its picture, its YouTube link, and the song that's playing

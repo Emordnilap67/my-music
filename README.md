@@ -24,8 +24,8 @@ known as MY MUSIC.*
 - **Your music stays yours.** Playlists are folders, songs are MP3s, and the
   app never needs the internet to play them.
 - **Add music by sharing.** Share a YouTube playlist and it becomes a
-  playlist here, or pour it into one you already have. New songs added to
-  the YouTube playlist arrive by themselves.
+  playlist here, or pour it into one you already have. Switch a playlist's
+  YouTube check on and new songs added there arrive by themselves.
 - **Lyrics that keep time.** Timed lyrics light up word by word, there's a
   full-screen **karaoke** mode, and badly timed lyrics are caught and
   replaced automatically.
@@ -85,8 +85,7 @@ in the song's own colours). The **music note** shows the lyrics, the
 - **Add songs from YouTube.** Share a playlist from YouTube or YouTube Music
   and tap Carmen Musicum, then pick where its songs go:
   - **one of your playlists** - songs you already have there aren't
-    downloaded again, and that playlist keeps following its own YouTube
-    playlist;
+    downloaded again;
   - **its own playlist**, named after the YouTube one; or a **new playlist**.
 
   Every song is listed at once and turns playable as soon as it's in, saved
@@ -102,10 +101,12 @@ in the song's own colours). The **music note** shows the lyrics, the
 - **YouTube's speed limit:** YouTube only lets a few hundred songs an hour
   through. When it pauses the downloads, Carmen Musicum waits and carries on by
   itself.
-- **New songs by themselves:** every playlist you shared from YouTube is
-  checked for new songs every 6 hours (and when you tap **Update library**);
-  anything you add to the YouTube playlist comes in on its own. Songs on
-  your phone are never removed. The check can be turned off per playlist.
+- **New songs by themselves - only if you want them:** a shared YouTube
+  playlist brings its songs in once. Turn on **Check YouTube for new songs**
+  in a playlist's menu and it is checked every 6 hours (and when you tap
+  **Update library**), so anything you add to the YouTube playlist comes in
+  on its own. Every playlist starts with it off - your playlist here can be
+  your own mix. Songs on your phone are never removed.
 - **Songs already on your phone:** Add songs, then Pick songs on this phone.
 - **Songs gone from YouTube:** when a song in a shared playlist has been
   removed from YouTube (or made private or age-restricted), Carmen Musicum
@@ -160,6 +161,8 @@ in the song's own colours). The **music note** shows the lyrics, the
 - **Wrong audio check:** hold a playlist's card > **Check for wrong audio**
   finds songs that play a different song than the name says (common with
   files saved by title from other downloaders) and downloads the right ones.
+  It only runs when you tap it - YouTube is never asked about songs you
+  already have.
   One song playing the wrong thing: song menu > **Plays the wrong song**.
 - **Share a playlist** as text - its name, its YouTube link and every song -
   to Messages, email or Drive.
@@ -178,7 +181,10 @@ in the song's own colours). The **music note** shows the lyrics, the
   of stars drift and twinkle. The ring melts from shape to shape - nine of
   them, the order shifting a little every loop - and swells out to the bars
   as a circle. A barred spiral galaxy of real kinds of stars (red dwarfs to
-  blue giants, with the odd supernova) turns slowly behind it. Every
+  blue giants, with the odd supernova) turns slowly behind it - a golden bar,
+  a bright nucleus and thick, patchy dust lanes at its heart. **Hold the
+  middle of the player** (or tap the record twice) for **galaxy only**: the
+  record and the ring go, and only the galaxy stays. Every
   colour comes from the song's own picture, and the whole look fades into
   the next song's. The ring runs on a thread of its own, so taps and
   scrolling stay instant.

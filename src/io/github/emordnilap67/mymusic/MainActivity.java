@@ -240,8 +240,9 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         if (p != null) onState(p.stateJson());
         else startPlayer();
         Retry.check(this);                    // songs that were waiting for YouTube carry on
-        Mismatch.auto(this);                  // wrong-audio songs found and fixed by themselves
-        Sync.maybe(this);                     // new songs on YouTube, every 6 hours
+        // (the background wrong-audio check is gone - it asked YouTube about songs already on the phone; Check for
+        // wrong audio stays in the playlist menu, by hand)
+        Sync.maybe(this);                     // new songs on YouTube, every 6 hours - only playlists switched on
     }
 
     /** "Tap to keep downloading" (when Android would not let the retry start by itself) */
@@ -1041,11 +1042,10 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 @Override
                 public void run() {
                     String m = Library.rescan(MainActivity.this);
-                    // Update library also checks each playlist's YouTube link for new songs
+                    // Update library also checks the YouTube link of each playlist switched on (none until you switch one on)
                     try {
                         String which = Sync.run(MainActivity.this);
-                        m += which.isEmpty() ? " - no YouTube playlist links yet: share a playlist into Carmen Musicum once"
-                                : " - checking YouTube for new songs in " + which;
+                        if (!which.isEmpty()) m += " - checking YouTube for new songs in " + which;
                     } catch (Exception ignored) {
                     }
                     final String msg = m;

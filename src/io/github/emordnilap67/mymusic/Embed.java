@@ -346,7 +346,9 @@ final class Embed {
             try {
                 for (String k : ks) {
                     String n = Rename.re(k, pre, now);
-                    if (!n.equals(k)) d.put(n, d.remove(k));
+                    if (n.equals(k)) continue;
+                    Object v = d.remove(k);
+                    if (!d.has(n)) d.put(n, v);
                 }
             } catch (Exception ignored) {
             }

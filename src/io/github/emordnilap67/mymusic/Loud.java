@@ -150,7 +150,9 @@ final class Loud {
             load(c);
             for (String k : new ArrayList<>(MAP.keySet())) {
                 String n = Rename.re(k, pre, now);
-                if (!n.equals(k)) MAP.put(n, MAP.remove(k));
+                if (n.equals(k)) continue;
+                Info v = MAP.remove(k);
+                if (!MAP.containsKey(n)) MAP.put(n, v);
             }
         }
         save();

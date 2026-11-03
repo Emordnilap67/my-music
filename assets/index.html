@@ -485,6 +485,11 @@ footer.mini.cv{background:#090710}
 .lyrbtn.has::after{content:"";position:absolute;right:8px;top:9px;width:7px;height:7px;border-radius:50%;background:var(--c2);box-shadow:0 0 8px var(--c2)}
 .lyrbtn[aria-pressed="true"]{color:var(--c2)}
 .stage.lyrics .vinyl,.stage.lyrics .vinyl *{visibility:hidden!important}
+/* galaxy only - the record and the ring gone, the galaxy behind them stays */
+.now.bare .vinyl,.now.bare .vinyl *{visibility:hidden!important}
+.stage{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.stage:not(.lyrics){touch-action:none}             /* the hold stays the page's - Android does not take the touch for a scroll */
+.now .vinyl img,.now .vinyl canvas{pointer-events:none;-webkit-user-drag:none}
 .lyr{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:34% 2px 46%;
   -webkit-mask-image:linear-gradient(transparent,#000 16%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 16%,#000 78%,transparent)}
 .lyr::-webkit-scrollbar{display:none}
@@ -1223,15 +1228,14 @@ const RING_CONFIG = {
   /* one fixed set of shapes, played in a set order that changes a little each loop (LOOPS) - no randomness */
   order: [6, 3, 0, 5, 4, 41, 62, 40, 44],      /* hexagon, triangle, circle (0), pentagon, square, kite (41), hexagram (62),
                                               diamond (40), four-point star (44) - each loop plays all of them, in a new order each loop (LOOPS) */
-  holdMs: {0: 20000, 3: 18000, 4: 18000,   /* how long each shape stays (the circle 20 s - see circleStayMs) */
-           5: 13000, 6: 13000, 62: 18000, 41: 18000, 40: 13000, 44: 13000},   /* the hexagon, pentagon, diamond and star 13 s; the triangle, square, kite
-                                              and hexagram 18 s */
+  holdMs: {0: 21000, 3: 18000, 4: 18000,   /* how long each shape stays: every shape 18 s, the circle 21 s (see circleStayMs) */
+           5: 18000, 6: 18000, 62: 18000, 41: 18000, 40: 18000, 44: 18000},
   fadeMs: 6250,                            /* each change, eased - always this long */
   circleSwell: .38,                        /* the circle swells out toward the bars and back once while it holds - the ribbon 1.66 -> 2.04,
                                               its lines packed in above it up to 2.09 */
   circleSwellMs: 7500,                     /* the swell out (and back in) takes this long - it starts as the change into the circle starts */
-  circleStayMs: 7500,                      /* .. and stays out there this long before going back; then a plain circle a moment before it
-                                              changes */
+  circleStayMs: 12250,                     /* .. and stays out at the bars this long, so the swell is back in exactly as the circle's
+                                              21 s hold ends - and the next shape starts at once */
   innerTurnMs: 0,                          /* unused - the inner ring turns WITH the outer one (outerTurnMs) */
   outerTurnMs: 52000,                      /* the outer ring's one steady turn, every song alike; the inner ring turns with it */
   innerJiggle: .85,                        /* how much of the voice's ripples and shape the inner ring shows (1 = all of it) */
@@ -2049,7 +2053,7 @@ const keyOf = s => s.p + "/" + s.file;
 function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} pushPrefs(); }
 function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
 /* the page's own settings, kept in the new-phone backup */
-const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff", "mm_favonly", "mm_slow", "mm_slowcall", "mm_plwas"];
+const PREFS = ["mm_sort", "mm_rev", "mm_lyr", "mm_ring_asked", "mm_lyroff", "mm_favonly", "mm_slow", "mm_slowcall", "mm_plwas", "mm_bare"];
 /* when a freeze over 2 s ends, a line goes into Carmen Musicum backup/.freezes.txt (N.freezeNote -> Slow.java)
    next to what Android's threads were doing: how long, which screen, the last call to Android (NLAST) and the
    page's size. The page no longer samples itself (Chrome's JavaScript sampler) - sampling only made heat. */
@@ -3644,6 +3648,9 @@ const BAR_L = .4;
 const armAt = (k, u) => k * Math.PI + (k ? .1 : 0) + Math.log(Math.max(u, BAR_L) / BAR_L) * GPITCH * .9
   + Math.min(1, Math.max(0, (u - BAR_L) / .15)) * (.08 * Math.sin(u * 8.5 + k * 2.3) + .04 * Math.sin(u * 21 + k * 4.1));
 const DUST_IN = .17;                                       /* how far inside the arm the dust runs (radians) */
+/* a bar dust lane at s (0 = the bar's end, 1 = the ring round the core): {u: distance in galaxy radii, a: angle} */
+const laneAt = (k, s, j) => ({u: BAR_L * Math.pow(1 - s, 1.15) + .068 * s + (j || 0) * .016 * (1 - .5 * s),
+  a: k * Math.PI + .06 + 1.3 * s * s + .014 * Math.sin(s * 17 + k * 2 + (j || 0)) + (j || 0) * .035 * (1 - s)});
 const ARM_THICK = 1.55;                                    /* how much thicker than thin the arms are */
 /* how strong an arm is along its length (0..1): it starts out of the bulge, thins and breaks in
    places, and fades out - arm 1 a little weaker and shorter */
@@ -3719,6 +3726,53 @@ function galaxyStars() {
     }
   }
   g.globalAlpha = 1;
+  /* the fine detail of the middle, at full sharpness (the glow layer under
+     it is drawn at half size): thin dark filaments in each dust lane, wisps feathering off them, mottled dust through the bar,
+     star clusters strung round the core and pink star-forming knots on the lanes' outer edges */
+  const P2 = (u, a) => [h + Math.cos(a) * u * Rg, h + Math.sin(a) * u * Rg];
+  g.lineCap = "round"; g.lineJoin = "round";
+  for (let k = 0; k < 2; k++) for (let f = 0; f < 7; f++) {                  /* filaments: thin, wavy, a little apart */
+    const j = (f - 3) / 2.2, ph = r() * 6.28, s0 = r() * .12, s1 = .75 + r() * .25;
+    g.beginPath();
+    for (let i = 0; i <= 90; i++) {
+      const s = s0 + (s1 - s0) * i / 90, L = laneAt(k, s, j), w = .006 * Math.sin(s * 31 + ph);
+      const [x, y] = P2(L.u + w, L.a + w);
+      if (i) g.lineTo(x, y); else g.moveTo(x, y);
+    }
+    g.strokeStyle = "rgba(14,8,4," + (.1 + .14 * r()).toFixed(3) + ")"; g.lineWidth = Math.max(.8, D * (.0015 + .0025 * r())); g.stroke();
+  }
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 16; i++) {                 /* wisps feathering off the lanes, away from the bar */
+    const s = .12 + .76 * r(), L = laneAt(k, s, 1.2), len = .025 + .045 * r(), tilt = .5 + .5 * r();
+    g.beginPath();
+    for (let q = 0; q <= 14; q++) {
+      const t = q / 14, [x, y] = P2(L.u + len * t * .55, L.a + len * t * tilt + .02 * Math.sin(t * 5 + i));
+      if (q) g.lineTo(x, y); else g.moveTo(x, y);
+    }
+    g.strokeStyle = "rgba(14,8,4," + (.06 + .08 * r()).toFixed(3) + ")"; g.lineWidth = Math.max(.6, D * (.001 + .0018 * r())); g.stroke();
+  }
+  for (let i = 0; i < 900; i++) {                                             /* mottled dust all through the bar and the bulge */
+    const t = (r() * 2 - 1) * BAR_L * .95, y = gauss() * .045 * (1.25 - Math.abs(t) / BAR_L);
+    if (Math.hypot(t, y / .8) < .03) continue;                                /* the nucleus shines through */
+    const [x, yy] = [h + t * Rg, h + y * Rg], rad = D * (.0008 + .003 * r() * r());
+    g.globalAlpha = .05 + .12 * r(); g.fillStyle = "rgb(12,7,4)";
+    g.beginPath(); g.arc(x, yy, rad, 0, 6.2832); g.fill();
+  }
+  for (let i = 0; i < 46; i++) {                                              /* the nuclear ring's clusters - uneven, in clumps */
+    const a = i / 46 * 6.2832 + (r() - .5) * .3;
+    if (Math.sin(a * 2 + 1.1) + .6 * Math.sin(a * 5) < -.4 || r() < .3) continue;      /* two brighter arcs, gaps between */
+    const u = .052 + .02 * r(), [x, y] = P2(u, a);
+    const pink = r() < .25, rad = D * (.0005 + .0011 * r());
+    const rg = g.createRadialGradient(x, y, 0, x, y, rad * 3);
+    rg.addColorStop(0, pink ? "rgba(255,176,214,.9)" : "rgba(226,236,255,.9)"); rg.addColorStop(.35, pink ? "rgba(255,120,180,.35)" : "rgba(170,200,255,.35)"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.globalAlpha = .35 + .35 * r(); g.fillStyle = rg; g.fillRect(x - rad * 3, y - rad * 3, rad * 6, rad * 6);
+  }
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 9; i++) {                  /* pink knots where the lanes' gas makes stars */
+    const s = .15 + .7 * r(), L = laneAt(k, s, 1.6 + r()), [x, y] = P2(L.u + (r() - .5) * .012, L.a), rad = D * (.0006 + .0012 * r());
+    const rg = g.createRadialGradient(x, y, 0, x, y, rad * 3);
+    rg.addColorStop(0, "rgba(255,170,205,.85)"); rg.addColorStop(.4, "rgba(255,105,165,.3)"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.globalAlpha = .3 + .35 * r(); g.fillStyle = rg; g.fillRect(x - rad * 3, y - rad * 3, rad * 6, rad * 6);
+  }
+  g.globalAlpha = 1;
   if (GX.pal) galaxyFor(GX.pal, true);
 }
 function galaxyFor(pal, now) {
@@ -3767,23 +3821,44 @@ function galaxyFor(pal, now) {
     else { blob(x, y, Rg * (.015 + .04 * K.s), mix([210, 222, 255], songMid, .15), .12 + .28 * K.s);
       if (K.s > .5) blob(x, y, Rg * .008, [245, 248, 255], .35 + .4 * K.s); }
   }
-  /* the BAR - a long warm golden glow through the middle, brightest at the core, the arms leaving its two ends */
-  for (let i = 0; i <= 48; i++) {
-    const t = i / 48 * 2 - 1, e = 1 - Math.abs(t);
-    blob(h + t * BAR_L * Rg, h, Rg * (.16 + .11 * e), mix(WARM, songMid, .1), .07 + .12 * e, .85);
+  /* the middle, lit like a real barred spiral: a golden bar that fades along its length, a small bright nucleus inside
+     a soft bulge (no white plateau), a ring of young star clusters round the core, and thick patchy dust lanes that run
+     off the arms' own dust, along the bar's leading edges, and wrap into that ring */
+  for (let i = 0; i <= 36; i++) {                                              /* the BAR: golden, brightest near the middle */
+    const t = i / 36 * 2 - 1, e = Math.exp(-Math.abs(t) * 1.9);
+    blob(h + t * BAR_L * Rg, h, Rg * (.13 + .08 * e), mix(WARM, songMid, .12), .036 + .06 * e, .7);
   }
-  for (const sg of [-1, 1]) blob(h + sg * BAR_L * Rg, h, Rg * .05, mix([210, 222, 255], songMid, .15), .16);   /* bright where the arms begin */
-  blob(h, h, Rg * .37, mix(WARM, songMid, .15), .22, .82);                   /* the bulge: a big warm glow round the record */
-  blob(h, h, Rg * .21, WARM, .42, .82);
-  blob(h, h, Rg * .07, CORE, .75, .85);                                       /* ...and its bright heart */
+  for (const sg of [-1, 1]) blob(h + sg * BAR_L * Rg, h, Rg * .045, mix([210, 222, 255], songMid, .15), .12);   /* bright where the arms begin */
+  blob(h, h, Rg * .27, mix(WARM, songMid, .15), .08, .86);                    /* the bulge: soft, falling off like a real one */
+  blob(h, h, Rg * .15, WARM, .13, .84);
+  blob(h, h, Rg * .075, mix(WARM, CORE, .5), .2, .86);
+  { const nr = Rg * .06;                                                      /* the nuclear ring: young clusters, blue-white and pink */
+    for (let i = 0; i < 18; i++) {
+      const a = i / 18 * 6.2832 + (r() - .5) * .3, rr = nr * (.9 + .2 * r());
+      const x = h + Math.cos(a) * rr, y = h + Math.sin(a) * rr * .8;
+      blob(x, y, Rg * (.006 + .008 * r()), r() < .35 ? mix(PINK, [255, 255, 255], .35) : [222, 232, 255], .12 + .14 * r());
+    } }
+  blob(h, h, Rg * .028, CORE, .55, .9);                                       /* the nucleus: small and bright */
+  blob(h, h, Rg * .011, [255, 252, 244], .7);
   g.globalCompositeOperation = "destination-out";                             /* dust: broken, patchy, inside each arm */
-  for (let k = 0; k < 2; k++) for (let i = 0; i < 140; i++) {                /* the bar's two dust lanes - along its edges into the core */
-    const t = .05 + .95 * i / 139, sg = k ? -1 : 1;
-    const x = h + sg * t * BAR_L * Rg, y = h + sg * Rg * (.055 + .05 * t * t + .002 * Math.sin(t * 9 + k * 2));   /* smooth lanes, a touch out from the middle */
-    const rad = Rg * (.02 + .016 * r()), al = (.07 + .08 * r()) * (1 - .4 * t);
-    const rg = g.createRadialGradient(x, y, 0, x, y, rad);
-    rg.addColorStop(0, "rgba(0,0,0," + al + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
-    g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  const dust = (x, y, rad, al) => { const rg = g.createRadialGradient(x, y, 0, x, y, rad);
+    rg.addColorStop(0, "rgba(0,0,0," + al + ")"); rg.addColorStop(.6, "rgba(0,0,0," + (al * .45) + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); };
+  /* the bar's dust lanes: wide bands of patchy dust - three strands each, of uneven puffs, with
+     breaks - off the arms' own dust, along the bar's leading edges, curling into the ring round the core */
+  for (let k = 0; k < 2; k++) for (let j = -1; j <= 1; j++) for (let i = 0; i < 220; i++) {
+    const s = i / 219;
+    if (Math.sin(s * 23 + k * 3 + j * 1.7) + .5 * Math.sin(s * 61 + k + j) < -.95) continue;            /* a break here and there */
+    const P = laneAt(k, s, j), rr = Rg * P.u, a = P.a;                        /* the band, three strands wide */
+    const x = h + Math.cos(a) * rr + (r() - .5) * Rg * .012, y = h + Math.sin(a) * rr + (r() - .5) * Rg * .012;
+    const glow = Math.min(1, Math.max(0, (s - .06) / .28));                  /* dust only shows against the bar's light */
+    dust(x, y, Rg * (.012 + .016 * r()) * (1 + .3 * (1 - s)), (.026 + .04 * r()) * (.2 + .8 * glow) * (j ? .75 : 1) * (1 - .3 * s));
+  }
+  for (let i = 0; i < 220; i++) {                                             /* and dust all through the bar and the bulge - mottled, not clean */
+    const t = (r() * 2 - 1) * BAR_L * .95, y = (r() - .5) * Rg * .13 * (1.2 - Math.abs(t) / BAR_L);
+    const x = h + t * Rg, yy = h + y + Math.sin(t * 9) * Rg * .01;
+    if (Math.hypot(x - h, (yy - h) / .8) < Rg * .035) continue;               /* the nucleus shines through */
+    dust(x, yy, Rg * (.006 + .014 * r()), .018 + .035 * r());
   }
   for (let k = 0; k < 2; k++) for (let i = 0; i < 280; i++) {
     const u = .13 + .72 * i / 279, w = armW(k, u);
@@ -3870,7 +3945,9 @@ const calm = matchMedia("(prefers-reduced-motion: reduce)");
 let vizOK = false;
 let nowSliding = false;          /* the player is still sliding up - the ring waits */
 const KAR = {open: false, raf: 0, key: null, sig: undefined, idx: -2, spans: [], st: [], n: -1};   /* karaoke */
-const ringVisible = () => $("#now").classList.contains("show") && !nowSliding && !LYR.open && !KAR.open && !document.hidden;
+/* GALAXY ONLY: hold the middle of the player (or tap it twice) - the record and the ring go, the galaxy stays; kept in mm_bare */
+let BARE = load("mm_bare") === true;
+const ringVisible = () => $("#now").classList.contains("show") && !nowSliding && !LYR.open && !KAR.open && !BARE && !document.hidden;
 /* the ring is drawn on a thread
    of its own (a Web Worker with an OffscreenCanvas); the page only hands it the readings,
    about 33 a second, and the song's colours. the "Quantum Entanglement" look (ringsrc
@@ -3973,6 +4050,46 @@ $("#mGo").onclick = () => { store("mm_ring_asked", true); $("#msheet").classList
 $("#mNo").onclick = () => { store("mm_ring_asked", true); $("#msheet").classList.add("hidden"); };
 $("#msheet").addEventListener("click", e => { if (e.target.id === "msheet") { store("mm_ring_asked", true); $("#msheet").classList.add("hidden"); } });
 $("#disc").addEventListener("click", () => { if (N && !N.micAllowed()) $("#msheet").classList.remove("hidden"); });
+/* GALAXY ONLY: hold the middle of the player (where the record is) for a moment: the record and the ring go - the ring stops
+   drawing and listening (less battery) - and only the galaxy, its stars and supernovas stay. Hold the same place again:
+   they come back. Not while the lyrics are open (the words are there). */
+function setBare(on, say) {
+  BARE = on; store("mm_bare", on);
+  $("#now").classList.toggle("bare", on);
+  if (on) ringStop(); else ringWake();
+  if (say) toast(on ? "Galaxy only - hold the middle (or tap it twice) for the record" : "The record and the ring are back");
+}
+/* Android's own touch-and-hold (400 ms, or longer in Accessibility) can take the touch first and cancel a page timer, so
+   Android's hold itself switches it (the "contextmenu" it sends on a long press) as well as the page's own 380 ms timer -
+   whichever comes first, once a press - and TWO QUICK TAPS on the record do it too. */
+(function () {
+  const st = $("#stage");
+  let t = 0, x = 0, y = 0, held = false, tap = 0, tx = 0, ty = 0;
+  const no = () => clearTimeout(t);
+  const flip = () => { if (held) return; held = true; no(); try { navigator.vibrate && navigator.vibrate(18); } catch (er) {} setBare(!BARE, true); };
+  const off = () => LYR.open || KAR.open;
+  st.addEventListener("pointerdown", e => {
+    if (off()) return;
+    held = false; x = e.clientX; y = e.clientY; no();
+    t = setTimeout(flip, 380);
+  });
+  st.addEventListener("pointermove", e => { if (Math.abs(e.clientX - x) > 12 || Math.abs(e.clientY - y) > 12) no(); });
+  st.addEventListener("pointerup", no); st.addEventListener("pointercancel", no);
+  st.addEventListener("contextmenu", e => { e.preventDefault(); if (!off()) flip(); });                  /* Android's own long press */
+  st.addEventListener("click", e => {
+    if (held) { held = false; tap = 0; e.stopPropagation(); e.preventDefault(); return; }               /* the hold is not a tap */
+    if (off()) return;
+    const now = performance.now();
+    if (now - tap < 400 && Math.abs(e.clientX - tx) < 40 && Math.abs(e.clientY - ty) < 40) {            /* two quick taps */
+      tap = 0; e.stopPropagation(); e.preventDefault();
+      try { navigator.vibrate && navigator.vibrate(18); } catch (er) {}
+      setBare(!BARE, true);
+      return;
+    }
+    tap = now; tx = e.clientX; ty = e.clientY;
+  }, true);
+})();
+$("#now").classList.toggle("bare", BARE);
 window.onMic = (ok, forever) => {
   if (ok) { RING.off = false; ringStart(); toast("The ring is on"); return; }
   if (forever && performance.now() - micAskedAt < 1200) {                  /* Android did not even ask: it was turned down before */
@@ -4349,9 +4466,9 @@ function showWrong(folder, r) {
   const bad = r.bad || [];
   $("#wFix").classList.toggle("hidden", !bad.length);
   $("#wAlt").classList.toggle("hidden", !!r.needLink || !!r.old);
-  /* what is left is checked by the background check - nothing to try again */
+  /* no background check any more - what is left is checked the next time it is tapped */
   const rest = (r.left ? " " + (r.left === 1 ? "1 more song is" : r.left.toLocaleString() + " more songs are") +
-      " checked in the background, a few at a time, and fixed by itself if wrong." : "") +
+      " checked the next time you tap Check for wrong audio." : "") +
     (r.noId ? " " + (r.noId === 1 ? "1 song has no YouTube link in its file, so it can't be checked."
       : r.noId.toLocaleString() + " songs have no YouTube link in their files, so they can't be checked.") : "") +
     (r.gone ? " " + (r.gone === 1 ? "1 song's YouTube video was taken down, so there is no length to check it against - the song itself is fine and still plays."

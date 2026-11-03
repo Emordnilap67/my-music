@@ -51,19 +51,19 @@ public class Sync extends BroadcastReceiver {
         return out;
     }
 
-    /* A playlist can be
-       switched off - it is never checked for new songs, whatever its link; its songs stay as they are. Kept
-       apart from the links ("nofollow"), so switching back on needs nothing else. */
+    /* A playlist's YouTube link is only checked for new songs when it is switched ON in its menu (Check YouTube for
+       new songs) - every playlist is off until then, and its songs stay as they are. A shared playlist link brings
+       its songs in once and that is all. Kept apart from the links ("follow"), so switching on needs nothing else. */
     static boolean off(Context c, String folder) {
-        return folder != null && c.getSharedPreferences("nofollow", Context.MODE_PRIVATE)
+        return folder == null || !c.getSharedPreferences("follow", Context.MODE_PRIVATE)
                 .getBoolean(folder.toLowerCase(java.util.Locale.ROOT), false);
     }
 
     static void setOff(Context c, String folder, boolean off) {
-        SharedPreferences.Editor e = c.getSharedPreferences("nofollow", Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor e = c.getSharedPreferences("follow", Context.MODE_PRIVATE).edit();
         String k = folder.toLowerCase(java.util.Locale.ROOT);
-        if (off) e.putBoolean(k, true);
-        else e.remove(k);
+        if (off) e.remove(k);
+        else e.putBoolean(k, true);
         e.apply();
     }
 
@@ -92,7 +92,7 @@ public class Sync extends BroadcastReceiver {
         for (Map.Entry<String, ?> x : lp.getAll().entrySet())
             if (x.getValue() instanceof String && ((String) x.getValue()).equalsIgnoreCase(folder)) e.remove(x.getKey());
         e.apply();
-        setOff(c, folder, false);
+        setOff(c, folder, true);
     }
 
     /**

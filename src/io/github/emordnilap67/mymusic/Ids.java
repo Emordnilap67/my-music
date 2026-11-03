@@ -85,7 +85,8 @@ final class Ids {
             for (String k : ks) {
                 String n = Rename.re(k, pre, now);
                 if (!n.equals(k)) {
-                    o.put(n, o.remove(k));
+                    Object v = o.remove(k);
+                    if (!o.has(n)) o.put(n, v);
                     dirty = true;
                 }
             }
