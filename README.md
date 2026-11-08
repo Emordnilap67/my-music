@@ -30,9 +30,10 @@ known as MY MUSIC.*
   full-screen **karaoke** mode, and badly timed lyrics are caught and
   replaced automatically.
 - **A player worth looking at.** The record sits inside a ring of light that
-  changes shape - hexagon, triangle, circle, pentagon, square, kite, six-point
-  star, diamond and four-point star - and dances to the music (bass, voice and treble each move their
-  own part), in colours taken from each song's own picture.
+  changes shape - fourteen of them, from a hexagon, triangle and circle to an
+  oval, a Reuleaux triangle and an eight-point star - and dances to the music
+  (bass, voice and treble each move their own part, and both rings bounce
+  lightly on the beat), in colours taken from each song's own picture.
 - **Made for big libraries.** Thousands of songs in one playlist, sorted the
   way Spotify sorts, with a shuffle that never repeats a song until it has
   played them all.
@@ -61,8 +62,8 @@ which covers almost every phone made since 2017.
 
 ## A quick tour
 
-**The home screen** shows your playlists as square cards, nine to a page -
-swipe sideways for more. Each card shows the playlist's picture (or its first
+**The home screen** shows your playlists as square cards, nine to a page
+(twelve on a tablet held sideways) - swipe sideways for more. Each card shows the playlist's picture (or its first
 song's), ringed in that picture's colours. The search box finds any song in
 any playlist. **Hold a playlist's card** for its menu: Play, Shuffle, Share
 playlist, Rename playlist, Change picture, Check YouTube for new songs, Check
@@ -178,9 +179,10 @@ in the song's own colours). The **music note** shows the lyrics, the
   song - the bass sends echoes out on every beat, a ring of glowing particle
   bars follows the music (bass at the bottom, voice at the sides, treble at
   the top), the voice ripples the inner wave and the high notes make a cloud
-  of stars drift and twinkle. The ring melts from shape to shape - nine of
-  them, the order shifting a little every loop - and swells out to the bars
-  as a circle. A barred spiral galaxy of real kinds of stars (red dwarfs to
+  of stars drift and twinkle. The ring melts from shape to shape - fourteen
+  of them, the order shifting a little every loop - and swells out to the bars
+  as a circle. On every beat both rings grow a touch and settle back - not
+  dancing, just keeping the song's tempo. A barred spiral galaxy of real kinds of stars (red dwarfs to
   blue giants, with the odd supernova) turns slowly behind it - a golden bar,
   a bright nucleus and thick, patchy dust lanes at its heart. **Hold the
   middle of the player** (or tap the record twice) for **galaxy only**: the
@@ -191,14 +193,13 @@ in the song's own colours). The **music note** shows the lyrics, the
 - **Big playlists stay quick:** thousands of songs draw in the background
   while you use the app, and songs arriving from a download never hold up a
   tap.
+- **Tablets:** the app turns sideways on a tablet, with a wide home page,
+  and the widget fits any size, upright or sideways.
 - **Also:** a neon home-screen widget in each song's own colours, from a
   one-row strip up to a big card; controls in the notification and on the
   lock screen; shuffle and repeat; song names show big with every artist
   below ("Artist - Song" uploads, featurings and remixes sorted out, YouTube
   clutter dropped); pick your own picture for a playlist.
-- **If something stalls:** should the app ever freeze for more than a couple
-  of seconds, what it was doing is written to
-  `Carmen Musicum backup/.freezes.txt` - attach that file to a bug report.
 
 ## Permissions
 

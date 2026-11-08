@@ -100,6 +100,16 @@ public class PlayerWidget extends AppWidgetProvider {
         try {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             for (int wid : m.getAppWidgetIds(new ComponentName(c, PlayerWidget.class))) {
+                if (android.os.Build.VERSION.SDK_INT >= 31) {          // the same three sizes as draw()
+                    java.util.Map<android.util.SizeF, RemoteViews> mp = new java.util.HashMap<android.util.SizeF, RemoteViews>();
+                    for (int z = 0; z <= 2; z++) {
+                        RemoteViews v = new RemoteViews(c.getPackageName(), layoutFor(c, z));
+                        times(c, v, z);
+                        mp.put(sizeOf(z), v);
+                    }
+                    m.partiallyUpdateAppWidget(wid, new RemoteViews(mp));
+                    continue;
+                }
                 Bundle o = m.getAppWidgetOptions(wid);
                 RemoteViews v = new RemoteViews(c.getPackageName(), layoutFor(c, size(o)));
                 times(c, v, size(o));
@@ -137,7 +147,27 @@ public class PlayerWidget extends AppWidgetProvider {
         return l != 0 ? l : id(c, "layout", "widget");
     }
 
+    /** the smallest size each card is used at (dp) - 0 = the one-row strip */
+    private static android.util.SizeF sizeOf(int z) {
+        return z == 2 ? new android.util.SizeF(FULL_W, FULL_H) : z == 1 ? new android.util.SizeF(MID_W, MID_H) : new android.util.SizeF(1, 1);
+    }
+
     private static void draw(Context c, AppWidgetManager m, int wid) {
+        /* Android 12+ is handed all three cards and picks the one that fits as it is right now - upright or
+           sideways (a tablet that turns). Choosing from the upright height alone could give a card too tall
+           for the space sideways. */
+        if (android.os.Build.VERSION.SDK_INT >= 31) {
+            for (int pass = 0; pass < 2; pass++) {
+                try {
+                    java.util.Map<android.util.SizeF, RemoteViews> mp = new java.util.HashMap<android.util.SizeF, RemoteViews>();
+                    for (int z = 0; z <= 2; z++) mp.put(sizeOf(z), build(c, z, pass == 0));
+                    m.updateAppWidget(wid, new RemoteViews(mp));
+                    return;
+                } catch (Exception ignored) {
+                    // too much at once: the plain cards (pass 1), then the old single card below
+                }
+            }
+        }
         int z = 2;
         try {
             z = size(m.getAppWidgetOptions(wid));

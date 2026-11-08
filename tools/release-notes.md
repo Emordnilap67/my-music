@@ -1,3 +1,14 @@
+**New in 14.0:**
+
+"Feels alive." - Emordnilap67
+
+- **Five more shapes:** the ring now has fourteen - new are an oval, a Reuleaux triangle (round sides, pointed tips), an arrowhead star (a diamond crossed with a triangle), an octagram (a square inside a diamond) and an eight-point star. Every shape holds 16 seconds; the circle still holds 21
+- **The rings bounce:** on every beat the outer ring grows a few percent and settles back - not dancing to the song, just following its tempo. The inner ring bounces with it, in sync, and ripples a little more with the voice
+- **Smoother:** the ring is drawn at an even pace on every screen (up to 60 frames a second - 45 on a 90 Hz screen, 48 on 144 Hz), and the bounce eases in instead of jumping
+- **Tablets:** the app turns sideways on a tablet, with a wide home page - six playlists to a row, twelve to a page - wider song lists, and a widget that fits any size, upright or sideways. The galaxy no longer stutters when the tablet is sideways
+- **New icon:** the glowing 67 record
+- **Fixed:** a song that gets its picture added later now shows it (it used to stay black); the "Deleted" message no longer covers the player's buttons
+
 **New in 13.0:**
 
 - **Galaxy only:** hold the middle of the player (or tap the record twice) and the record and the ring disappear - only the galaxy, its stars and supernovas stay. Hold or double-tap again to bring them back. The ring stops drawing while it's hidden, so it saves battery too

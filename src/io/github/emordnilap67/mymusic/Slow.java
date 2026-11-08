@@ -39,8 +39,12 @@ final class Slow {
 
     private Slow() {}
 
+    /** the freeze recorder is off - true turns it back on (it writes .freezes.txt next to the backup) */
+    static final boolean ON = false;
+
     /** from the page's calls: remembers the page's thread and keeps the watch going */
     static void mark(Context c) {
+        if (!ON) return;
         seenAt = SystemClock.uptimeMillis();
         if (bridge == null) bridge = Thread.currentThread();
         if (app == null) app = c.getApplicationContext();
@@ -123,6 +127,7 @@ final class Slow {
 
     /** the page's own account of a freeze (from its sampler: the function it was stuck in) - same file */
     static void note(Context c, final String text) {
+        if (!ON) return;
         if (app == null) app = c.getApplicationContext();
         final Context a = app;
         new Thread(new Runnable() {

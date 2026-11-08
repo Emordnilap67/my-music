@@ -142,6 +142,9 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     @Override
     protected void onCreate(Bundle saved) {
         super.onCreate(saved);
+        // a tablet (600 dp and wider) turns with the screen; a phone stays upright
+        if (getResources().getConfiguration().smallestScreenWidthDp >= 600)
+            setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         Window w = getWindow();
         w.setStatusBarColor(Color.BLACK);
         w.setNavigationBarColor(Color.BLACK);

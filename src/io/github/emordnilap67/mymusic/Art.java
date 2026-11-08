@@ -29,7 +29,12 @@ final class Art {
         File out = new File(dir, name + ".jpg");
         File none = new File(dir, name + ".none");
         if (out.isFile()) return out;
-        if (none.exists()) return null;
+        /* "no picture" only stands while the song file is older than that note - a song that gets a picture
+           put in later is looked at again instead of staying black */
+        if (none.exists()) {
+            if (new File(s.path).lastModified() <= none.lastModified()) return null;
+            none.delete();
+        }
         gate.acquireUninterruptibly();
         try {
             if (out.isFile()) return out;
