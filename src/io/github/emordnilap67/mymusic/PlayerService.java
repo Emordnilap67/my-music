@@ -27,6 +27,9 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -217,6 +220,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     @Override
     public void onCreate() {
         super.onCreate();
+        Connect.start(this);                  // Connect: the other devices can find this one
         prefs = getSharedPreferences("player", MODE_PRIVATE);
         am = (AudioManager) getSystemService(AUDIO_SERVICE);
         attrs = new AudioAttributes.Builder()
@@ -374,11 +378,13 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
     void toggle() {
+        if (Connect.remote != null) { Connect.cmd("toggle"); return; }     // Connect: it is the remote now
         if (isPlaying() || (wantPlay && preparing)) pause();
         else play();
     }
 
     void play() {
+        if (Connect.remote != null) { Connect.cmd("resume"); return; }
         String k = q.current();
         if (k == null) return;
         if (prepared) {
@@ -412,6 +418,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
     void next(boolean auto) {
+        if (!auto && Connect.remote != null) { Connect.cmd("next"); return; }
         int r0 = q.rounds;
         String k = q.next(auto);
         if (q.rounds != r0) saveQueue();      // a new round of shuffle - saved, so a restart carries on with it
@@ -430,6 +437,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
     void prev() {
+        if (Connect.remote != null) { Connect.cmd("prev"); return; }
         if (prepared && mp.getCurrentPosition() > 3000) {
             mp.seekTo(0);
             changed();
@@ -1041,9 +1049,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     /** lock screen, notification and the app screen all catch up */
     private void changed() {
-        Library.Song s = Library.get(this).byKey.get(q.current());
-        boolean playing = isPlaying();
-        boolean loading = preparing && wantPlay;
+        Library.Song s = Library.get(this).byKey.get(shownKey());     // the other device's song while this one is its remote
+        boolean playing = shownPlaying();
+        boolean loading = !remoteShown() && preparing && wantPlay;
         session.setPlaybackState(new PlaybackState.Builder()
                 .setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE
                         | PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_NEXT
@@ -1051,7 +1059,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                         | PlaybackState.ACTION_STOP)
                 .setState(playing ? PlaybackState.STATE_PLAYING
                                 : loading ? PlaybackState.STATE_BUFFERING : PlaybackState.STATE_PAUSED,
-                        position(), playing ? 1f : 0f, SystemClock.elapsedRealtime())
+                        shownPos(), playing ? 1f : 0f, SystemClock.elapsedRealtime())
                 .build());
         boolean held = holdArt(s) && foreground;          // the last song stays up until the picture is ready
         if (s != null && held) {
@@ -1092,7 +1100,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     /** the home-screen widget catches up */
     void refreshWidget() {
-        Library.Song s = Library.get(this).byKey.get(q.current());
+        Library.Song s = Library.get(this).byKey.get(shownKey());     // the other device's song while this one is its remote
         if (holdArt(s)) return;                          // drawn once the picture is ready (artLate at the latest)
         if (s == null) {
             PlayerWidget.show(this, "Repertorium", "Tap play to start", false, null, q.shuffle, q.repeat, 0, 0);
@@ -1101,21 +1109,22 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         Bitmap small = null;
         if (art != null && s.key.equals(artKey)) small = art;   // the widget rounds it and takes its colours
         String[] nm = LyricsQuery.shown(s.title, s.artist);       // the song's name, every artist under it
+        boolean rs = remoteShown();
         PlayerWidget.show(this, nm[0], nm[1].isEmpty() ? s.pl : nm[1],
-                isPlaying() || (wantPlay && preparing), small, q.shuffle, q.repeat, position(), duration());
+                rs ? rPlaying : isPlaying() || (wantPlay && preparing), small, rs ? rShuf : q.shuffle, rs ? rRep : q.repeat, shownPos(), shownDur());
         MAIN.removeCallbacks(widgetTick);
-        if (isPlaying()) MAIN.postDelayed(widgetTick, 1000);
+        if (shownPlaying()) MAIN.postDelayed(widgetTick, 1000);
     }
 
     /** the widget's progress bar and times move along once a second while playing and the screen is on */
     private final Runnable widgetTick = new Runnable() {
         @Override
         public void run() {
-            if (!isPlaying()) return;
+            if (!shownPlaying()) return;
             try {
                 android.os.PowerManager pm = (android.os.PowerManager) getSystemService(POWER_SERVICE);
                 if ((pm == null || pm.isInteractive()) && PlayerWidget.any(PlayerService.this))
-                    PlayerWidget.progress(PlayerService.this, position(), duration());
+                    PlayerWidget.progress(PlayerService.this, shownPos(), shownDur());
             } catch (Exception ignored) {
             }
             MAIN.postDelayed(this, 1000);
@@ -1164,7 +1173,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                 .putString(MediaMetadata.METADATA_KEY_TITLE, nm[0])
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, nm[1])
                 .putString(MediaMetadata.METADATA_KEY_ALBUM, s.album.isEmpty() ? s.pl : s.album)
-                .putLong(MediaMetadata.METADATA_KEY_DURATION, duration());
+                .putLong(MediaMetadata.METADATA_KEY_DURATION, shownDur());
         if (art != null && s.key.equals(artKey)) b.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, art);
         return b.build();
     }
@@ -1377,6 +1386,132 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         LyricsQuery lq = LyricsQuery.forLyrics(title, artist);
         String t = LyricsQuery.key(lq.track);
         return t.isEmpty() ? "" : t + "|" + LyricsQuery.key(LyricsQuery.firstArtist(lq.artist));
+    }
+
+    /* Connect: while this device is the remote, its notification, lock screen and widget show the OTHER device's song -
+       Connect hands its state over (remoteState, about every 2.5 s, also with the app off screen); the buttons there go to the
+       other device (toggle / next / prev above). remoteGone() = back to this device's own song. */
+    private String rKey, rRep = "off";
+    private boolean rPlaying, rShuf;
+    private int rPos, rDur;
+    private long rAt;
+
+    private boolean remoteShown() {
+        return Connect.remote != null && rKey != null;
+    }
+
+    private String shownKey() {
+        return remoteShown() ? rKey : q.current();
+    }
+
+    private boolean shownPlaying() {
+        return remoteShown() ? rPlaying : isPlaying();
+    }
+
+    private int shownPos() {
+        if (!remoteShown()) return position();
+        long p = rPos + (rPlaying ? SystemClock.elapsedRealtime() - rAt : 0);
+        return (int) Math.max(0, rDur > 0 ? Math.min(p, rDur) : p);
+    }
+
+    private int shownDur() {
+        return remoteShown() ? rDur : duration();
+    }
+
+    void remoteState(String json) {
+        try {
+            JSONObject o = new JSONObject(json);
+            String k = o.optString("key");
+            rKey = k.isEmpty() ? null : k;
+            rPlaying = o.optBoolean("playing");
+            rPos = o.optInt("pos");
+            rDur = o.optInt("dur");
+            rShuf = o.optBoolean("shuffle");
+            rRep = o.optString("repeat", "off");
+            rAt = SystemClock.elapsedRealtime();
+        } catch (Exception e) {
+            return;
+        }
+        Library.Song s = rKey == null ? null : Library.get(this).byKey.get(rKey);
+        if (s != null && !s.key.equals(artKey) && !s.key.equals(artWait)) loadArt(s);
+        changed();
+    }
+
+    void remoteGone() {
+        rKey = null;
+        Library.Song s = Library.get(this).byKey.get(q.current());
+        if (s != null && !s.key.equals(artKey) && !s.key.equals(artWait)) loadArt(s);
+        changed();
+    }
+
+    /** Connect: the whole queue and the spot, to hand to another device */
+    String handJson() {
+        try {
+            JSONObject o = new JSONObject();
+            o.put("base", new JSONArray(q.base));
+            o.put("order", new JSONArray(q.order));
+            o.put("i", q.i);
+            o.put("up", new JSONArray(q.upNext));
+            o.put("extra", q.extra == null ? "" : q.extra);
+            o.put("shuffle", q.shuffle);
+            o.put("repeat", q.repeat);
+            o.put("src", q.src == null ? "" : q.src);
+            o.put("pos", position());
+            o.put("playing", isPlaying() || (wantPlay && preparing));
+            return o.toString();
+        } catch (Exception e) {
+            return "{}";
+        }
+    }
+
+    /** Connect: take over a queue another device handed over - songs this device does not have are left out */
+    boolean takeHand(String json) {
+        try {
+            JSONObject o = new JSONObject(json);
+            Library lib = Library.get(this);
+            List<String> base = known(lib, o.optJSONArray("base")), order = known(lib, o.optJSONArray("order"));
+            JSONArray oa = o.optJSONArray("order");
+            int i = o.optInt("i", 0);
+            String at = oa != null && i >= 0 && i < oa.length() ? oa.optString(i) : null;
+            int ni = at != null ? order.indexOf(at) : -1;
+            if (ni < 0) ni = Math.max(0, Math.min(order.size() - 1, i));
+            String extra = o.optString("extra");
+            if (!extra.isEmpty() && !lib.byKey.containsKey(extra)) extra = "";
+            if (order.isEmpty() && extra.isEmpty()) return false;
+            boolean sameSong = extra.isEmpty() ? at != null && at.equals(order.isEmpty() ? null : order.get(ni)) : true;
+            if (isPlaying()) {
+                if (prepared) mp.pause();
+            }
+            q.set(base.isEmpty() ? order : base, 0, false);
+            q.order.clear();
+            q.order.addAll(order);
+            q.i = order.isEmpty() ? -1 : ni;
+            q.shuffle = o.optBoolean("shuffle");
+            q.setRepeat(o.optString("repeat", "off"));
+            q.upNext.clear();
+            q.upNext.addAll(known(lib, o.optJSONArray("up")));
+            q.extra = extra.isEmpty() ? null : extra;
+            String src = o.optString("src");
+            q.src = src.isEmpty() ? null : src;
+            describe();
+            saveQueue();
+            String k = q.current();
+            if (k == null) return false;
+            load(k, sameSong ? Math.max(0, o.optInt("pos")) : 0, o.optBoolean("playing", true));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static List<String> known(Library lib, JSONArray a) {
+        List<String> out = new ArrayList<>();
+        if (a == null) return out;
+        for (int i = 0; i < a.length(); i++) {
+            String k = a.optString(i);
+            if (lib.byKey.containsKey(k)) out.add(k);
+        }
+        return out;
     }
 
     private void saveQueue() {

@@ -517,11 +517,33 @@ footer.mini.cv{background:#090710}
 .chip:disabled{opacity:.4}
 .mnote{color:var(--mist);font-size:14px;margin:0 0 14px}
 @media (prefers-reduced-motion:reduce){.lyr p{transition:none}.now{transition:none}}
+/* The lyrics fit their own box: the space above and below the words is a share of the lyrics box's own height (the
+   line being sung sits about a third of the way down), and on a tablet held sideways the record / lyrics take the left
+   side and the name, the bar and the buttons the right - nothing overlaps */
+@supports (width:1cqh){.lyr{padding:36cqh 6px 56cqh}}
+@media (orientation:landscape) and (min-width:900px){
+  .now{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,1fr);grid-template-rows:auto minmax(0,1fr) auto auto auto minmax(0,1fr);
+    column-gap:clamp(24px,4vw,72px);padding:12px max(24px,3vw) calc(16px + env(safe-area-inset-bottom))}
+  .nowtop{grid-column:1 / -1;grid-row:1}
+  .stage{grid-column:1;grid-row:2 / -1;align-self:stretch}
+  .info{grid-column:2;grid-row:3}
+  .ctrl{grid-column:2;grid-row:4}
+  .upnext{grid-column:2;grid-row:5}
+  .artall{grid-column:2}
+  .lyr{padding-left:clamp(8px,2vw,28px);padding-right:clamp(8px,2vw,28px)}
+  .lyr p{font-size:clamp(26px,2.6vw,34px);line-height:1.28;margin-bottom:20px}
+  .lyr.plain p{font-size:clamp(20px,2vw,26px)}
+}
 /* Karaoke, full screen over the song's blurred picture - the line
    being sung big, each word filling left to right in the song's colour; the next line waiting under it; three
    dots counting down the last three seconds of a long break */
 .karbtn{color:var(--ink)}
 .karbtn svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* Connect - play on another device (Spotify's green) */
+#ndev svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#ndev.on{color:#1ED760}
+.cxbar{flex:none;display:flex;align-items:center;gap:5px;margin:0 6px;padding:5px 11px;border-radius:999px;background:rgba(30,215,96,.16);color:#1ED760;font-size:12.5px;font-weight:600;white-space:nowrap}
+.cxbar svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#dsheet .srow.sortrow[aria-checked="true"]{color:#1ED760}.dnote{color:var(--mist);font-size:14px;line-height:1.45;padding:12px 4px}
 .kara{position:fixed;inset:0;z-index:30;background:#000;display:flex;flex-direction:column;overflow:hidden;
   padding:calc(10px + env(safe-area-inset-top)) 16px calc(22px + env(safe-area-inset-bottom))}
 .karbg{position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 30%,color-mix(in srgb,var(--c1) 26%,#000),#000 72%)}
@@ -655,8 +677,13 @@ button,a,input,.song,.pl{touch-action:manipulation}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes sheetUp{from{transform:translateY(28px)}to{transform:none}}
 .enter{animation:viewIn .18s ease-out}
-.sheet:not(.hidden){animation:fadeIn .16s ease-out}
-.sheet:not(.hidden) .sheetcard{animation:sheetUp .2s cubic-bezier(.2,.8,.3,1)}
+/* while a menu is open its own layer is kept (will-change): when its fade ended, Android dropped the layer and drew the
+   menu again into the page - a blink. Kept, there is nothing to redraw. */
+.sheet:not(.hidden){animation:fadeIn .16s ease-out;will-change:opacity}
+.sheet:not(.hidden) .sheetcard{animation:sheetUp .2s cubic-bezier(.2,.8,.3,1);will-change:transform}
+/* the song menu and the playlist menu (12 glowing cards) come up with no fade or slide: while a fade or slide runs, a slower
+   phone shows a frame or two before the cards are fully drawn. Shown at once, Android waits until they are drawn. */
+:is(#sheet,#psheet):not(.hidden),:is(#sheet,#psheet):not(.hidden) .sheetcard{animation:none;will-change:auto}
 .toast:not(.hidden){animation:fadeIn .15s ease-out}
 .song.new{animation:fadeIn .5s ease-out}
 @media (prefers-reduced-motion:reduce){.enter,.sheet:not(.hidden),.sheet:not(.hidden) .sheetcard,.toast:not(.hidden),.song.new{animation:none}}
@@ -838,6 +865,14 @@ button,a,input,.song,.pl{touch-action:manipulation}
     <button id="shNext" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12"/><circle class="fill" cx="4.5" cy="6" r="1.4"/><circle class="fill" cx="4.5" cy="12" r="1.4"/><circle class="fill" cx="4.5" cy="18" r="1.4"/></svg><span class="tx"><span class="st">Play next</span><small>Plays right after the song that's on now.</small></span></button>
     <button id="shDel" class="srow danger"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg><span class="tx"><span class="st">Delete from playlist</span><small>Deletes the song from this playlist for good. Android asks you to confirm first.</small></span></button>
     <button id="shCancel" class="srow"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="tx"><span class="st">Cancel</span></span></button>
+  </div>
+</div>
+
+<div id="dsheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="sheetcard">
+    <b id="dTitle">Play on</b><span>Your devices on this Wi-Fi</span>
+    <div id="dList"></div>
+    <button id="dCancel" class="srow">Close</button>
   </div>
 </div>
 
@@ -1047,7 +1082,9 @@ button,a,input,.song,.pl{touch-action:manipulation}
   <div class="nowtop">
     <button class="ib" id="nclose" aria-label="Close player"><svg viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg></button>
     <span class="pname" id="npl"></span>
+    <button class="cxbar hidden" id="cxbar" aria-label="Playing on another device - tap to choose"><svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="9.5" height="15.5" rx="1.8"/><rect x="15" y="8.5" width="5.5" height="11" rx="1.4"/><circle cx="17.75" cy="15.6" r="1.4"/><path d="M7 16.6h2.5"/></svg><span id="cxname"></span></button>
     <div class="nowact">
+      <button class="ib" id="ndev" aria-label="Play on another device"><svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="9.5" height="15.5" rx="1.8"/><rect x="15" y="8.5" width="5.5" height="11" rx="1.4"/><circle cx="17.75" cy="15.6" r="1.4"/><path d="M7 16.6h2.5"/></svg></button>
       <button class="ib karbtn" id="nkar" aria-label="Karaoke"><svg viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M8.5 21h7"/></svg></button>
       <button class="ib lyrbtn" id="nlyr" aria-label="Lyrics" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 17.5V6l10.5-2.2v11.2"/><circle cx="6.6" cy="17.6" r="2.4" fill="currentColor"/><circle cx="17.1" cy="15.1" r="2.4" fill="currentColor"/></svg></button>
       <button class="ib" id="nmore" aria-label="More for this song"><svg viewBox="0 0 24 24"><path d="M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
@@ -1098,7 +1135,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
    stars, a faint web and sparkles on the hi-hats. Runs on its own thread (Web Worker +
    OffscreenCanvas), or on the page itself on an older WebView. Messages: init, size, live, v (a
    reading), col (the song's two colours), halt, draw.
-   141 bars: 70 a side and one at the very top, so the ring stays mirrored. At most 45 frames a second
+   140 bars: 70 a side, so the ring stays mirrored (two bars meet at the top and at the bottom). At most 45 frames a second
    (the phone stays cooler); motion is timed by the clock, not by frames, so it moves just as fast. */
 
 "use strict";
@@ -1239,11 +1276,12 @@ let spin = 0, spinV = 0, spinIn = 0, spinInV = 0;              /* the outer ring
    when paused). Every setting is in RING_CONFIG */
 const RING_CONFIG = {
   /* one fixed set of shapes, played in a set order that changes a little each loop (LOOPS) - no randomness */
-  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47],   /* hexagon, triangle, circle (0), pentagon, square, kite (41), hexagram (62),
-                                              diamond (40), four-point star (44), oval (2), Reuleaux triangle (33), arrowhead star (45),
-                                              octagram (46), eight-point star (47) - each loop plays all of them, in a new order each loop (LOOPS) */
+  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43],   /* hexagon, triangle, circle (0), pentagon, square, kite (41), hexagram (62),
+                                              diamond (40), four-point star (44), oval (2), Reuleaux triangle (33), two triangles (45),
+                                              octagram (46), eight-point star (47), rectangle (42),
+                                              parallelogram (43) - sixteen; each loop plays all of them, in a new order each loop (LOOPS) */
   holdMs: {0: 21000, 3: 16000, 4: 16000,   /* how long each shape stays: every shape 16 s, the circle 21 s (see circleStayMs) */
-           5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000},
+           5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000, 42: 16000, 43: 16000},
   fadeMs: 6250,                            /* each change, eased - always this long */
   circleSwell: .38,                        /* the circle swells out toward the bars and back once while it holds - the ribbon 1.66 -> 2.04,
                                               its lines packed in above it up to 2.09 */
@@ -1267,11 +1305,11 @@ const RING_CONFIG = {
 /* each polygon's exact radius round the ring (its average = the circle's, so the ring keeps its size). The triangle is a
    TRUE one - straight sides, sharp corners - drawn whole (PEAK = its ribbon's corners at 2.06, just short of the bars;
    its sides pass just outside the record, 1.03), with inner triangles inside it, turning with it, the record in their middle */
-const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06, 33: 2.06, 45: 2.06, 46: 2.06, 47: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8, 2: .25, 33: .35, 45: .8, 46: .8, 47: .8};   /* SQZ: how much closer the outer lines keep to it */
+const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06, 33: 2.06, 45: 2.06, 46: 2.06, 47: 2.06, 42: 2.06, 43: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8, 2: .25, 33: .35, 45: .8, 46: .8, 47: .8, 42: .8, 43: .8};   /* SQZ: how much closer the outer lines keep to it */
 const SHAPES = RING_CONFIG.order.filter(n => n);
 /* the sharp ones - corners out at PEAK, the lines round them smaller copies, the inner ring nested inside them with the
    record in its middle (its lines go behind the record) */
-const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1, 33: 1, 45: 1, 46: 1, 47: 1};   /* the Reuleaux too - its corners are points */
+const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1};   /* the Reuleaux too - its corners are points */
 /* the KITE's corners (as its ribbon has them): the long point 2.06 (a 61 degree tip), the crossbar's ends 1.48, the short
    point 1.22 (a 119 degree tip) - every side 1.05 from the middle, so the record is the circle that fits inside it */
 const KITE = [[2.06, 0], [-.368, 1.439], [-1.22, 0], [-.368, -1.439]];
@@ -1282,15 +1320,24 @@ const DIAMOND = [[2.06, 0], [0, 1.22], [-2.06, 0], [0, -1.22]];
    inner corners between them 1.0 out, at the record's edge - each point's tip ~55 degrees */
 const STAR4 = [[2.06, 0], [.707, .707], [0, 2.06], [-.707, .707], [-2.06, 0], [-.707, -.707], [0, -2.06], [.707, -.707]];
 /* three more, fitted to the ring like the star: every point at most 2.06 (short of the bars), every dip at least 1.02 out
-   (the record's edge), so the record always sits inside. ARROWHEAD (45): a tall diamond with a wide triangle pointing down
-   across it. OCTAGRAM (46): a square inside a diamond. EIGHT-POINT STAR (47): four long points and four short ones. */
-const ARROW = [[0, 2.06], [.894, .55], [1.95, .55], [0, -2.06], [-1.95, .55], [-.894, .55]].map(([x, y]) => [y, x]);   /* turned so its top point leads like the others' (x = up) */
+   (the record's edge), so the record always sits inside. TWO TRIANGLES (45): one pointing up and the same one upside down,
+   crossing - points 2.06 up and down, flat sides .574 from the middle, corners 1.775 out; drawn as the two triangles, each
+   whole, their lines crossing (see SUB45). OCTAGRAM (46): a square inside a diamond. EIGHT-POINT STAR (47): four long points
+   and four short ones. */
+const XDIAMOND = [[[0, 2.06], [1.775, -.574], [-1.775, -.574]], [[-1.775, .574], [1.775, .574], [0, -2.06]]]
+  .map(V => V.map(([x, y]) => [y, x]));   /* turned so its top point leads like the others' (x = up) */
 const OCTA = (() => { const v = [], s = 1.35, e = 2.06 - s; for (let k = 0; k < 4; k++) { const c = Math.cos(k * Math.PI / 2), n = Math.sin(k * Math.PI / 2);
   const P = [[2.06, 0], [s, e], [s, s], [e, s]]; for (const [a, b] of P) v.push([a * c - b * n, a * n + b * c]); } return v; })();
 const STAR8 = (() => { const v = []; for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, r = k % 2 ? 1.5 : 2.06, b = a + Math.PI / 8;
   v.push([r * Math.cos(a), r * Math.sin(a)], [1.02 * Math.cos(b), 1.02 * Math.sin(b)]); } return v; })();
-const CORNERS = {41: KITE, 40: DIAMOND, 44: STAR4, 45: ARROW, 46: OCTA, 47: STAR8};
-const CONCAVE = {44: 1, 45: 1, 46: 1, 47: 1};   /* a star dips in - its outline is the side the line from the middle really crosses */
+/* two more, fitted to the ring like the diamond and the kite: corners at most 2.06, every side at least 1.05 from the middle
+   so the record always sits inside; sharp corners. RECTANGLE (42): the golden rectangle, 1.618 times as long as it is wide.
+   PARALLELOGRAM (43): long sides 1.05 above and below the middle, its slanted sides leaning ~18 degrees - inside the ring a
+   parallelogram can only lean so far before it becomes the diamond, so it sits between the rectangle and the diamond */
+const RECT = [[1.083, 1.7525], [-1.083, 1.7525], [-1.083, -1.7525], [1.083, -1.7525]];
+const PARA = [[1.05, -1.1], [1.05, 1.772], [-1.05, 1.1], [-1.05, -1.772]];
+const CORNERS = {41: KITE, 40: DIAMOND, 44: STAR4, 46: OCTA, 47: STAR8, 42: RECT, 43: PARA};
+const CONCAVE = {44: 1, 46: 1, 47: 1};
 /* the OVAL - an ellipse 1.4 times as long as it is wide, smooth like the circle; the REULEAUX triangle - three arcs, each
    round the opposite corner (the same width every way you measure it): the inside of three circles of radius w round the
    corners, so along any line from the middle it ends at the nearest of them */
@@ -1327,31 +1374,35 @@ for (const n of SHAPES) {
   let sum = 0;
   for (let m = 0; m <= M; m++) {
     const t = 2 * Math.PI * m / M;
-    P[m] = n === 2 ? OVAL(t) : n === 33 ? REULEAUX(t) : n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : CONCAVE[n] ? rayAt(CORNERS[n], t) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
+    P[m] = n === 2 ? OVAL(t) : n === 33 ? REULEAUX(t) : n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : n === 45 ? Math.max(...XDIAMOND.map(V => outlineAt(V, t))) : CONCAVE[n] ? rayAt(CORNERS[n], t) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
     if (m < M) sum += P[m];
   }
   for (let m = 0; m <= M; m++) P[m] = f * P[m] * M / sum + 1 - f;
   if (PEAK[n]) { const k = PEAK[n] / (1.66 * Math.max(...P)); for (let m = 0; m <= M; m++) P[m] *= k; }
   POLY[n] = P;
 }
+/* the two triangles (45) are drawn as two shapes, each whole with its own lines crossing the other's; where they go under
+   the record, the record hides them. POLY[45] (their outline) stays for the sizes worked out from it */
+const SUB45 = XDIAMOND.map(V => { const P = new Float32Array(M1); for (let m = 0; m <= M; m++) P[m] = outlineAt(V, 2 * Math.PI * m / M) / 1.66; return P; });
 /* the inner ring is always a smaller copy of the outer ring's shape, turning with it, sized for each shape so its innermost
    line stays outside the record and its outermost clear of the outer ring (.2 inside its sides): INK = those two sizes as
    parts of the outer ring's. The sharp shapes have only a sliver of room between the record and their sides, so their
    lines are .68 .. .84 of the outer one's size, the record sitting in their middle. ROOM: the voice moves the inner lines
    less where there is little room */
-const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1, 2: 1, 33: 1, 45: 1, 46: 1, 47: 1};
+const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1, 2: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1};
 for (const n of [0, ...SHAPES]) {
   const s = n ? 1.66 * Math.min(...POLY[n]) : 1.66;               /* the outer ribbon at the middle of a side */
   INK[n] = SHARP[n] ? [.68, .84] : [1.04 / s, (s - .2) / s];
 }
 /* the voice's ripples and shape, times this - the sharper the shape the livelier, the hexagon as it was, the circle
    calmest (0 = the circle) */
-const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3, 2: .85, 33: 1.15, 45: 1.25, 46: 1.2, 47: 1.3};
+const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3, 2: .85, 33: 1.15, 45: 1.25, 46: 1.2, 47: 1.3, 42: 1.2, 43: 1.25};
 let shapeT = 0, SHN = 6, SHP = 1;          /* the shape it mostly is now (for the stroke weight) and how much polygon it is: 1 .. 0 round */
 const ONES = new Float32Array(M1).fill(1);  /* the circle */
 const SHI = new Float32Array(M1), OJ = new Float32Array(M1), OMIN = new Float32Array(M1);   /* the shape as the inner ring takes it; the outer ring's share of the voice; its innermost line */
 /* the shape it is changing from, to, how far (0 .. 1), the outer lines' squeeze, the circle's swell; SHT how sharp it
    is, SHJ the voice's strength, SHKA / SHKB the inner ring's size (INK), SHR its room (ROOM) */
+let SHNA = 6, SHNB = 6;   /* which shapes it is changing from and to (the two triangles are drawn as two) */
 let SHA = POLY[6], SHB = POLY[6], SHQ = 0, SHZ = SQZ[6], SHE = 0, SHT = 0, SHJ = 1, SHKA = INK[6][0], SHKB = INK[6][1], SHR = 1;
 const CORNER = 2.04;                       /* past this a corner is eased in (the bars start at 2.1) */
 const LOOPS = (() => {                     /* the loops shapeAt plays: each loop is the last one with neighbours
@@ -1383,7 +1434,7 @@ function shapeAt(t) {
   const SW = RING_CONFIG.circleSwellMs, st = RING_CONFIG.circleStayMs;
   const e = !b && a && u >= h ? u - h : !a && u < h ? u + F : -1;
   SHE = e < 0 ? 0 : e < SW ? ease(e / SW) : e < SW + st ? 1 : e < 2 * SW + st ? ease(1 - (e - SW - st) / SW) : 0;
-  SHA = a ? POLY[a] : ONES; SHB = b ? POLY[b] : ONES; SHQ = q;
+  SHA = a ? POLY[a] : ONES; SHB = b ? POLY[b] : ONES; SHQ = q; SHNA = a; SHNB = b;
   SHZ = (1 - q) * (a ? SQZ[a] : 0) + q * (b ? SQZ[b] : 0);
   SHP = (1 - q) * (a ? 1 : 0) + q * (b ? 1 : 0);
   SHT = (1 - q) * (SHARP[a] || 0) + q * (SHARP[b] || 0);   /* how sharp (triangle, kite, hexagram, diamond) */
@@ -1393,10 +1444,10 @@ function shapeAt(t) {
   SHN = (q < .5 ? a : b) || a || b;
 }
 const ECH = [], ECHO_MS = 800;                                  /* the echoes going out (when, how hard); each lasts just under a beat (800 ms at most) */
-const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(141);   /* 141 bars */
+const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(140);   /* 140 bars */
 /* the bars as spikes of specks - each speck's fixed place across its bar, along it, its wobble and its drift past the
    tip (its own small random numbers, made once, so the specks stay put and only breathe) */
-const BJ = 96, BJT = new Float32Array(141 * BJ * 3);
+const BJ = 96, BJT = new Float32Array(140 * BJ * 3);
 { let h = 20261025; for (let k = 0; k < BJT.length; k++) { h = (Math.imul(h, 1103515245) + 12345) | 0; BJT[k] = ((h >>> 8) & 0xffff) / 65536; } }
 const TS = [];                                                  /* stars popping off the bar tips (where, when, how fast) */   /* the audio bars - each band smoothed, and its own recent top */
 let nShape = 0, pose = 0, lastPoseAt = -1e9, ivMed = 470, subLean = 0, style = "mix", styleNext = "mix";
@@ -1727,7 +1778,13 @@ function draw() {
   x.globalAlpha = .24 + .12 * hit; x.lineWidth = px1 * 1.3; x.stroke(ax);
 
   /* 2. the waves */
-  const sc0 = Math.cos(spin), sn0 = Math.sin(spin), sci = Math.cos(spinIn), sni = Math.sin(spinIn), SA = SHA, SB = SHB, sq = SHQ;
+  const sc0 = Math.cos(spin), sn0 = Math.sin(spin), sci = Math.cos(spinIn), sni = Math.sin(spinIn);
+  /* while the two triangles are in (or melting in or out) the waves are drawn twice, one triangle each, each melting from /
+     into the shape before / after; the second fades as it melts into the next shape, so nothing brightens where they meet */
+  const LAYERS = SHNA === 45 || SHNB === 45 ? SUB45.length : 1;
+  for (let ly = 0; ly < LAYERS; ly++) {
+  const SA = SHNA === 45 ? SUB45[ly] : SHA, SB = SHNB === 45 ? SUB45[ly] : SHB, sq = SHQ;
+  const LA = ly ? (SHNA === 45 ? 1 - SHQ : SHQ) : 1;
   /* the shape both rings take now (they turn together), and the outer ring's fifth of the voice (the inner ribbon's
      ripples and shape - RING_CONFIG.outerJiggle) */
   const ojk = RING_CONFIG.outerJiggle * RING_CONFIG.innerJiggle * SHJ;
@@ -1749,7 +1806,7 @@ function draw() {
       const cs = rot === undefined ? sc0 : Math.cos(rot), sn = rot === undefined ? sn0 : Math.sin(rot);
       const step = (W.r0 - 1.66) * (1 - SHZ) * (1 - .85 * SHE), base = 1.66 + RING_CONFIG.circleSwell * SHE;   /* the lines tuck in as the circle swells */
       const cap = CORNER + .06 * SHE + .1 * SHT, o2 = off * (1 - .5 * SHE);   /* the swollen circle reaches the bars (2.1); the sharp shapes' corners are their own */
-      const add = step + o2 + .075 * vox * RING_CONFIG.outerJiggle, fl = 1.04 - .04 * SHT;   /* the inner ribbon's breath, a seventh */
+      const add = step + o2 + .075 * vox * RING_CONFIG.outerJiggle, fl = LAYERS > 1 ? .2 : 1.04 - .04 * SHT;   /* the inner ribbon's breath, a seventh; the two triangles run on under the record */
       for (let m = 0; m <= M; m++) {
         const sh = SHI[m];                                             /* one shape melting into the next */
         let r = base * sh + add * (1 - SHT + .2 * SHT * sh) + OJ[m];   /* round the sharp shapes the lines are smaller copies of them - straight too; + the voice */
@@ -1794,26 +1851,26 @@ function draw() {
       const core = ptsOf(W, 0);
       x.strokeStyle = g0;
       if (outer && RING_CONFIG.afterimage && spinV > .01) {        /* a faint copy trailing the turn */
-        x.globalAlpha = .12; x.lineWidth = R * .06; x.stroke(ptsOf(W, 0, 1, spin - spinV * RING_CONFIG.afterimageMs / 1000));
+        x.globalAlpha = LA * .12; x.lineWidth = R * .06; x.stroke(ptsOf(W, 0, 1, spin - spinV * RING_CONFIG.afterimageMs / 1000));
       }
       if (!outer || RING_CONFIG.glow) {
-        x.globalAlpha = .18 * lit; x.lineWidth = R * .26 * wide * cw; x.stroke(core);   /* the soft glowing band */
-        x.globalAlpha = .26 * lit; x.lineWidth = R * .14 * wide * cw; x.stroke(core);
+        x.globalAlpha = LA * .18 * lit; x.lineWidth = R * .26 * wide * cw; x.stroke(core);   /* the soft glowing band */
+        x.globalAlpha = LA * .26 * lit; x.lineWidth = R * .14 * wide * cw; x.stroke(core);
       }
-      x.globalAlpha = .4; x.lineWidth = R * .075 * cw; x.stroke(core);
+      x.globalAlpha = LA * .4; x.lineWidth = R * .075 * cw; x.stroke(core);
       const c1 = ptsOf(W, -.022), c2 = ptsOf(W, .022);              /* two bright strands at its heart */
-      x.globalAlpha = .45; x.lineWidth = R * .035; x.stroke(c1); x.stroke(c2);
-      x.strokeStyle = g4; x.globalAlpha = .8; x.lineWidth = Math.max(px1, R * .013); x.stroke(c1); x.stroke(c2);
+      x.globalAlpha = LA * .45; x.lineWidth = R * .035; x.stroke(c1); x.stroke(c2);
+      x.strokeStyle = g4; x.globalAlpha = LA * .8; x.lineWidth = Math.max(px1, R * .013); x.stroke(c1); x.stroke(c2);
       x.strokeStyle = g2;                                          /* fine lines running along it */
-      for (const o of [-.085, -.062, -.045, .045, .062, .085]) { x.globalAlpha = .55; x.lineWidth = px1; x.stroke(ptsOf(W, o)); }
+      for (const o of [-.085, -.062, -.045, .045, .062, .085]) { x.globalAlpha = LA * .55; x.lineWidth = px1; x.stroke(ptsOf(W, o)); }
       if (!outer && RING_CONFIG.innerTicks === "dashes" && x.setLineDash) {   /* dashes turning with the inner hexagon, so its turn shows */
-        x.setLineDash([R * .05, R * .065]); x.strokeStyle = g4; x.globalAlpha = .45; x.lineWidth = Math.max(px1, R * .012);
+        x.setLineDash([R * .05, R * .065]); x.strokeStyle = g4; x.globalAlpha = LA * .45; x.lineWidth = Math.max(px1, R * .012);
         x.stroke(core); x.setLineDash([]);
       }
     } else {
       const pth = ptsOf(W, 0);
-      x.strokeStyle = g0; x.globalAlpha = .16; x.lineWidth = R * .035; x.stroke(pth);
-      x.strokeStyle = g2; x.globalAlpha = .58; x.lineWidth = px1; x.stroke(pth);
+      x.strokeStyle = g0; x.globalAlpha = LA * .16; x.lineWidth = R * .035; x.stroke(pth);
+      x.strokeStyle = g2; x.globalAlpha = LA * .58; x.lineWidth = px1; x.stroke(pth);
     }
   }
   x.restore();
@@ -1823,22 +1880,23 @@ function draw() {
     const k = (clock - E.t) / E.life; if (k < 0 || k >= 1) continue;
     const e = 1 - Math.pow(1 - k, 2.4), fade = Math.pow(1 - k, 1.6) * (.6 + .4 * E.s);   /* brightest as the beat lands */
     const p = ptsOf(OUTW, 0, 1.02 + .18 * e);                       /* out to just inside the bars */
-    x.strokeStyle = g0; x.globalAlpha = .16 * fade; x.lineWidth = R * (.07 * (1 - k) + .02); x.stroke(p);   /* its soft glow */
-    x.strokeStyle = g4; x.globalAlpha = .5 * fade; x.lineWidth = Math.max(px1, R * .014 * (1 - .5 * k)); x.stroke(p);   /* its line */
+    x.strokeStyle = g0; x.globalAlpha = LA * .16 * fade; x.lineWidth = R * (.07 * (1 - k) + .02); x.stroke(p);   /* its soft glow */
+    x.strokeStyle = g4; x.globalAlpha = LA * .5 * fade; x.lineWidth = Math.max(px1, R * .014 * (1 - .5 * k)); x.stroke(p);   /* its line */
   }
+  }   /* each layer */
 
   {
     const BL = Array.from({length: 6}, () => [new Path2D(), new Path2D(), new Path2D()]);   /* the bars' specks - six columns, three brightnesses */
     /* each spike 30% wider, its specks 20% bigger, brighter and more opaque */
     const BAR_WIDE = 1.3, BAR_SPECK = 1.2;
-    const NBR = 70, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();       /* taller (was .34). 70 a side and one at the very top */
-    for (let j = 0; j <= NBR; j++) {   /* j = NBR is the single centre bar at the very top */
+    const NBR = 70, base = 2.1, len = .5, bp = new Path2D(), gp = new Path2D();       /* taller (was .34). 70 a side = 140 */
+    for (let j = 0; j < NBR; j++) {   /* 70 a side, mirrored */
       /* a bar between two bands reads between them, so neighbours rise and fall smoothly, not in steps */
       const fb = Math.min(48, 1 + j * 47 / (NBR - 1)), b0 = Math.floor(fb), b1 = Math.min(48, b0 + 1), fr = fb - b0;   /* up to about 9 kHz - the very top is mostly empty */
       const bv = BV[b0] + (BV[b1] - BV[b0]) * fr, bg = BG[b0] + (BG[b1] - BG[b0]) * fr;
       const lv = .3 * bv + .7 * Math.min(1, bv / bg);
       const L = .02 + len * Math.pow(lv, 1.15);
-      const extra = j === NBR, psi = extra ? 0 : Math.PI * (1 - (j + .5) / NBR);   /* bottom (j = 0) .. top */
+      const extra = false, psi = Math.PI * (1 - (j + .5) / NBR);   /* bottom (j = 0) .. top */
       for (const sd of extra ? [0] : [-1, 1]) {
         const ca = sd * Math.sin(psi), sa = -Math.cos(psi);
         const x0 = c + ca * base * R, y0 = c + sa * base * R, x1 = c + ca * (base + L) * R, y1 = c + sa * (base + L) * R;
@@ -2958,6 +3016,7 @@ function apply(st) {
   const s = ST.key ? KEYS.get(ST.key) || null : null;
   if (s !== cur) { cur = s; if (s) showSong(s); markOn(); idle(loadPlays, 2000); }     /* play counts when free */
   $("#mini").classList.toggle("hidden", !cur); titleLook();
+  $("#cxbar").classList.toggle("hidden", !ST.remote); $("#ndev").classList.toggle("on", !!ST.remote); if (ST.remote) $("#cxname").textContent = "on " + ST.remote;   /* Connect */
   syncPlay(); tick(); renderUp();
   if (ST.note) toast(ST.note);
 }
@@ -2981,6 +3040,41 @@ $("#mprev").onclick = () => N && N.prev();
 $("#mnext").onclick = () => N && N.next(); $("#next").onclick = () => N && N.next(); $("#prev").onclick = () => N && N.prev();
 $("#shuf").onclick = () => N && N.setShuffle(!ST.shuffle);
 $("#rep").onclick = () => N && N.setRepeat(ST.repeat === "all" ? "one" : ST.repeat === "one" ? "off" : "all");
+/* ---------- CONNECT, like Spotify Connect: the devices button on the player lists this device and every other one with
+   Carmen Musicum open on the same Wi-Fi. Tap one: the queue + the spot move there, this device goes quiet and becomes the
+   remote (every button goes there; the green "on Tablet" tag shows it). Tap "This phone" to bring it back. ---------- */
+let CX = { me: "Phone", remote: "", scanning: false, devs: [] };
+window.onConnect = j => { if (j) CX = j; drawDevs(); };
+function drawDevs() {
+  const here = CX.me === "Tablet" ? "This tablet" : "This phone", me = CX.me.toLowerCase();
+  let h = '<button class="srow sortrow" data-dev="" aria-checked="' + !CX.remote + '"><span>' + here + '<small>' +
+    (CX.remote ? "Bring the music back here" : "Playing here") + '</small></span></button>';
+  CX.devs.forEach(d => {
+    const on = CX.remote === d.id;
+    h += '<button class="srow sortrow" data-dev="' + esc(d.id) + '" aria-checked="' + on + '"><span>' + esc(d.name) + '<small>' +
+      (on ? "Playing there - this " + me + " is the remote" : "Play there - this " + me + " becomes the remote") + '</small></span></button>';
+  });
+  if (CX.scanning) h += '<div class="dnote">Looking on your Wi-Fi...</div>';
+  else if (!CX.devs.length) h += '<div class="dnote">No other device found. Open Carmen Musicum on the other one (same Wi-Fi), then look again.</div><button class="srow" id="dAgain">Look again</button>';
+  $("#dList").innerHTML = h;
+}
+function openDev() {
+  if (!N || !N.cxScan) { toast("Update Carmen Musicum on both devices first"); return; }
+  try { onConnect(JSON.parse(N.cxInfo())); } catch (e) {}
+  N.cxScan(); $("#dsheet").classList.remove("hidden");
+}
+const closeDev = () => $("#dsheet").classList.add("hidden");
+$("#ndev").onclick = openDev; $("#cxbar").onclick = openDev; $("#dCancel").onclick = closeDev;
+$("#dsheet").addEventListener("click", e => {
+  if (e.target.id === "dsheet") { closeDev(); return; }
+  if (e.target.closest("#dAgain")) { N.cxScan(); return; }
+  const b = e.target.closest("[data-dev]"); if (!b) return;
+  const id = b.dataset.dev, d = CX.devs.find(x => x.id === id);
+  closeDev();
+  if (id === (CX.remote || "")) return;
+  toast(id ? "Sending it to the " + (d ? d.name.toLowerCase() : "other device") + "..." : "Bringing it back...");
+  N.cxUse(id);
+});
 
 /* ---------- now playing ---------- */
 const BARS = 48;
@@ -3346,6 +3440,7 @@ function popDone() { popFor = null; clearTimeout(popT); if (goNext) { const h = 
 /* the phone's own Back button (MainActivity asks the page first): "1" = the page stepped back */
 window.appBack = () => { if (popFor !== null) return "1";
   if (!$("#rnsheet").classList.contains("hidden")) { closeRen(); return "1"; }
+  if (!$("#dsheet").classList.contains("hidden")) { closeDev(); return "1"; }
   if (KAR.open) { karClose(); return "1"; }
   if (!$("#home").classList.contains("hidden") && !$("#now").classList.contains("show") && $("#hq").value) { $("#hq").value = ""; $("#hq").blur(); homeSearch(); return "1"; }
   if (history.state && history.state.d > 0) { goBack("#/"); return "1"; } return "0"; };
@@ -4204,6 +4299,18 @@ function lyrUpgradePlan(d) {
 }
 const lrcMs = (m, s, f) => (+m * 60 + +s) * 1000 + (f ? +(f + "00").slice(0, 3) : 0);
 /* timed lines; words carry their own times when the lyrics have them (<mm:ss.xx>word, or YouTube's captions) */
+/* lyrics heard by ear can repeat one word hundreds of times: the same word more than 8 times in a row is cut to 8 + "..."
+   when shown - the file is not changed. Given a string, gives the tidy string; given a list of words, gives the kept ones
+   (.keep[k] = kept or not) */
+function lyrRuns(x) {
+  const ws = Array.isArray(x) ? x : String(x).split(" "), keep = [], key = w => String(w).toLowerCase().replace(/[^a-z0-9']/g, "");
+  let run = 0;
+  ws.forEach((w, k) => { run = k && key(w) && key(w) === key(ws[k - 1]) ? run + 1 : 0; keep.push(run < 8); });
+  if (Array.isArray(x)) { const out = ws.filter((w, k) => keep[k]); out.keep = keep; return out; }
+  let out = "";
+  ws.forEach((w, k) => { if (keep[k]) out += (out ? " " : "") + w; else if (keep[k - 1]) out += "..."; });
+  return out;
+}
 function parseLrc(text) {
   const out = [];
   for (const raw of String(text).split(/\r?\n/)) {
@@ -4219,7 +4326,8 @@ function parseLrc(text) {
         m[4].replace(/\s+/g, " ").trim().split(" ").filter(Boolean).forEach(w => words.push({t, w}));
       }
     }
-    const text = body.replace(/<\d+:\d{1,2}(?:[.:]\d{1,3})?>/g, "").replace(/\s{2,}/g, " ").trim();
+    const text = lyrRuns(body.replace(/<\d+:\d{1,2}(?:[.:]\d{1,3})?>/g, "").replace(/\s{2,}/g, " ").trim());
+    if (words.length) { const kept = lyrRuns(words.map(w => w.w)); if (kept.length < words.length) words.splice(0, words.length, ...words.filter((w, k) => kept.keep[k])); }
     for (const m of stamps) {
       const t = lrcMs(m[1], m[2], m[3]), shift = t - t0;                 /* the same line sung again later */
       out.push({t, text, words: words.length ? words.map(w => ({t: w.t + shift, w: w.w})) : null});
@@ -4273,7 +4381,7 @@ function showLyrics() {
     (d.track ? "<br>Searched for: " + esc(d.track) + (d.artist ? " - " + esc(d.artist) : "") : ""), fix);
   else if (LYR.lines) L.innerHTML = LYR.lines.map((l, i) => '<p data-i="' + i + '"' + (l.text ? '>' + l.ws.map((w, k) => '<span data-w="' + k + '">' + esc(w.w) + '</span>').join(" ")
     : ' class="gap"><span data-w="0">&#9834; &#9834;</span>') + '</p>').join("") + foot + timing();
-  else { L.classList.add("plain"); L.innerHTML = String(d.plain || "").split(/\r?\n/).map(x => '<p>' + (esc(x) || "&nbsp;") + '</p>').join("") + foot; }
+  else { L.classList.add("plain"); L.innerHTML = String(d.plain || "").split(/\r?\n/).map(x => '<p>' + (esc(lyrRuns(x)) || "&nbsp;") + '</p>').join("") + foot; }
   LYR.idx = -1; lyricsTick(true); lyricsWake();
 }
 /* per-song timing nudge: + = words light up sooner (kept in the backup) */

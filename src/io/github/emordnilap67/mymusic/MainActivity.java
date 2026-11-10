@@ -63,6 +63,8 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     static final String MIC = "android.permission.RECORD_AUDIO";      // Android's name for "see your own sound"
     private String addKey;
     private List<String> addFolders;
+    /** a playlist change (Move, Rename, Delete) waiting for the music folder - it is asked for right there */
+    private Runnable treeThen;
     private static volatile MainActivity current;
     private String sharedLink, importFolder, dlLink, dlFolder;
     private String afterTree;
@@ -206,6 +208,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         }
 
         PlayerService.listener = this;
+        Connect.start(this);                  // Connect: the other devices can find this one
         startPlayer();
         granted = hasPermission();
         if (!granted) askPermission();
@@ -215,14 +218,57 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         web.loadUrl(ORIGIN);
     }
 
+    /** Connect: while the music plays on the other device, the volume keys turn THAT device up and down */
+    @Override
+    public boolean dispatchKeyEvent(android.view.KeyEvent e) {
+        int k = e.getKeyCode();
+        if (Connect.remote != null && (k == android.view.KeyEvent.KEYCODE_VOLUME_UP || k == android.view.KeyEvent.KEYCODE_VOLUME_DOWN)) {
+            if (e.getAction() == android.view.KeyEvent.ACTION_DOWN)
+                Connect.cmd("vol", "d", k == android.view.KeyEvent.KEYCODE_VOLUME_UP ? 1 : -1);
+            return true;
+        }
+        return super.dispatchKeyEvent(e);
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
         if (!picking) Backup.auto(this);      // the new-phone backup, refreshed when something changed
     }
 
+    /** the hearts from the other devices (Favs.sync) - when the app comes on screen, then every minute while it is */
+    private final Runnable favTick = new Runnable() {
+        @Override
+        public void run() {
+            final android.content.Context a = getApplicationContext();
+            if (Importer.tree(a) == null) {          // the music folder not allowed any more: asked for ONCE (the hearts file lives there)
+                android.content.SharedPreferences pr = getSharedPreferences("connect", MODE_PRIVATE);
+                if (granted && !Importer.rootDoc(a).isEmpty() && !pr.getBoolean("favs_asked", false)) {
+                    pr.edit().putBoolean("favs_asked", true).apply();
+                    askTreeThen(new Runnable() {
+                        @Override
+                        public void run() {
+                            h.removeCallbacks(favTick);
+                            h.post(favTick);
+                        }
+                    });
+                }
+                h.postDelayed(this, 60000);
+                return;
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (Favs.sync(a)) page("window.loadFavs&&loadFavs()");
+                }
+            }).start();
+            h.postDelayed(this, 60000);
+        }
+    };
+
     @Override
     protected void onPause() {
+        h.removeCallbacks(favTick);
         Viz.release();                        // the ring only runs while it can be seen
         if (web != null) web.onPause();      // the page rests while the app is not on screen
         super.onPause();
@@ -243,6 +289,8 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         if (p != null) onState(p.stateJson());
         else startPlayer();
         Retry.check(this);                    // songs that were waiting for YouTube carry on
+        h.removeCallbacks(favTick);
+        h.post(favTick);                      // the same hearts on every device
         // (the background wrong-audio check is gone - it asked YouTube about songs already on the phone; Check for
         // wrong audio stays in the playlist menu, by hand)
         Sync.maybe(this);                     // new songs on YouTube, every 6 hours - only playlists switched on
@@ -298,6 +346,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
     @Override
     public void onState(final String json) {
+        if (Connect.remote != null && !json.startsWith("{\"remote\"")) return;   // Connect: the remote shows the other device's music
         h.post(new Runnable() {
             @Override
             public void run() {
@@ -308,6 +357,18 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
     private void js(String code) {
         if (web != null) web.evaluateJavascript(code, null);
+    }
+
+    /** Connect: something for the page, from any thread */
+    static void page(final String code) {
+        final MainActivity a = current;
+        if (a == null) return;
+        a.h.post(new Runnable() {
+            @Override
+            public void run() {
+                a.js(code);
+            }
+        });
     }
 
     // ---------------------------------------------------------------- permission
@@ -404,6 +465,23 @@ public class MainActivity extends Activity implements PlayerService.Listener {
     // ---------------------------------------------------------------- hide / delete
 
     // ---------------------------------------------------------------- the new-phone kit
+
+    /** ask for the music folder right here, then do the change (Move, Rename, Delete, Empty) */
+    private void askTreeThen(final Runnable r) {
+        h.post(new Runnable() {
+            @Override
+            public void run() {
+                treeThen = r;
+                js("window.onBusy&&onBusy(" + Library.q("Pick your music folder, then Use this folder, then Allow") + ")");
+                try {
+                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).putExtra(DocumentsContract.EXTRA_INITIAL_URI, Importer.initialUri(MainActivity.this));
+                    startActivityForResult(i, REQ_TREE);
+                } catch (Exception e) {
+                    treeThen = null;
+                }
+            }
+        });
+    }
 
     private void askTree(String then) {
         afterTree = then;
@@ -606,6 +684,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 dlLink = null;
                 addKey = null;
                 afterTree = null;
+                treeThen = null;
                 return;
             }
             Uri t = data.getData();
@@ -619,7 +698,14 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 dlLink = null;
                 addKey = null;
                 afterTree = null;
+                treeThen = null;
                 js("window.onLibrary&&onLibrary(" + Library.q("Pick (or make) a folder for your music - not the whole phone") + ")");
+                return;
+            }
+            if (treeThen != null) {                    // the folder was allowed for a playlist change
+                final Runnable r = treeThen;
+                treeThen = null;
+                r.run();
                 return;
             }
             if (addKey != null) {                      // the folder was allowed for "Add to playlist"
@@ -888,6 +974,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public void askState() {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            if (Connect.remote != null) { Connect.ask(); return; }     // Connect: the other device answers
             h.post(new Runnable() {
                 @Override
                 public void run() {
@@ -900,6 +987,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public String state() {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            if (Connect.remote != null) return Connect.remoteState;
             // read on the main thread, where the player lives
             final String[] out = {"{}"};
             final CountDownLatch done = new CountDownLatch(1);
@@ -928,6 +1016,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             } catch (Exception e) {
                 return;
             }
+            if (Connect.remote != null) { Connect.cmd("play", "keys", new JSONArray(keys), "i", index, "shuffle", shuffle); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -939,6 +1028,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public void toggle() {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            if (Connect.remote != null) { Connect.cmd("toggle"); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -950,6 +1040,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public void next() {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            if (Connect.remote != null) { Connect.cmd("next"); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -961,6 +1052,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** "Play next" (first = true) or "Add to queue" */
         @JavascriptInterface
         public void enqueue(final String key, final boolean first) {
+            if (Connect.remote != null) { Connect.cmd("enqueue", "key", key, "first", first); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -972,6 +1064,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** take a song off Up next (n = its place), or clear it (n = -1) */
         @JavascriptInterface
         public void unqueue(final int n) {
+            if (Connect.remote != null) { Connect.cmd("unqueue", "n", n); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -983,6 +1076,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public void prev() {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            if (Connect.remote != null) { Connect.cmd("prev"); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -994,6 +1088,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public void seek(final int ms) {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            if (Connect.remote != null) { Connect.cmd("seek", "ms", ms); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -1004,6 +1099,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void setShuffle(final boolean on) {
+            if (Connect.remote != null) { Connect.cmd("shuffle", "on", on); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
@@ -1014,12 +1110,29 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         @JavascriptInterface
         public void setRepeat(final String r) {
+            if (Connect.remote != null) { Connect.cmd("repeat", "r", r); return; }
             PlayerService.run(MainActivity.this, new PlayerService.Job() {
                 @Override
                 public void run(PlayerService p) {
                     p.setRepeat(r);
                 }
             });
+        }
+
+        /** Connect: the devices sheet - look for the others, play on one (id) or here ("") */
+        @JavascriptInterface
+        public void cxScan() {
+            Connect.scan();
+        }
+
+        @JavascriptInterface
+        public String cxInfo() {
+            return Connect.infoJson();
+        }
+
+        @JavascriptInterface
+        public void cxUse(String id) {
+            Connect.use(id == null ? "" : id);
         }
 
         /** the Sound sheet - evening out, crossfade, equalizer */
@@ -1163,7 +1276,16 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             final String f = folder == null ? "" : folder.trim();
             if (f.isEmpty() || f.contains("/") || f.startsWith(".") || f.equalsIgnoreCase(Backup.DIR)) return "Pick a playlist first";
             final Uri t = Importer.tree(MainActivity.this);
-            if (t == null) return "Carmen Musicum needs its folder first - tap Add songs once and allow it";
+            if (t == null) {                                    // ask for the folder, then move
+                askTreeThen(new Runnable() {
+                    @Override
+                    public void run() {
+                        String r = moveTo(key, folder);
+                        if (r != null && !r.isEmpty()) js("window.toast&&toast(" + Library.q(r) + ")");
+                    }
+                });
+                return "";
+            }
             final Library.Song s = Library.get(MainActivity.this).byKey.get(key);
             if (s == null) return "";
             new Thread(new Runnable() {
@@ -1202,8 +1324,13 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public void deletePlaylist(final String folder) {
             final Uri t = Importer.tree(MainActivity.this);
-            if (t == null) {
-                js("window.onLibrary&&onLibrary(" + Library.q("Carmen Musicum needs its folder first - tap Add songs once and allow it") + ")");
+            if (t == null) {                                    // ask for the folder, then do it
+                askTreeThen(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (Importer.tree(MainActivity.this) != null) deletePlaylist(folder);
+                    }
+                });
                 return;
             }
             new Thread(new Runnable() {
@@ -1221,8 +1348,13 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public void renamePlaylist(final String folder, final String name) {
             final Uri t = Importer.tree(MainActivity.this);
-            if (t == null) {
-                js("window.onLibrary&&onLibrary(" + Library.q("Carmen Musicum needs its folder first - tap Add songs once and allow it") + ")");
+            if (t == null) {                                    // ask for the folder, then do it
+                askTreeThen(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (Importer.tree(MainActivity.this) != null) renamePlaylist(folder, name);
+                    }
+                });
                 return;
             }
             new Thread(new Runnable() {
@@ -1257,8 +1389,13 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public void emptyPlaylist(final String folder) {
             final Uri t = Importer.tree(MainActivity.this);
-            if (t == null) {
-                js("window.onLibrary&&onLibrary(" + Library.q("Carmen Musicum needs its folder first - tap Add songs once and allow it") + ")");
+            if (t == null) {                                    // ask for the folder, then do it
+                askTreeThen(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (Importer.tree(MainActivity.this) != null) emptyPlaylist(folder);
+                    }
+                });
                 return;
             }
             new Thread(new Runnable() {
@@ -1477,6 +1614,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** heart a song on or off; returns the new state */
         @JavascriptInterface
         public boolean fav(final String key, final boolean on) {
+            if (Connect.remote != null) Connect.cmd("fav", "key", key, "on", on);   // the device playing hearts it too
             return Favs.set(MainActivity.this, key, on);
         }
 
@@ -1581,6 +1719,7 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         @JavascriptInterface
         public String viz() {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)
+            if (Connect.remote != null) return Connect.viz();     // the other device's sound, read there
             if (!micOk) return "x";
             return Viz.read();
         }

@@ -1,3 +1,13 @@
+**New in 15.0:**
+
+- **Play on your other device:** like Spotify Connect. With Carmen Musicum open on your phone and your tablet (same Wi-Fi, same songs), tap the new **devices** button in the player and pick the other one - the song carries on there from the same second, and this one becomes the remote: play, pause, skip, the bar, shuffle, repeat, picking songs and the volume keys all work the other device. A green **on Tablet** tag shows it; **This phone** brings the music back. The remote's widget, lock screen and notification show the other device's song, and its ring's bars move to the other device's sound. Nothing is streamed and nothing leaves your Wi-Fi
+- **The same hearts everywhere:** keep your music folder the same on a phone and a tablet with a sync app and your favourites are the same on both - the hearts each device already had are merged, and a heart tapped on the remote hearts the song on the device that's playing
+- **Two more shapes:** the ring now has sixteen - new are a rectangle and a parallelogram, and the arrowhead star is now two triangles crossing (one pointing up, the same one upside down), drawn whole with their lines crossing. Every shape turns into every other one in time, and none ever follows itself
+- **140 bars:** 70 a side, mirrored top and bottom
+- **Lyrics fit:** the lyrics never run behind the song's name or the buttons any more, and on a tablet held sideways the player splits in two - the record and lyrics on the left, the name, bar and buttons on the right. A word repeated more than 8 times in a row in by-ear lyrics shows as 8 and "..."
+- **Move, Rename and Delete just work:** if the app doesn't have your music folder yet, they ask for it right there and then finish what you asked
+- **Fixed:** the song menu and the playlist menu could flash for a moment as they opened
+
 **New in 14.0:**
 
 "Feels alive." - Emordnilap67

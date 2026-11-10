@@ -26,12 +26,16 @@ known as MY MUSIC.*
 - **Add music by sharing.** Share a YouTube playlist and it becomes a
   playlist here, or pour it into one you already have. Switch a playlist's
   YouTube check on and new songs added there arrive by themselves.
+- **Play on your other device.** Like Spotify Connect: with the same songs on
+  your phone and your tablet, send what's playing to the other one and your
+  phone becomes the remote.
 - **Lyrics that keep time.** Timed lyrics light up word by word, there's a
   full-screen **karaoke** mode, and badly timed lyrics are caught and
   replaced automatically.
 - **A player worth looking at.** The record sits inside a ring of light that
-  changes shape - fourteen of them, from a hexagon, triangle and circle to an
-  oval, a Reuleaux triangle and an eight-point star - and dances to the music
+  changes shape - sixteen of them, from a hexagon, triangle and circle to an
+  oval, a Reuleaux triangle, an eight-point star, a rectangle and a
+  parallelogram - and dances to the music
   (bass, voice and treble each move their own part, and both rings bounce
   lightly on the beat), in colours taken from each song's own picture.
 - **Made for big libraries.** Thousands of songs in one playlist, sorted the
@@ -76,7 +80,8 @@ share, add to or move to another playlist, play next, add to queue, delete.
 
 **The player** opens when you tap the bar at the bottom (back, play, next,
 in the song's own colours). The **music note** shows the lyrics, the
-**microphone** opens karaoke.
+**microphone** opens karaoke, and the **devices** button (phone and speaker,
+top right) plays the music on another device.
 
 ## What it does
 
@@ -148,7 +153,10 @@ in the song's own colours). The **music note** shows the lyrics, the
 - **Queue:** **Play next** or **Add to queue** from the song menu. The player
   always shows what's **Up next**; tap it to see or change the queue.
 - **Favourites:** tap the heart in the player. The heart filter in any
-  playlist lists your favourites from every playlist.
+  playlist lists your favourites from every playlist. Keep your music
+  folder the same on a phone and a tablet with a sync app and your hearts
+  are the same on both - each device's hearts are merged the first time,
+  nothing lost.
 - **Sort the way Spotify does:** Recently played, Most played, Recently
   added, Title or Artist, each with its order flipped. A song counts as
   played after 30 seconds.
@@ -179,8 +187,9 @@ in the song's own colours). The **music note** shows the lyrics, the
   song - the bass sends echoes out on every beat, a ring of glowing particle
   bars follows the music (bass at the bottom, voice at the sides, treble at
   the top), the voice ripples the inner wave and the high notes make a cloud
-  of stars drift and twinkle. The ring melts from shape to shape - fourteen
-  of them, the order shifting a little every loop - and swells out to the bars
+  of stars drift and twinkle. The ring melts from shape to shape - sixteen
+  of them, the order shifting a little every loop, so every shape turns into
+  every other in time - and swells out to the bars
   as a circle. On every beat both rings grow a touch and settle back - not
   dancing, just keeping the song's tempo. A barred spiral galaxy of real kinds of stars (red dwarfs to
   blue giants, with the odd supernova) turns slowly behind it - a golden bar,
@@ -194,7 +203,21 @@ in the song's own colours). The **music note** shows the lyrics, the
   while you use the app, and songs arriving from a download never hold up a
   tap.
 - **Tablets:** the app turns sideways on a tablet, with a wide home page,
-  and the widget fits any size, upright or sideways.
+  and the widget fits any size, upright or sideways. Sideways, the player
+  splits in two - the record and the lyrics on the left, the song's name,
+  the bar and the buttons on the right.
+- **Play on another device (Connect):** with Carmen Musicum open on two
+  devices on the same Wi-Fi - and the same songs in the same playlists on
+  both - tap the **devices** button in the player and pick the other one.
+  The song carries on there from the same second, and this device becomes
+  the remote: play, pause, skip, the bar, shuffle, repeat, picking songs and
+  even the volume keys work the other device, and a green **on Tablet** tag
+  shows it. The remote's ring, notification, lock screen and widget follow
+  the other device's song, and its bars move to the other device's sound.
+  Pick **This phone** to bring the music back. Nothing is streamed - each
+  device plays its own copy - and nothing leaves your Wi-Fi.
+  While the app is open, other devices on the same Wi-Fi running this app can
+  see yours in their list.
 - **Also:** a neon home-screen widget in each song's own colours, from a
   one-row strip up to a big card; controls in the notification and on the
   lock screen; shuffle and repeat; song names show big with every artist
@@ -209,7 +232,7 @@ in the song's own colours). The **music note** shows the lyrics, the
 | Notifications | player controls and download progress |
 | Record audio | Android's name for letting an app read the sound it is playing itself, which the moving ring needs. Carmen Musicum never opens the microphone. Say no and the ring stays still. |
 | Alarms | to carry on downloading by itself after YouTube's pause |
-| Internet | downloads, lyrics and downloader updates |
+| Internet | downloads, lyrics and downloader updates; Connect talks to your other device over your Wi-Fi |
 
 Folder access is asked for once, through Android's own folder picker, and
 only for the folder you choose.
