@@ -1,3 +1,13 @@
+**New in 16.0:**
+
+- **Fourteen more shapes - thirty now:** a pentagram, a pentacle (the star in its circle), a seven-point star, a unicursal hexagram, a protection knot (four pointed petals round a circle), a trapezoid, an irregular triangle, an irregular four-sided shape, a house, an irregular hexagon, a chevron, an arrow, an hourglass and an irregular concave shape - all sized to the ring, every one turning into every other in time
+- **The same song everywhere:** start a song on one device and your other devices follow it as its remote; open the app and it shows what is playing on your other device - or the last song you were on anywhere, paused at the same spot
+- **The remote's visualizer keeps in step:** the same shape and the same turn as the playing device's ring, and its bars get the other device's sound sooner
+- **Your devices by name** in the devices list, so two tablets are told apart; a device that gets a new Wi-Fi address keeps being followed
+- **Just the main artists:** songs whose upload lists the artists twice plus every songwriter now show only the artists who made the song
+- **Supernovas inside the galaxy:** round the core and along the bar, where a phone's screen shows them (they used to go off at the edges)
+- **Fixed:** the ring turns steadily again - one turn every 52 seconds
+
 **New in 15.0:**
 
 - **Play on your other device:** like Spotify Connect. With Carmen Musicum open on your phone and your tablet (same Wi-Fi, same songs), tap the new **devices** button in the player and pick the other one - the song carries on there from the same second, and this one becomes the remote: play, pause, skip, the bar, shuffle, repeat, picking songs and the volume keys all work the other device. A green **on Tablet** tag shows it; **This phone** brings the music back. The remote's widget, lock screen and notification show the other device's song, and its ring's bars move to the other device's sound. Nothing is streamed and nothing leaves your Wi-Fi

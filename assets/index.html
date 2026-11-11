@@ -1275,43 +1275,31 @@ let spin = 0, spinV = 0, spinIn = 0, spinInV = 0;              /* the outer ring
    next, each held a moment, so it never shows lobes or a squeeze on the way. shapeT = ms of music played (the clock stops
    when paused). Every setting is in RING_CONFIG */
 const RING_CONFIG = {
-  /* one fixed set of shapes, played in a set order that changes a little each loop (LOOPS) - no randomness */
-  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43],   /* hexagon, triangle, circle (0), pentagon, square, kite (41), hexagram (62),
-                                              diamond (40), four-point star (44), oval (2), Reuleaux triangle (33), two triangles (45),
-                                              octagram (46), eight-point star (47), rectangle (42),
-                                              parallelogram (43) - sixteen; each loop plays all of them, in a new order each loop (LOOPS) */
-  holdMs: {0: 21000, 3: 16000, 4: 16000,   /* how long each shape stays: every shape 16 s, the circle 21 s (see circleStayMs) */
-           5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000, 42: 16000, 43: 16000},
-  fadeMs: 6250,                            /* each change, eased - always this long */
-  circleSwell: .38,                        /* the circle swells out toward the bars and back once while it holds - the ribbon 1.66 -> 2.04,
-                                              its lines packed in above it up to 2.09 */
-  circleSwellMs: 7500,                     /* the swell out (and back in) takes this long - it starts as the change into the circle starts */
-  circleStayMs: 12250,                     /* .. and stays out at the bars this long, so the swell is back in exactly as the circle's
-                                              21 s hold ends - and the next shape starts at once */
-  innerTurnMs: 0,                          /* unused - the inner ring turns WITH the outer one (outerTurnMs) */
-  innerJiggle: 1,                          /* how much of the voice's ripples and shape the inner ring shows (1 = all of it) */
-  outerJiggle: 1 / 5,                      /* the inner ribbon's voice breath, ripples and shape - this much of them - on every outer line:
-                                              the inner ring does the heavy lifting, the outer one follows along, lightly */
-  outerBounce: .03,                        /* on each beat the whole outer ring grows by up to 3% and settles back (~a quarter second) -
-                                              a scale, so sharp corners stay sharp */
-  innerBounce: .03,                        /* the inner ring bounces with the outer one - the same beat, the same 3% (the gap between
-                                              them grows with them, so they never touch) */
-  afterimageMs: 600,                       /* how far behind the outer ring its faint copy trails (in its turn) */
+  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61],
+  holdMs: {0: 21000, 3: 16000, 4: 16000,
+           5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000, 42: 16000, 43: 16000, 48: 16000, 49: 16000, 50: 16000, 51: 16000, 52: 16000, 53: 16000, 54: 16000, 55: 16000, 56: 16000, 57: 16000, 58: 16000, 59: 16000, 60: 16000, 61: 16000},
+  fadeMs: 6250,
+  circleSwell: .38,
+  circleSwellMs: 7500,
+  circleStayMs: 12250,
+  innerTurnMs: 0,
+  outerTurnMs: 52000,
+  innerJiggle: 1,
+  outerJiggle: 1 / 5,
+  outerBounce: .03,
+  innerBounce: .03,
+  afterimageMs: 600,
   glow: true,                              /* the outer ring's soft glowing band */
   afterimage: true,                        /* a faint copy of the outer ring trailing its turn */
   cornerWeighting: false,                  /* a heavier outer line while it is a polygon, lighter as it rounds */
   innerTicks: "none"                       /* "dashes": a dashed line turning with the inner ring | "none" */
 };
-/* each polygon's exact radius round the ring (its average = the circle's, so the ring keeps its size). The triangle is a
-   TRUE one - straight sides, sharp corners - drawn whole (PEAK = its ribbon's corners at 2.06, just short of the bars;
-   its sides pass just outside the record, 1.03), with inner triangles inside it, turning with it, the record in their middle */
-const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06, 33: 2.06, 45: 2.06, 46: 2.06, 47: 2.06, 42: 2.06, 43: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8, 2: .25, 33: .35, 45: .8, 46: .8, 47: .8, 42: .8, 43: .8};   /* SQZ: how much closer the outer lines keep to it */
+
+const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06, 33: 2.06, 45: 2.06, 46: 2.06, 47: 2.06, 42: 2.06, 43: 2.06, 48: 2.06, 49: 2.02, 50: 2.06, 51: 2.06, 52: 2.06, 53: 2.06, 54: 2.06, 55: 2.06, 56: 2.06, 57: 2.06, 58: 2.06, 59: 2.06, 60: 2.06, 61: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8, 2: .25, 33: .35, 45: .8, 46: .8, 47: .8, 42: .8, 43: .8, 48: .8, 49: .8, 50: .8, 51: .8, 52: .8, 53: .8, 54: .8, 55: .8, 56: .8, 57: .8, 58: .8, 59: .8, 60: .8, 61: .8};   /* SQZ: how much closer the outer lines keep to it */
 const SHAPES = RING_CONFIG.order.filter(n => n);
-/* the sharp ones - corners out at PEAK, the lines round them smaller copies, the inner ring nested inside them with the
-   record in its middle (its lines go behind the record) */
-const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1};   /* the Reuleaux too - its corners are points */
-/* the KITE's corners (as its ribbon has them): the long point 2.06 (a 61 degree tip), the crossbar's ends 1.48, the short
-   point 1.22 (a 119 degree tip) - every side 1.05 from the middle, so the record is the circle that fits inside it */
+
+const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1};
+
 const KITE = [[2.06, 0], [-.368, 1.439], [-1.22, 0], [-.368, -1.439]];
 /* the DIAMOND (a rhombus) - long points 2.06 (61 degree tips), short points 1.22 (119 degrees), every side 1.05 from
    the middle like the kite's: the record fits inside it */
@@ -1338,9 +1326,48 @@ const RECT = [[1.083, 1.7525], [-1.083, 1.7525], [-1.083, -1.7525], [1.083, -1.7
 const PARA = [[1.05, -1.1], [1.05, 1.772], [-1.05, 1.1], [-1.05, -1.772]];
 const CORNERS = {41: KITE, 40: DIAMOND, 44: STAR4, 46: OCTA, 47: STAR8, 42: RECT, 43: PARA};
 const CONCAVE = {44: 1, 46: 1, 47: 1};
-/* the OVAL - an ellipse 1.4 times as long as it is wide, smooth like the circle; the REULEAUX triangle - three arcs, each
-   round the opposite corner (the same width every way you measure it): the inside of three circles of radius w round the
-   corners, so along any line from the middle it ends at the nearest of them */
+const STARK = (k, R, r) => { const v = []; for (let i = 0; i < k; i++) { const a = i * 2 * Math.PI / k, b = a + Math.PI / k;
+  v.push([R * Math.cos(a), R * Math.sin(a)], [r * Math.cos(b), r * Math.sin(b)]); } return v; };
+const POLAR = P => P.map(([a, r]) => [r * Math.cos(a * Math.PI / 180), r * Math.sin(a * Math.PI / 180)]);
+const TANG = (r, ang) => {
+  const phi = [0]; for (let i = 0; i < ang.length - 1; i++) phi.push(phi[i] + 180 - ang[i]);
+  const N = phi.map(p => [Math.cos(p * Math.PI / 180), Math.sin(p * Math.PI / 180)]), V = [];
+  for (let i = 0; i < N.length; i++) { const [a1, b1] = N[i], [a2, b2] = N[(i + 1) % N.length], det = a1 * b2 - a2 * b1;
+    V.push([(r * b2 - r * b1) / det, (a1 * r - a2 * r) / det]); }
+  return V;
+};
+const VESICA = (ax, r0, r1, h, n) => {
+  const L = r1 - r0, rho = (L * L / 4 + h * h) / (2 * h), xm = (r0 + r1) / 2, top = [], bot = [];
+  for (let k = 0; k <= n; k++) { const x = r0 + L * k / n, y = Math.max(0, Math.sqrt(Math.max(0, rho * rho - (x - xm) * (x - xm))) - (rho - h));
+    top.push([x, y]); bot.unshift([x, -y]); }
+  const c = Math.cos(ax), s = Math.sin(ax);
+  return top.concat(bot.slice(1, -1)).map(([x, y]) => [x * c - y * s, x * s + y * c]);
+};
+const UNI = (() => { const P = [0, 60, 120, 180, 240, 300].map(a => [2.06 * Math.cos(a * Math.PI / 180), 2.06 * Math.sin(a * Math.PI / 180)]);
+  return [[0, 2], [2, 5], [5, 3], [3, 1], [1, 4], [4, 0]].map(([a, b]) => [P[a], P[b]]); })();
+const PETALS = [0, 1, 2, 3].map(k => VESICA(Math.PI / 4 + k * Math.PI / 2, .5, 2.06, .36, 40));
+const farAt = (S, t) => {
+  const c = Math.cos(t), s = Math.sin(t); let r = 0;
+  for (const [[x1, y1], [x2, y2]] of S) { const ex = x2 - x1, ey = y2 - y1, den = c * ey - s * ex;
+    if (Math.abs(den) < 1e-12) continue;
+    const d = (x1 * ey - y1 * ex) / den, u = (x1 * s - y1 * c) / den;
+    if (d > 0 && u >= -1e-9 && u <= 1 + 1e-9 && d > r) r = d; }
+  return r;
+};
+const SEGS = V => V.map((p, i) => [p, V[(i + 1) % V.length]]);
+const PETSEG = PETALS.flatMap(SEGS), PENT = STARK(5, 2.02, 1.0);
+Object.assign(CORNERS, {48: STARK(5, 2.06, 1.02), 50: STARK(7, 2.06, 1.05),
+  53: [[1.05, 1.05], [1.05, -1.05], [-1.05, -1.772], [-1.05, 1.772]],
+  54: TANG(2.06 * Math.sin(25 * Math.PI / 180), [50, 60, 70]),
+  55: TANG(1.05, [70, 85, 100, 105]),
+  56: [[2.06, 0], [.6, 1.6], [-1.15, 1.6], [-1.15, -1.6], [.6, -1.6]],
+  57: POLAR([[0, 2.0], [55, 1.75], [118, 1.95], [175, 1.6], [238, 2.06], [300, 1.7]]),
+  58: [[1.6, -1.3], [1.15, 0], [1.6, 1.3], [-.2, 1.75], [-2.06, 0], [-.2, -1.75]],
+  59: [[2.06, 0], [.35, 1.78], [0, 1.08], [-1.62, 1.08], [-1.62, -1.08], [0, -1.08], [.35, -1.78]],
+  60: [[1.3, 1.6], [0, 1.1], [-1.3, 1.6], [-1.3, -1.6], [0, -1.1], [1.3, -1.6]],
+  61: POLAR([[10, 2.0], [55, 1.12], [95, 1.95], [170, 1.7], [235, 2.06], [300, 1.6]])});
+Object.assign(CONCAVE, {48: 1, 50: 1, 58: 1, 59: 1, 60: 1, 61: 1});
+const SHFN = {49: () => 2.02, 51: t => farAt(UNI, t), 52: t => Math.max(1.16, farAt(PETSEG, t))};
 const OVAL = t => { const a = 1.4, b = 1, c = Math.cos(t), s = Math.sin(t); return a * b / Math.sqrt(b * b * c * c + a * a * s * s); };
 const REULEAUX = t => {
   const R = 1, w = R * Math.sqrt(3), c = Math.cos(t), s = Math.sin(t);
@@ -1374,7 +1401,7 @@ for (const n of SHAPES) {
   let sum = 0;
   for (let m = 0; m <= M; m++) {
     const t = 2 * Math.PI * m / M;
-    P[m] = n === 2 ? OVAL(t) : n === 33 ? REULEAUX(t) : n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : n === 45 ? Math.max(...XDIAMOND.map(V => outlineAt(V, t))) : CONCAVE[n] ? rayAt(CORNERS[n], t) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
+    P[m] = SHFN[n] ? SHFN[n](t) : n === 2 ? OVAL(t) : n === 33 ? REULEAUX(t) : n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : n === 45 ? Math.max(...XDIAMOND.map(V => outlineAt(V, t))) : CONCAVE[n] ? rayAt(CORNERS[n], t) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
     if (m < M) sum += P[m];
   }
   for (let m = 0; m <= M; m++) P[m] = f * P[m] * M / sum + 1 - f;
@@ -1384,20 +1411,15 @@ for (const n of SHAPES) {
 /* the two triangles (45) are drawn as two shapes, each whole with its own lines crossing the other's; where they go under
    the record, the record hides them. POLY[45] (their outline) stays for the sizes worked out from it */
 const SUB45 = XDIAMOND.map(V => { const P = new Float32Array(M1); for (let m = 0; m <= M; m++) P[m] = outlineAt(V, 2 * Math.PI * m / M) / 1.66; return P; });
-/* the inner ring is always a smaller copy of the outer ring's shape, turning with it, sized for each shape so its innermost
-   line stays outside the record and its outermost clear of the outer ring (.2 inside its sides): INK = those two sizes as
-   parts of the outer ring's. The sharp shapes have only a sliver of room between the record and their sides, so their
-   lines are .68 .. .84 of the outer one's size, the record sitting in their middle. ROOM: the voice moves the inner lines
-   less where there is little room */
-const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1, 2: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1};
+const LAYER = f => { const P = new Float32Array(M1); for (let m = 0; m <= M; m++) P[m] = f(2 * Math.PI * m / M) / 1.66; return P; };
+const SUBS = {45: SUB45, 49: [LAYER(() => 2.02), LAYER(t => rayAt(PENT, t))], 52: [LAYER(t => Math.max(1.16, farAt(PETSEG, t))), LAYER(() => 1.16)]};
+const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1, 2: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1};
 for (const n of [0, ...SHAPES]) {
   const s = n ? 1.66 * Math.min(...POLY[n]) : 1.66;               /* the outer ribbon at the middle of a side */
   INK[n] = SHARP[n] ? [.68, .84] : [1.04 / s, (s - .2) / s];
 }
-/* the voice's ripples and shape, times this - the sharper the shape the livelier, the hexagon as it was, the circle
-   calmest (0 = the circle) */
-const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3, 2: .85, 33: 1.15, 45: 1.25, 46: 1.2, 47: 1.3, 42: 1.2, 43: 1.25};
-let shapeT = 0, SHN = 6, SHP = 1;          /* the shape it mostly is now (for the stroke weight) and how much polygon it is: 1 .. 0 round */
+const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3, 2: .85, 33: 1.15, 45: 1.25, 46: 1.2, 47: 1.3, 42: 1.2, 43: 1.25, 48: 1.3, 49: 1.2, 50: 1.3, 51: 1.3, 52: 1.2, 53: 1.2, 54: 1.3, 55: 1.2, 56: 1.2, 57: 1.15, 58: 1.25, 59: 1.25, 60: 1.25, 61: 1.2};
+let shapeT = 0, clockAt = 0, SHN = 6, SHP = 1;
 const ONES = new Float32Array(M1).fill(1);  /* the circle */
 const SHI = new Float32Array(M1), OJ = new Float32Array(M1), OMIN = new Float32Array(M1);   /* the shape as the inner ring takes it; the outer ring's share of the voice; its innermost line */
 /* the shape it is changing from, to, how far (0 .. 1), the outer lines' squeeze, the circle's swell; SHT how sharp it
@@ -1540,10 +1562,16 @@ function handle(m) {
   if (m.t === "size") { if (m.k) K = m.k; if (m.px) { PXW = m.px; setPx(); } draw(); }
   else if (m.t === "live") { live = !!m.on; if (!live) { aim.fill(0); VA.fill(0); vAim = hAim = 0; rawAvg = midAvg = hiAvg = -1; } kick(); }
   else if (m.t === "v") { reading(m.v); kick(); }
+  else if (m.t === "sync") {
+    const age = m.live ? Math.max(0, Math.min(10000, Date.now() - (m.at || Date.now()))) : 0, st = m.st + age;
+    if (Math.abs(st - shapeT) > 400) { shapeT = st; shapeAt(shapeT); }
+    const sp = m.sp + (m.live ? spinV * age / 1000 : 0), d = ((sp - spin) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
+    if (Math.abs(d) > .05) spin = (spin + d + 2 * Math.PI) % (2 * Math.PI);
+  }
   else if (m.t === "col") {
     IV.length = 0; bassSlow = -1; hitRate = 0; style = styleNext = "mix";   /* a new song - learn what it is like afresh */
     acc = cnt = warm = 0;                    /* a busy moment at the song change never counts as "too slow" */
-    const ns = schemeOf(m.pair, m.stops);                           
+    const ns = schemeOf(m.pair, m.stops);
     if (running) { colFrom = SC; colTo = ns; colAt = performance.now(); blendE = 0; }
     else { SC = ns; colTo = null; draw(); }
   }
@@ -1680,8 +1708,9 @@ function frame(t, id) {
   if (!live && spinV < .002) spinV = 0;
   spin = (spin + spinV * dt / 1000) % (2 * Math.PI);
   spinInV += ((live && RING_CONFIG.innerTurnMs > 0 ? 2 * Math.PI * 1000 / RING_CONFIG.innerTurnMs : 0) - spinInV) * Math.min(1, dt / (live ? 1600 : 700));
-  spinIn = (spinIn - spinInV * dt / 1000) % (2 * Math.PI);        /* the inner ring's own turn (unused: it turns with the outer one), eases to a stop when paused */
-  if (live) { shapeT += dt; shapeAt(shapeT); }                    /* the shapes change only while playing */
+  spinIn = (spinIn - spinInV * dt / 1000) % (2 * Math.PI);
+  if (live) { shapeT += dt; shapeAt(shapeT); }
+  if (live && performance.now() - clockAt > 2000) { clockAt = performance.now(); self.postMessage({t: "clock", st: shapeT, sp: spin, at: Date.now()}); }
   /* the warp: each outer wave flows into the new shape (two soft steps, so it starts smoothly),
      the cloud a little slower; the shape eases back to plain when the beats stop */
   const wd = Math.exp(-dt / (live ? 2200 : 450));
@@ -1779,14 +1808,12 @@ function draw() {
 
   /* 2. the waves */
   const sc0 = Math.cos(spin), sn0 = Math.sin(spin), sci = Math.cos(spinIn), sni = Math.sin(spinIn);
-  /* while the two triangles are in (or melting in or out) the waves are drawn twice, one triangle each, each melting from /
-     into the shape before / after; the second fades as it melts into the next shape, so nothing brightens where they meet */
-  const LAYERS = SHNA === 45 || SHNB === 45 ? SUB45.length : 1;
+
+  const nA = SUBS[SHNA] ? SUBS[SHNA].length : 1, nB = SUBS[SHNB] ? SUBS[SHNB].length : 1, LAYERS = Math.max(nA, nB);
   for (let ly = 0; ly < LAYERS; ly++) {
-  const SA = SHNA === 45 ? SUB45[ly] : SHA, SB = SHNB === 45 ? SUB45[ly] : SHB, sq = SHQ;
-  const LA = ly ? (SHNA === 45 ? 1 - SHQ : SHQ) : 1;
-  /* the shape both rings take now (they turn together), and the outer ring's fifth of the voice (the inner ribbon's
-     ripples and shape - RING_CONFIG.outerJiggle) */
+  const SA = SUBS[SHNA] ? SUBS[SHNA][Math.min(ly, nA - 1)] : SHA, SB = SUBS[SHNB] ? SUBS[SHNB][Math.min(ly, nB - 1)] : SHB, sq = SHQ;
+  const LA = !ly || (ly < nA && ly < nB) ? 1 : ly < nA ? 1 - SHQ : SHQ;
+
   const ojk = RING_CONFIG.outerJiggle * RING_CONFIG.innerJiggle * SHJ;
   /* OMIN = the outer ring's
      innermost line at each point - the inner ring is held clear of it, however loud the voice */
@@ -2014,7 +2041,7 @@ function draw() {
     x.fillStyle = rgb(mix(TC.CC[sd], [255, 255, 255], i === 2 ? .62 : .32)); x.globalAlpha = .55 + .22 * i; x.fill(dl[sd][i]);
   }
   x.lineWidth = Math.max(px1 * .8, R * .007);
-  for (let sd = 0; sd < 6; sd++) { x.strokeStyle = rgb(mix(TC.CC[sd], [255, 255, 255], .32)); x.globalAlpha = .4; x.stroke(tr[sd]); }   
+  for (let sd = 0; sd < 6; sd++) { x.strokeStyle = rgb(mix(TC.CC[sd], [255, 255, 255], .32)); x.globalAlpha = .4; x.stroke(tr[sd]); }
   /* ...and the bigger ones are small four-point stars that twinkle (they swell a little as they brighten) */
   for (let i = 0; i < big.length; i += 4) {
     const al = big[i + 3], s = big[i + 2] * (1.05 + .55 * al); x.globalAlpha = Math.min(1, al * 1.05);
@@ -2122,6 +2149,17 @@ const NJUNK = /\b(official|video|visuali[sz]er|lyrics?|audio|hd|hq|4k|out now|fr
   NKEEP = /\b(remix|mix|edit|version|cover|bootleg|mashup|live|acoustic|extended|vip|flip|rework|remaster(ed)?|instrumental|radio|original)\b/i;
 const nameClean = t => t.replace(/\s*[(\[]([^()\[\]]*)[)\]]/g, (g, x) => NJUNK.test(x) && !NKEEP.test(x) ? "" : g)
   .replace(/\s+\|\s.*$/, "").replace(/\s+(HQ|HD)$/i, "").replace(/\s{2,}/g, " ").trim();
+
+const ART_CO = /\b(llc|inc|ltd|limited|productions?|publishing|records|recordings|music group|entertainment)\b\.?/i;
+function mainArtists(list) {
+  const k = x => String(x).toLowerCase().replace(/\s+/g, " ").trim();
+  let L = list.filter(x => k(x));
+  if (L.length > 1) L = L.filter((x, i) => i === 0 || !ART_CO.test(x));
+  const again = L.findIndex((x, i) => i > 0 && k(x) === k(L[0]));
+  if (again > 0) L = L.slice(0, again);
+  const seen = {};
+  return L.filter(x => seen[k(x)] ? false : (seen[k(x)] = 1));
+}
 function songParts(title, artist) {
   let t = String(title || "").trim(), list = null;
   const a = String(artist || "").trim(), m = dashSplit(t);
@@ -2140,7 +2178,7 @@ function songParts(title, artist) {
   const [song, ft] = nameFeats(t);
   if (!list) list = a ? [a] : [];
   addArtists(list, ft);
-  return {title: nameClean(song) || song || t, artists: list.join(", ")};
+  return {title: nameClean(song) || song || t, artists: mainArtists(list).join(", ")};
 }
 const TT = new WeakMap();
 const partsOf = s => { let v = TT.get(s); if (v === undefined) TT.set(s, v = songParts(s.title, s.artist)); return v; };
@@ -3012,6 +3050,7 @@ $("#back").onclick = () => goBack("#/");
 /* ---------- the player says what is going on ---------- */
 window.onNative = st => { if (!dragging) apply(st); };
 function apply(st) {
+  if (st && st.remote && st.ring && RW.w) RW.w.postMessage({t: "sync", st: +st.ring.st || 0, sp: +st.ring.sp || 0, at: +st.ring.at || 0, live: !!st.playing});
   ST = st || {}; stAt = performance.now();
   const s = ST.key ? KEYS.get(ST.key) || null : null;
   if (s !== cur) { cur = s; if (s) showSong(s); markOn(); idle(loadPlays, 2000); }     /* play counts when free */
@@ -3051,7 +3090,7 @@ function drawDevs() {
     (CX.remote ? "Bring the music back here" : "Playing here") + '</small></span></button>';
   CX.devs.forEach(d => {
     const on = CX.remote === d.id;
-    h += '<button class="srow sortrow" data-dev="' + esc(d.id) + '" aria-checked="' + on + '"><span>' + esc(d.name) + '<small>' +
+    h += '<button class="srow sortrow" data-dev="' + esc(d.id) + '" aria-checked="' + on + '"><span>' + esc(d.label || d.name) + '<small>' + (d.label ? esc(d.name) + ' · ' : '') +
       (on ? "Playing there - this " + me + " is the remote" : "Play there - this " + me + " becomes the remote") + '</small></span></button>';
   });
   if (CX.scanning) h += '<div class="dnote">Looking on your Wi-Fi...</div>';
@@ -3729,7 +3768,7 @@ let bgFlip = 0;
 const rgba = (c, k) => "rgba(" + c.map(Math.round).join(",") + "," + k + ")";
 /* the galaxy behind the ring (CSS .stars above). Drawn once when the player is up, and again
    only when the screen size changes. The band runs through the record at -24 degrees. */
-/* 
+/*
    each star a real kind - [how common, colour, size, brightness]. Most are small dim red and orange dwarfs; a few are hot
    blue-white giants, big and bright (the brightest get the little cross of light) */
 const STYPES = [
@@ -4035,7 +4074,8 @@ function supernova() {
   if (!box || document.hidden || !$("#now").classList.contains("show") || !document.body.classList.contains("playing")) return;
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const D = box.offsetWidth; if (!D) return;
-  const k = Math.random() < .55 ? 0 : 1, u = .3 + .6 * Math.random();
+
+  const k = Math.random() < .55 ? 0 : 1, u = .18 + .27 * Math.random();
   const a = Math.random() < .8 ? armAt(k, u) + (Math.random() - .5) * .16 * ARM_THICK : Math.random() * 6.2832;
   const h = D / 2, Rg = h * .96, el = document.createElement("i");
   el.className = "sn";
@@ -4066,6 +4106,10 @@ function glowFor(pal) {
 /* each beat the ring finds: the glow brightens and settles (graphics chip only) */
 let glowAt = 0;
 function ringMsg(m) {
+  if (m && m.t === "clock") {
+    if (N && N.ringClock && !(typeof CX !== "undefined" && CX.remote)) { try { N.ringClock(JSON.stringify({st: m.st, sp: m.sp, at: m.at})); } catch (e) {} }
+    return;
+  }
   if (!m || m.t !== "beat" || calm.matches) return;
   const el = $("#nowglow"), t = performance.now(); if (!el || !el.animate || t - glowAt < 200) return;
   glowAt = t;

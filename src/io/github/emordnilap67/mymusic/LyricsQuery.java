@@ -279,6 +279,7 @@ final class LyricsQuery {
             if (!a.isEmpty()) list.add(a);
         }
         addArtists(list, ft);
+        list = mainArtists(list);
         String c = clean(song);
         StringBuilder b = new StringBuilder();
         for (String x : list) b.append(b.length() > 0 ? ", " : "").append(x);
@@ -319,6 +320,24 @@ final class LyricsQuery {
         for (String p : SPLIT_ARTISTS.split(nameFt(x)[0].replaceAll("\\s*[(\\[][^()\\[\\]]*[)\\]]", "")))
             if (!key(p).isEmpty() && names.contains(key(p))) return true;
         return false;
+    }
+
+    private static final Pattern ART_CO = Pattern.compile("\\b(llc|inc|ltd|limited|productions?|publishing|records|recordings|music group|entertainment)\\b\\.?", CI);
+
+    static List<String> mainArtists(List<String> list) {
+        List<String> L = new java.util.ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            String x = list.get(i) == null ? "" : list.get(i).trim();
+            if (x.isEmpty()) continue;
+            if (!L.isEmpty() && list.size() > 1 && ART_CO.matcher(x).find()) continue;
+            L.add(x);
+        }
+        String first = L.isEmpty() ? "" : L.get(0).toLowerCase().replaceAll("\\s+", " ");
+        for (int i = 1; i < L.size(); i++) if (L.get(i).toLowerCase().replaceAll("\\s+", " ").equals(first)) { L = new java.util.ArrayList<>(L.subList(0, i)); break; }
+        List<String> out = new java.util.ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (String x : L) if (seen.add(x.toLowerCase().replaceAll("\\s+", " "))) out.add(x);
+        return out;
     }
 
     private static void addArtists(List<String> list, String ft) {

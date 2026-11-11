@@ -290,10 +290,9 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         else startPlayer();
         Retry.check(this);                    // songs that were waiting for YouTube carry on
         h.removeCallbacks(favTick);
-        h.post(favTick);                      // the same hearts on every device
-        // (the background wrong-audio check is gone - it asked YouTube about songs already on the phone; Check for
-        // wrong audio stays in the playlist menu, by hand)
-        Sync.maybe(this);                     // new songs on YouTube, every 6 hours - only playlists switched on
+        h.post(favTick);
+        Connect.opened();
+        Sync.maybe(this);
     }
 
     /** "Tap to keep downloading" (when Android would not let the retry start by itself) */
@@ -1716,6 +1715,11 @@ public class MainActivity extends Activity implements PlayerService.Listener {
 
         /** the ring's numbers right now (see Viz.read) - never waits; the permission is only read here
          *  (looked up in onResume and when Android answers the request) */
+        @JavascriptInterface
+        public void ringClock(String json) {
+            if (json != null && json.length() < 300) { Connect.myRing = json; Connect.myRingAt = System.currentTimeMillis(); }
+        }
+
         @JavascriptInterface
         public String viz() {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)

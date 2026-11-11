@@ -27,15 +27,15 @@ known as MY MUSIC.*
   playlist here, or pour it into one you already have. Switch a playlist's
   YouTube check on and new songs added there arrive by themselves.
 - **Play on your other device.** Like Spotify Connect: with the same songs on
-  your phone and your tablet, send what's playing to the other one and your
-  phone becomes the remote.
+  your phone and your tablet (or any of your devices), the same song shows on
+  all of them - start it on one and the others follow it, as its remote.
 - **Lyrics that keep time.** Timed lyrics light up word by word, there's a
   full-screen **karaoke** mode, and badly timed lyrics are caught and
   replaced automatically.
 - **A player worth looking at.** The record sits inside a ring of light that
-  changes shape - sixteen of them, from a hexagon, triangle and circle to an
-  oval, a Reuleaux triangle, an eight-point star, a rectangle and a
-  parallelogram - and dances to the music
+  changes shape - thirty of them, from a hexagon, triangle and circle to a
+  pentagram, a pentacle, a unicursal hexagram, an hourglass and an arrow -
+  and dances to the music
   (bass, voice and treble each move their own part, and both rings bounce
   lightly on the beat), in colours taken from each song's own picture.
 - **Made for big libraries.** Thousands of songs in one playlist, sorted the
@@ -187,7 +187,7 @@ top right) plays the music on another device.
   song - the bass sends echoes out on every beat, a ring of glowing particle
   bars follows the music (bass at the bottom, voice at the sides, treble at
   the top), the voice ripples the inner wave and the high notes make a cloud
-  of stars drift and twinkle. The ring melts from shape to shape - sixteen
+  of stars drift and twinkle. The ring melts from shape to shape - thirty
   of them, the order shifting a little every loop, so every shape turns into
   every other in time - and swells out to the bars
   as a circle. On every beat both rings grow a touch and settle back - not
@@ -216,8 +216,15 @@ top right) plays the music on another device.
   the other device's song, and its bars move to the other device's sound.
   Pick **This phone** to bring the music back. Nothing is streamed - each
   device plays its own copy - and nothing leaves your Wi-Fi.
-  While the app is open, other devices on the same Wi-Fi running this app can
-  see yours in their list.
+  You don't even have to pick: start a song on one device and any other
+  that is playing nothing follows it at once, and opening the app shows
+  what is playing elsewhere - or, if nothing is, the last song you were on,
+  paused at the same spot (through a small file in your music folder, so it
+  works with the other app closed too, when a sync app keeps the folder the
+  same). The remote's ring keeps the same shape and turn as the playing
+  device's. Devices show up by their own names (a "Galaxy Tab", a "moto
+  edge"), so two tablets are told apart. While the app is open, other
+  devices on the same Wi-Fi running this app can see yours in their list.
 - **Also:** a neon home-screen widget in each song's own colours, from a
   one-row strip up to a big card; controls in the notification and on the
   lock screen; shuffle and repeat; song names show big with every artist

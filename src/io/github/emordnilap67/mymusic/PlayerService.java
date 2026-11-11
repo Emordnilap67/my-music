@@ -1049,7 +1049,8 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     /** lock screen, notification and the app screen all catch up */
     private void changed() {
-        Library.Song s = Library.get(this).byKey.get(shownKey());     // the other device's song while this one is its remote
+        Connect.localChanged(q.current(), isPlaying() || (wantPlay && preparing), position());
+        Library.Song s = Library.get(this).byKey.get(shownKey());
         boolean playing = shownPlaying();
         boolean loading = !remoteShown() && preparing && wantPlay;
         session.setPlaybackState(new PlaybackState.Builder()

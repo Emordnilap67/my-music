@@ -1,5 +1,6 @@
 package io.github.emordnilap67.mymusic;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,11 +9,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.DocumentsContract;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -63,19 +66,22 @@ final class Connect {
     private static final ExecutorService CMD = Executors.newSingleThreadExecutor();
 
     static final class Peer {
-        String id = "", name = "", host = "";
+        String id = "", name = "", host = "", label = "";
         int port;
     }
 
     private static boolean started;
     private static Context app;
-    static String myId = "", myName = "Phone";
+    static String myId = "", myName = "Phone", myLabel = "";
     private static String token = "";
     private static int myPort;
     private static NsdManager.RegistrationListener reg;
 
     /** the device this one is the remote of; null = this device plays the music itself */
     static volatile Peer remote;
+
+    static volatile String myRing = "";
+    static volatile long myRingAt;
     /** the other device's last answer to "what is playing?" (with "remote" added) */
     static volatile String remoteState = "{}";
     private static volatile int fails;
@@ -99,6 +105,7 @@ final class Connect {
             pr.edit().putString("id", myId).apply();
         }
         myName = app.getResources().getConfiguration().smallestScreenWidthDp >= 600 ? "Tablet" : "Phone";
+        myLabel = deviceName(app);
         token = makeToken(app);
         try {
             JSONArray a = new JSONArray(pr.getString("peers", "[]"));
@@ -107,6 +114,7 @@ final class Connect {
                 Peer p = new Peer();
                 p.id = o.optString("id");
                 p.name = o.optString("name");
+                p.label = o.optString("label");
                 p.host = o.optString("host");
                 p.port = o.optInt("port", PORT);
                 if (!p.id.isEmpty() && !p.id.equals(myId)) seen.put(p.id, p);
@@ -119,6 +127,17 @@ final class Connect {
                 serve();
             }
         });
+    }
+
+    private static String deviceName(Context c) {
+        String n = null;
+        try {
+            n = android.provider.Settings.Global.getString(c.getContentResolver(), "device_name");
+        } catch (Exception ignored) {
+        }
+        if (n == null || n.trim().isEmpty()) n = Build.MODEL;
+        n = n == null ? "" : n.trim();
+        return n.length() > 40 ? n.substring(0, 40) : n;
     }
 
     private static String makeToken(Context c) {
@@ -205,6 +224,7 @@ final class Connect {
 
     private static void handle(Socket s) {
         try {
+            s.setTcpNoDelay(true);
             s.setSoTimeout(6000);
             InputStream in = new BufferedInputStream(s.getInputStream());
             String line = readLine(in);
@@ -237,7 +257,7 @@ final class Connect {
                 code = 403;
                 out = "{\"ok\":false}";
             } else {
-                out = route(method, path, new String(body, 0, got, "UTF-8"));
+                out = route(method, path, new String(body, 0, got, "UTF-8"), s.getInetAddress() == null ? "" : s.getInetAddress().getHostAddress());
             }
             byte[] ob = out.getBytes("UTF-8");
             OutputStream os = s.getOutputStream();
@@ -255,9 +275,9 @@ final class Connect {
         }
     }
 
-    private static String route(String method, String path, String body) throws Exception {
+    private static String route(String method, String path, String body, String from) throws Exception {
         if (path.startsWith("/hello")) {
-            return "{\"id\":" + Library.q(myId) + ",\"name\":" + Library.q(myName) + ",\"port\":" + myPort + "}";
+            return "{\"id\":" + Library.q(myId) + ",\"name\":" + Library.q(myName) + ",\"label\":" + Library.q(myLabel) + ",\"port\":" + myPort + "}";
         }
         if (path.startsWith("/state")) return localState();
         if (path.startsWith("/hand")) {                  // the other device takes the music: our queue + spot, and we stop
@@ -276,6 +296,8 @@ final class Connect {
         }
         if (path.startsWith("/take")) return "{\"ok\":" + takeHere(body) + "}";
         if (path.startsWith("/cmd")) return cmdHere(new JSONObject(body));
+        if (path.startsWith("/playing")) return playingFrom(new JSONObject(body), from);
+        if (path.startsWith("/peek")) return peek();
         return "{\"ok\":false}";
     }
 
@@ -314,7 +336,9 @@ final class Connect {
             }
         });
         String s = out[0];
-        return s.length() > 2 ? "{\"dev\":" + Library.q(myName) + "," + s.substring(1) : "{\"dev\":" + Library.q(myName) + "}";
+        String res = s.length() > 2 ? "{\"dev\":" + Library.q(myName) + "," + s.substring(1) : "{\"dev\":" + Library.q(myName) + "}";
+        if (!myRing.isEmpty() && System.currentTimeMillis() - myRingAt < 10000) res = res.substring(0, res.length() - 1) + ",\"ring\":" + myRing + "}";
+        return res;
     }
 
     /** the music comes to this device: the queue + the spot another device handed over */
@@ -555,6 +579,7 @@ final class Connect {
             JSONObject o = new JSONObject(r);
             t.id = o.optString("id");
             t.name = o.optString("name", "Device");
+            t.label = o.optString("label");
             if (t.id.isEmpty() || t.id.equals(myId)) return false;
             seen.put(t.id, t);
             savePeers();
@@ -572,6 +597,7 @@ final class Connect {
                 JSONObject o = new JSONObject();
                 o.put("id", p.id);
                 o.put("name", p.name);
+                o.put("label", p.label);
                 o.put("host", p.host);
                 o.put("port", p.port);
                 a.put(o);
@@ -590,7 +616,7 @@ final class Connect {
         for (Peer p : seen.values()) {
             if (!first) b.append(',');
             first = false;
-            b.append("{\"id\":").append(Library.q(p.id)).append(",\"name\":").append(Library.q(p.name)).append('}');
+            b.append("{\"id\":").append(Library.q(p.id)).append(",\"name\":").append(Library.q(p.name)).append(",\"label\":").append(Library.q(p.label)).append('}');
         }
         return b.append("]}").toString();
     }
@@ -768,7 +794,7 @@ final class Connect {
             @Override
             public void run() {
                 while (remote == p) {
-                    pause(2500);
+                    pause(remoteState.contains("\"playing\":true") ? 2500 : 10000);
                     if (remote == p) fetch(p);
                 }
             }
@@ -815,6 +841,7 @@ final class Connect {
         while (remote == p && System.currentTimeMillis() - vizAskedAt < 3000) {
             Socket s = new Socket();
             try {
+                s.setTcpNoDelay(true);
                 s.connect(new InetSocketAddress(p.host, p.port), 2500);
                 s.setSoTimeout(4000);
                 OutputStream os = s.getOutputStream();
@@ -887,11 +914,300 @@ final class Connect {
         });
     }
 
+    private static volatile boolean opening;
+    private static volatile long lastScanAt;
+    private static String lastKey = "";
+    private static boolean lastPlaying;
+    private static long lastT, lastPos;
+    private static final ExecutorService NPIO = Executors.newSingleThreadExecutor();
+
+    private static SharedPreferences cp() {
+        return app.getSharedPreferences("connect", Context.MODE_PRIVATE);
+    }
+
+    /** when this device last did something with its own music (ms) */
+    private static long myT() {
+        return cp().getLong("np_t", 0);
+    }
+
+    /** PlayerService.changed() - this device's own music; a play, pause, seek or new song while playing counts as using it */
+    static void localChanged(String key, boolean playing, int pos) {
+        if (app == null) return;
+        long now = System.currentTimeMillis();
+        if (remote != null) {
+            lastPlaying = false;
+            lastKey = "";
+            return;
+        }
+        boolean act;
+        if (playing != lastPlaying) act = true;
+        else if (playing && key != null && !key.equals(lastKey)) act = true;
+        else act = key != null && key.equals(lastKey) && Math.abs(pos - (lastPos + (lastPlaying ? now - lastT : 0))) > 4000;
+        boolean started = playing && !lastPlaying;
+        lastKey = key == null ? "" : key;
+        lastPlaying = playing;
+        lastPos = pos;
+        lastT = now;
+        if (!act || key == null) return;
+        cp().edit().putLong("np_t", now).apply();
+        MAIN.removeCallbacks(WRITE_NOW);
+        MAIN.postDelayed(WRITE_NOW, 1500);
+        if (started) announce();
+    }
+
+    /** tell the others this device is playing now */
+    private static void announce() {
+        if (myPort <= 0) return;
+        final String body = "{\"id\":" + Library.q(myId) + ",\"name\":" + Library.q(myName) + ",\"label\":" + Library.q(myLabel) + ",\"port\":" + myPort + "}";
+        for (final Peer p : new ArrayList<>(seen.values())) {
+            POOL.execute(new Runnable() {
+                @Override
+                public void run() {
+                    call(p, "POST", "/playing", body, 1500);
+                }
+            });
+        }
+    }
+
+    /** another device started playing: if this one plays nothing (and follows nothing), it becomes that one's remote */
+    private static String playingFrom(JSONObject o, String from) {
+        String id = o.optString("id");
+        if (id.isEmpty() || id.equals(myId) || from == null || from.isEmpty()) return "{\"ok\":false}";
+        Peer p = seen.get(id);
+        if (p == null) {
+            p = new Peer();
+            p.id = id;
+            seen.put(id, p);
+        }
+
+        p.name = o.optString("name", p.name.isEmpty() ? "Device" : p.name);
+        p.label = o.optString("label", p.label);
+        p.host = from;
+        p.port = o.optInt("port", PORT);
+        if (remote != null && remote.id.equals(id) && remote != p) { remote.host = p.host; remote.port = p.port; }
+        savePeers();
+        final Peer fp = p;
+        CMD.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (remote == null && !localPlaying()) attach(fp);
+            }
+        });
+        return "{\"ok\":true}";
+    }
+
+    /** "what was this device last on?" - its queue and spot, and when; nothing while it is itself a remote */
+    private static String peek() {
+        if (remote != null) return "{\"t\":0}";
+        String hand = localHand();
+        return "{\"t\":" + myT() + ",\"hand\":" + (hand == null ? "{}" : hand) + "}";
+    }
+
+    private static boolean localPlaying() {
+        final boolean[] out = {false};
+        onMain(new Runnable() {
+            @Override
+            public void run() {
+                PlayerService p = PlayerService.instance;
+                out[0] = p != null && p.stateJson().contains("\"playing\":true");
+            }
+        });
+        return out[0];
+    }
+
+    /** this device becomes the remote of p (the music stays there) */
+    private static void attach(Peer p) {
+        if (remote != null) return;
+        remote = p;
+        fails = 0;
+        remoteState = "{\"remote\":" + Library.q(p.name) + "}";
+        info();
+        fetch(p);
+        poll(p);
+        note("Playing on the " + p.name.toLowerCase(Locale.ROOT));
+    }
+
+    /** MainActivity.onResume: the app came on screen */
+    static void opened() {
+        if (app == null || opening || remote != null) return;
+        opening = true;
+        CMD.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    openCheck(true);
+                } catch (Exception ignored) {
+                } finally {
+                    opening = false;
+                }
+            }
+        });
+    }
+
+    private static void openCheck(boolean mayScan) {
+        if (remote != null || localPlaying()) return;
+        boolean answered = false;
+        String best = null;
+        long bestT = 0;
+        for (Peer p : new ArrayList<>(seen.values())) {
+            String st = call(p, "GET", "/state", null, 1500);
+            if (st == null) continue;
+            answered = true;
+            if (st.contains("\"playing\":true")) {
+                attach(p);
+                return;
+            }
+            String pk = call(p, "GET", "/peek", null, 3000);
+            try {
+                JSONObject o = new JSONObject(pk);
+                long t = o.optLong("t");
+                if (t > bestT && o.optJSONObject("hand") != null) {
+                    bestT = t;
+                    best = o.getJSONObject("hand").toString();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        long now = System.currentTimeMillis();
+        if (!answered && mayScan && !seen.isEmpty() && now - lastScanAt > 5 * 60000L) {   // its address may have changed
+            lastScanAt = now;
+            MAIN.post(new Runnable() {
+                @Override
+                public void run() {
+                    scan();
+                }
+            });
+            pause(6500);
+            openCheck(false);
+            return;
+        }
+        String[] file = newestFile();
+        if (file != null) {
+            try {
+                long t = Long.parseLong(file[0]);
+                if (t > bestT) {
+                    bestT = t;
+                    best = file[1];
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if (best != null && bestT > myT() + 1000) adopt(best, bestT);
+    }
+
+    /** the most recent song, here, paused at its spot (where it would be now if it was still playing there) */
+    private static void adopt(String hand, long t) {
+        try {
+            JSONObject o = new JSONObject(hand);
+            if (!hasSong(hand)) return;
+            JSONArray order = o.optJSONArray("order");
+            int i = o.optInt("i", 0);
+            String extra = o.optString("extra"), key = !extra.isEmpty() ? extra : order != null && i >= 0 && i < order.length() ? order.optString(i) : "";
+            Library.Song s = Library.get(app).byKey.get(key);
+            if (s == null) return;
+            long pos = o.optLong("pos");
+            if (o.optBoolean("playing")) {
+                long est = pos + (System.currentTimeMillis() - t);
+                if (s.durMs <= 0 || est < s.durMs - 3000) pos = est;
+            }
+            o.put("pos", Math.max(0, pos));
+            o.put("playing", false);
+            String here = localHand();
+            if (here != null) {
+                JSONObject h = new JSONObject(here);
+                JSONArray ho = h.optJSONArray("order");
+                int hi = h.optInt("i", 0);
+                String hx = h.optString("extra"), hk = !hx.isEmpty() ? hx : ho != null && hi >= 0 && hi < ho.length() ? ho.optString(hi) : "";
+                if (hk.equals(key) && Math.abs(h.optLong("pos") - pos) < 5000) {
+                    cp().edit().putLong("np_t", t).apply();     // already on it
+                    return;
+                }
+            }
+            if (takeHere(o.toString())) {
+                cp().edit().putLong("np_t", t).apply();
+                pushLocal();
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static String npName() {
+        return ".nowplaying-" + myName.toLowerCase(Locale.ROOT) + "-" + myId.substring(0, 4) + ".txt";
+    }
+
+    /** this device's ".nowplaying" file - its queue and spot, and when (written 1.5 s after a play, pause, seek or new song) */
+    private static final Runnable WRITE_NOW = new Runnable() {
+        @Override
+        public void run() {
+            PlayerService p = PlayerService.instance;
+            if (p == null || remote != null) return;
+            final String text = "{\"t\":" + myT() + ",\"dev\":" + Library.q(myName) + ",\"id\":" + Library.q(myId) + ",\"hand\":" + p.handJson() + "}\n";
+            NPIO.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Uri tree = Importer.tree(app);
+                        if (tree == null) return;
+                        ContentResolver r = app.getContentResolver();
+                        String name = npName(), doc = Importer.names(app, tree, Importer.rootDoc(app)).get(name);
+                        Uri target = doc != null ? DocumentsContract.buildDocumentUriUsingTree(tree, doc)
+                                : DocumentsContract.createDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, Importer.rootDoc(app)), "text/plain", name);
+                        if (target == null) return;
+                        OutputStream o = r.openOutputStream(target, "wt");
+                        try {
+                            o.write(text.getBytes("UTF-8"));
+                        } finally {
+                            o.close();
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            });
+        }
+    };
+
+    /** the newest of the OTHER devices' ".nowplaying" files: {time, hand}, or null */
+    private static String[] newestFile() {
+        try {
+            Uri tree = Importer.tree(app);
+            if (tree == null) return null;
+            ContentResolver r = app.getContentResolver();
+            String mine = npName(), best = null;
+            long bestT = 0;
+            for (Map.Entry<String, String> e : Importer.names(app, tree, Importer.rootDoc(app)).entrySet()) {
+                String n = e.getKey();
+                if (!n.startsWith(".nowplaying-") || !n.endsWith(".txt") || n.equals(mine)) continue;
+                try {
+                    InputStream in = r.openInputStream(DocumentsContract.buildDocumentUriUsingTree(tree, e.getValue()));
+                    ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                    try {
+                        byte[] buf = new byte[65536];
+                        int k;
+                        while ((k = in.read(buf)) > 0) bo.write(buf, 0, k);
+                    } finally {
+                        in.close();
+                    }
+                    JSONObject o = new JSONObject(bo.toString("UTF-8").trim());
+                    long t = o.optLong("t");
+                    if (t > bestT && o.optJSONObject("hand") != null) {
+                        bestT = t;
+                        best = o.getJSONObject("hand").toString();
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            return best == null ? null : new String[]{String.valueOf(bestT), best};
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // ---------------------------------------------------------------- plumbing
 
     private static String call(Peer p, String method, String path, String body, int ms) {
         Socket s = new Socket();
         try {
+            s.setTcpNoDelay(true);
             s.connect(new InetSocketAddress(p.host, p.port), ms);
             s.setSoTimeout(ms + 2000);
             byte[] b = body == null ? new byte[0] : body.getBytes("UTF-8");
