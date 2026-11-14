@@ -1,3 +1,8 @@
+**New in 19.0:**
+
+- **A gravitational lens round the visualizer:** the galaxy's light bends round the record as if something heavy sat behind it - a soft, thin Einstein ring where the dark space round the ring ends, and the arms curving round it outside. The bending fades out smoothly, so there is no edge anywhere
+- **Galaxy only** (hold the middle of the player, or tap the record twice) now also clears the dark space and the lens, leaving just the galaxy
+
 **New in 18.0:**
 
 - **A new Milky Way:** drawn the way it is mapped - a bright golden core and a long bar, ragged arms that leave the ends of the bar and wind out close together, soft thick dust lanes, blue and lavender arms with small pink star-forming knots, and the song's colours glowing along the arms. It is a backdrop now: a soft dark ring round the bars keeps the visualizer in front

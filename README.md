@@ -196,7 +196,8 @@ top right) plays the music on another device.
   the way it is mapped - a bright golden core and a long bar, ragged arms leaving the
   bar's ends and winding out close together, soft dust lanes, blue arms with small pink
   star-forming knots, and the song's own colours glowing along them - a backdrop that
-  never outshines the ring. The odd supernova goes off inside it, where the screen shows
+  never outshines the ring, its light bent round the visualizer into a soft Einstein ring
+  as if by a gravitational lens. The odd supernova goes off inside it, where the screen shows
   it, or far away in Andromeda or the Magellanic Clouds. **Hold the
   middle of the player** (or tap the record twice) for **galaxy only**: the
   record and the ring go, and only the galaxy stays. Every

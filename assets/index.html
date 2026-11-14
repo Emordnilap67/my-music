@@ -612,18 +612,23 @@ body.playing .now.show .nowbg i.on{animation-play-state:running}
 .gxs{position:absolute;width:var(--gd,800px);height:var(--gd,800px);left:calc(var(--gd,800px) / -2);top:calc(var(--gd,800px) / -2);
   will-change:transform;animation:gxspin 415s linear infinite;animation-play-state:paused}   /* one turn in 415 s */
 .gxs canvas{position:absolute;inset:0;width:100%;height:100%}
+.gxs canvas.gxl,.gxs canvas.gxu{inset:auto;left:calc(50% - var(--gl,600px) / 2);top:calc(50% - var(--gl,600px) / 2);width:var(--gl,600px);height:var(--gl,600px);transition:opacity 1.2s ease}   /* the gravitational lens round the visualizer (galaxyLens) */
+.gxs canvas.gxu{opacity:0}
+.gxs canvas.gxl,.gxs canvas.gxu{mix-blend-mode:plus-lighter}   /* added to what the band left in the layers below, so bent and unbent light always sum to exactly what was there - no faint circle where they meet */
+/* galaxy only takes the dark space and the lens away with the record and the ring - the plain galaxy fades back in its place */
+.gxv{transition:opacity 1.2s ease}.now.bare .gxv{opacity:0}
+.now.bare .gxs canvas.gxl{opacity:0}.now.bare .gxs canvas.gxu{opacity:1}
 .gxs .gxc{opacity:0;transition:opacity 1.4s ease}
 .gxs .gxc.on{opacity:.9}
 .gxv{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:calc(var(--rr,80px) * 6.4);height:calc(var(--rr,80px) * 6.4);margin:calc(var(--rr,80px) * -3.2) 0 0 calc(var(--rr,80px) * -3.2);
-  border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(4,3,10,0) 0,rgba(4,3,10,0) 40%,rgba(4,3,10,.2) 52%,rgba(4,3,10,.26) 64%,rgba(4,3,10,.16) 78%,rgba(4,3,10,.05) 90%,rgba(4,3,10,0) 100%)}   /* a soft dark ring round the visualizer's bars, so the ring stands out - the galaxy's core stays bright */#nowgx .gxs .gxc.on{opacity:.5}   /* the song's glow on the Milky Way, soft (the visualizer carries the song) */
+  border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(4,3,10,0) 0,rgba(4,3,10,0) 40%,rgba(4,3,10,.05) 46%,rgba(4,3,10,.13) 52%,rgba(4,3,10,.2) 58%,rgba(4,3,10,.24) 64%,rgba(4,3,10,.25) 69%,rgba(4,3,10,.235) 74%,rgba(4,3,10,.19) 79%,rgba(4,3,10,.13) 84%,rgba(4,3,10,.075) 88%,rgba(4,3,10,.035) 92%,rgba(4,3,10,.012) 95%,rgba(4,3,10,0) 97%)}   /* a soft dark space round the visualizer's bars, so the ring stands out - it eases off in small steps and ends under the lens ring, so it has no edge */#nowgx .gxs .gxc.on{opacity:.5}   /* the song's glow on the Milky Way, soft (the visualizer carries the song) */
 body.playing .now.show .gxs{animation-play-state:running}
 /* the Milky Way's star-forming knots breathe slowly */
 .gxs .gxp{opacity:.56}   /* the galaxy is a backdrop, never brighter than the visualizer */
 .gxs .gxk{opacity:0;transition:opacity 1.4s ease}.gxs .gxk.on{opacity:1;animation:gxbreathe 9s ease-in-out infinite;animation-play-state:paused}
 body.playing .now.show .gxs .gxk.on{animation-play-state:running}
 @keyframes gxbreathe{0%,100%{opacity:.4}50%{opacity:.62}}
-.gxcore{position:absolute;width:var(--gc,500px);height:var(--gc,500px);left:calc(var(--gc,500px) / -2);top:calc(var(--gc,500px) / -2);opacity:0;transition:opacity 1.4s ease;
-  will-change:transform;animation:gxspin 415s linear infinite;animation-play-state:paused}   /* the core turns with the disc, so the bar stays on the arms */.gxcore.on{opacity:1}   /* the bright middle of the galaxy */
+.gxs canvas.gxcore{inset:auto;width:var(--gc,500px);height:var(--gc,500px);left:calc(50% - var(--gc,500px) / 2);top:calc(50% - var(--gc,500px) / 2);opacity:0;transition:opacity 1.4s ease}   /* the bright middle of the galaxy - inside the disc's layer, so it turns with it */.gxs canvas.gxcore.on{opacity:1}
 body.playing .now.show .gxcore{animation-play-state:running}
 @keyframes gxspin{to{transform:rotate(-360deg)}}
 /* a star in the galaxy flares up white-blue and fades through warm orange,
@@ -1086,7 +1091,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
 
 <section id="now" class="now" aria-label="Now playing" aria-hidden="true">
   <div class="nowbg" id="nowbg" aria-hidden="true"><i></i><i></i></div>
-  <div class="gx" id="nowgx" aria-hidden="true"><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas><canvas class="gxk"></canvas></div><canvas class="gxcore"></canvas></div><canvas class="gxa"></canvas><div class="gxv"></div></div>
+  <div class="gx" id="nowgx" aria-hidden="true"><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas><canvas class="gxk"></canvas><canvas class="gxcore"></canvas><canvas class="gxu"></canvas><canvas class="gxl"></canvas></div></div><canvas class="gxa"></canvas><div class="gxv"></div></div>
   <div class="stars" id="nowstars" aria-hidden="true"><canvas></canvas><canvas class="tw"></canvas><canvas class="tw b"></canvas></div>
   <div class="cglow" id="nowglow" aria-hidden="true"><i></i><i></i></div>
   <div class="nowtop">
@@ -4126,6 +4131,58 @@ function drawMilkyWay(D) {
   rg = gc.createRadialGradient(hc, hc, 0, hc, hc, R * .03); rg.addColorStop(0, "rgba(255,255,250,1)"); rg.addColorStop(1, "rgba(255,240,210,0)");
   gc.globalAlpha = 1; gc.fillStyle = rg; gc.fillRect(hc - R * .03, hc - R * .03, R * .06, R * .06);
   box.querySelector(".gxcore").classList.add("on");
+  try { galaxyLens(D, dpr, C); } catch (e) { }
+}
+/* A GRAVITATIONAL LENS round the visualizer, as if something heavy sat behind the record and bent the galaxy's light round it. In a
+   band from just outside the bars (2.6 x the record) to 4.7 x, the light is taken from closer in: on the ring (3 x) it comes from
+   1.5 x - the bright core and the ends of the bar - so their light is stretched into a soft, thin EINSTEIN RING, a little brighter
+   where the bar's ends land; outside it the arms bend round it, and by 4.7 x the bending has faded to nothing (no edge anywhere - the
+   band starts and ends with no bend and no step). The same band is taken out of the disc, the knots and the core underneath, so
+   nothing shows twice, and the song's colours behind are untouched. Drawn once per screen size, on a layer that turns with the disc
+   (the bend is the same all the way round, so it turns with it exactly) - nothing extra while it plays. */
+function galaxyLens(D, dpr, C) {
+  const box = $("#nowgx"), L = box && box.querySelector(".gxs .gxl"); if (!L) return;
+  const rr = parseFloat(getComputedStyle(box).getPropertyValue("--rr")) || D * .09;
+  const E = rr * 3.05, R1 = rr * 2.6, R2 = rr * 4.7, B = rr * 1.5, SI = rr * .13, SO = rr * .45;
+  const half = Math.ceil(R2) + 2, S = half * 2, k = Math.min(1.5, devicePixelRatio || 1, 1400 / S), W = Math.round(S * k);
+  const ss = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+  const bend = r => r <= R1 || r >= R2 ? 0 : r < E ? Math.exp(-((E - r) / SI) * ((E - r) / SI)) * ss((r - R1) / (E - R1)) : Math.exp(-((r - E) / SO) * ((r - E) / SO)) * ss((R2 - r) / (R2 - E));   /* 1 on the ring, falling fast inside it and slowly outside - a thin bright ring, the arms bending round it */
+  const wOf = r => .85 * ss(Math.min(1, bend(r) * 3));                                                     /* how much of the bent light shows */
+  box.style.setProperty("--gl", S + "px");
+  const disc = box.querySelector(".gxs .gxp"), knots = box.querySelector(".gxs .gxk"), core = box.querySelector(".gxcore"), U = box.querySelector(".gxs .gxu");
+  /* what the lens bends: the disc (at its .56), the knots (half, between breaths) and the core, as they sit */
+  const src = document.createElement("canvas"); src.width = src.height = W;
+  const g = src.getContext("2d"); g.setTransform(k, 0, 0, k, 0, 0);
+  g.globalAlpha = .56; g.drawImage(disc, half - D / 2, half - D / 2, D, D);
+  g.globalAlpha = .5; g.drawImage(knots, half - D / 2, half - D / 2, D, D);
+  g.globalAlpha = 1; g.drawImage(core, half - C / 2, half - C / 2, C, C);
+  const sp = g.getImageData(0, 0, W, W).data;
+  /* the band comes out of the layers underneath, by the same amount the lens puts back */
+  const cut = (cv, size) => { const q = cv.getContext("2d"), m = size / 2; q.save(); q.setTransform(dpr, 0, 0, dpr, 0, 0); q.globalCompositeOperation = "destination-out";
+    const rg = q.createRadialGradient(m, m, 0, m, m, R2); rg.addColorStop(0, "rgba(0,0,0,0)"); for (let i = 0; i <= 240; i++) { const t = (R1 + (R2 - R1) * i / 240) / R2; rg.addColorStop(t, "rgba(0,0,0," + wOf(t * R2).toFixed(4) + ")"); }   /* fine steps across the band - the ring's inner side fades fast */
+    q.fillStyle = rg; q.fillRect(m - R2, m - R2, R2 * 2, R2 * 2); q.restore(); };
+  cut(disc, D); cut(knots, D); cut(core, C);
+  L.width = L.height = W;
+  const lg = L.getContext("2d"), out = lg.createImageData(W, W), o = out.data, c0 = W / 2;
+  /* the band as it was, unbent - shown instead of the lens in galaxy only */
+  const ug = U ? (U.width = U.height = W, U.getContext("2d")) : null, uo = ug ? ug.createImageData(W, W) : null, u = uo ? uo.data : null;
+  for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+    const dx = x + .5 - c0, dy = y + .5 - c0, r = Math.hypot(dx, dy) / k;
+    if (r <= R1 || r >= R2) continue;
+    const gb = bend(r), w = wOf(r); if (w <= 0) continue;
+    if (u) { const j = (y * W + x) * 4; u[j] = sp[j]; u[j + 1] = sp[j + 1]; u[j + 2] = sp[j + 2]; u[j + 3] = sp[j + 3] * w; }
+    const f = (r - (r - B) * gb) / r, sx = c0 + dx * f - .5, sy = c0 + dy * f - .5, x0 = Math.floor(sx), y0 = Math.floor(sy);
+    if (x0 < 0 || y0 < 0 || x0 >= W - 1 || y0 >= W - 1) continue;
+    const fx = sx - x0, fy = sy - y0, i0 = (y0 * W + x0) * 4, i1 = i0 + 4, i2 = i0 + W * 4, i3 = i2 + 4;
+    const a0 = sp[i0 + 3] * (1 - fx) * (1 - fy), a1 = sp[i1 + 3] * fx * (1 - fy), a2 = sp[i2 + 3] * (1 - fx) * fy, a3 = sp[i3 + 3] * fx * fy, a = a0 + a1 + a2 + a3;
+    if (a < .5) continue;
+    const j = (y * W + x) * 4;
+    o[j] = (sp[i0] * a0 + sp[i1] * a1 + sp[i2] * a2 + sp[i3] * a3) / a;
+    o[j + 1] = (sp[i0 + 1] * a0 + sp[i1 + 1] * a1 + sp[i2 + 1] * a2 + sp[i3 + 1] * a3) / a;
+    o[j + 2] = (sp[i0 + 2] * a0 + sp[i1 + 2] * a1 + sp[i2 + 2] * a2 + sp[i3 + 2] * a3) / a;
+    o[j + 3] = a * w;
+  }
+  lg.putImageData(out, 0, 0); if (ug) ug.putImageData(uo, 0, 0);
 }
 function galaxyStars() {
   const D = gxSize(); if (!D) return;
