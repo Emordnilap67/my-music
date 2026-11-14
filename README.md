@@ -33,8 +33,8 @@ known as MY MUSIC.*
   full-screen **karaoke** mode, and badly timed lyrics are caught and
   replaced automatically.
 - **A player worth looking at.** The record sits inside a ring of light that
-  changes shape - thirty of them, from a hexagon, triangle and circle to a
-  pentagram, a pentacle, a unicursal hexagram, an hourglass and an arrow -
+  changes shape - forty of them, from a triangle, hexagon and octagon to a
+  pentagram, a pinwheel, a gear, a heart (and a broken one), a V and an X -
   and dances to the music
   (bass, voice and treble each move their own part, and both rings bounce
   lightly on the beat), in colours taken from each song's own picture.
@@ -187,13 +187,14 @@ top right) plays the music on another device.
   song - the bass sends echoes out on every beat, a ring of glowing particle
   bars follows the music (bass at the bottom, voice at the sides, treble at
   the top), the voice ripples the inner wave and the high notes make a cloud
-  of stars drift and twinkle. The ring melts from shape to shape - thirty
-  of them, the order shifting a little every loop, so every shape turns into
-  every other in time - and swells out to the bars
-  as a circle. On every beat both rings grow a touch and settle back - not
-  dancing, just keeping the song's tempo. A barred spiral galaxy of real kinds of stars (red dwarfs to
-  blue giants, with the odd supernova) turns slowly behind it - a golden bar,
-  a bright nucleus and thick, patchy dust lanes at its heart. **Hold the
+  of stars drift and twinkle. The ring starts on a circle and melts from shape
+  to shape - forty of them, every one once a round in a new shuffled order, never
+  two of the same family (smooth, star, angular, irregular) back to back - and
+  swells out to the bars as a circle. On every beat both rings grow a touch and settle back - not
+  dancing, just keeping the song's tempo. The Milky Way turns slowly behind it, as it is
+  mapped - a barred spiral of real kinds of stars (red dwarfs to blue giants, with the odd
+  supernova in its arms), two major arms off the bar, two fainter minor ones and the Orion
+  spur - with Andromeda far off in a corner and the Magellanic Clouds nearby. **Hold the
   middle of the player** (or tap the record twice) for **galaxy only**: the
   record and the ring go, and only the galaxy stays. Every
   colour comes from the song's own picture, and the whole look fades into

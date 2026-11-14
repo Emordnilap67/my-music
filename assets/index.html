@@ -606,6 +606,7 @@ body.playing .now.show .nowbg i.on{animation-play-state:running}
 .gx{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
   -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 56%,rgba(0,0,0,.35) 76%,transparent 92%);
   mask-image:linear-gradient(180deg,#000 0%,#000 56%,rgba(0,0,0,.35) 76%,transparent 92%)}
+.gxa{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.4s ease}.gxa.on{opacity:.9}   /* Andromeda + the satellites - far behind, still */
 .gxt{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:0;height:0;transform:rotate(-22deg) scaleY(.8)}
 /* seen more face-on - the bar
    and the arms keep their real shape (was squashed to .56, a steep side view) */
@@ -1076,7 +1077,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
 
 <section id="now" class="now" aria-label="Now playing" aria-hidden="true">
   <div class="nowbg" id="nowbg" aria-hidden="true"><i></i><i></i></div>
-  <div class="gx" id="nowgx" aria-hidden="true"><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas></div></div></div>
+  <div class="gx" id="nowgx" aria-hidden="true"><canvas class="gxa"></canvas><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas></div></div></div>
   <div class="stars" id="nowstars" aria-hidden="true"><canvas></canvas><canvas class="tw"></canvas><canvas class="tw b"></canvas></div>
   <div class="cglow" id="nowglow" aria-hidden="true"><i></i><i></i></div>
   <div class="nowtop">
@@ -1275,16 +1276,16 @@ let spin = 0, spinV = 0, spinIn = 0, spinInV = 0;              /* the outer ring
    next, each held a moment, so it never shows lobes or a squeeze on the way. shapeT = ms of music played (the clock stops
    when paused). Every setting is in RING_CONFIG */
 const RING_CONFIG = {
-  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61],
+  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43, 48, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 7, 8, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72],
   holdMs: {0: 21000, 3: 16000, 4: 16000,
-           5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000, 42: 16000, 43: 16000, 48: 16000, 49: 16000, 50: 16000, 51: 16000, 52: 16000, 53: 16000, 54: 16000, 55: 16000, 56: 16000, 57: 16000, 58: 16000, 59: 16000, 60: 16000, 61: 16000},
+           5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000, 42: 16000, 43: 16000, 48: 16000, 49: 16000, 50: 16000, 51: 16000, 52: 16000, 53: 16000, 54: 16000, 55: 16000, 56: 16000, 57: 16000, 58: 16000, 59: 16000, 60: 16000, 61: 16000, 7: 16000, 8: 16000, 63: 16000, 64: 16000, 65: 16000, 66: 16000, 67: 16000, 68: 16000, 69: 16000, 70: 16000, 71: 16000, 72: 16000},
   fadeMs: 6250,
   circleSwell: .38,
   circleSwellMs: 7500,
   circleStayMs: 12250,
   innerTurnMs: 0,
   outerTurnMs: 52000,
-  innerJiggle: 1,
+  innerJiggle: 1.15,
   outerJiggle: 1 / 5,
   outerBounce: .03,
   innerBounce: .03,
@@ -1294,12 +1295,9 @@ const RING_CONFIG = {
   cornerWeighting: false,                  /* a heavier outer line while it is a polygon, lighter as it rounds */
   innerTicks: "none"                       /* "dashes": a dashed line turning with the inner ring | "none" */
 };
-
-const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06, 33: 2.06, 45: 2.06, 46: 2.06, 47: 2.06, 42: 2.06, 43: 2.06, 48: 2.06, 49: 2.02, 50: 2.06, 51: 2.06, 52: 2.06, 53: 2.06, 54: 2.06, 55: 2.06, 56: 2.06, 57: 2.06, 58: 2.06, 59: 2.06, 60: 2.06, 61: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8, 2: .25, 33: .35, 45: .8, 46: .8, 47: .8, 42: .8, 43: .8, 48: .8, 49: .8, 50: .8, 51: .8, 52: .8, 53: .8, 54: .8, 55: .8, 56: .8, 57: .8, 58: .8, 59: .8, 60: .8, 61: .8};   /* SQZ: how much closer the outer lines keep to it */
+const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06, 33: 2.06, 45: 2.06, 46: 2.06, 47: 2.06, 42: 2.06, 43: 2.06, 48: 2.06, 49: 2.02, 50: 2.06, 51: 2.06, 52: 2.06, 53: 2.06, 54: 2.06, 55: 2.06, 56: 2.06, 57: 2.06, 58: 2.06, 59: 2.06, 60: 2.06, 61: 2.06, 63: 2.06, 64: 2.06, 65: 2.06, 66: 2.06, 67: 2.06, 68: 2.06, 69: 2.06, 70: 2.06, 71: 2.06, 72: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8, 2: .25, 33: .35, 45: .8, 46: .8, 47: .8, 42: .8, 43: .8, 48: .8, 49: .8, 50: .8, 51: .8, 52: .8, 53: .8, 54: .8, 55: .8, 56: .8, 57: .8, 58: .8, 59: .8, 60: .8, 61: .8, 63: .8, 64: .8, 65: .8, 66: .8, 67: .8, 68: .8, 69: .8, 70: .8, 71: .8, 72: .8};
 const SHAPES = RING_CONFIG.order.filter(n => n);
-
-const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1};
-
+const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1, 63: 1, 64: 1, 65: 1, 66: 1, 67: 1, 68: 1, 69: 1, 70: 1, 71: 1, 72: 1};
 const KITE = [[2.06, 0], [-.368, 1.439], [-1.22, 0], [-.368, -1.439]];
 /* the DIAMOND (a rhombus) - long points 2.06 (61 degree tips), short points 1.22 (119 degrees), every side 1.05 from
    the middle like the kite's: the record fits inside it */
@@ -1395,13 +1393,30 @@ const outlineAt = (V, t) => {              /* how far out a shape's outline is a
   }
   return r;
 };
+
+const PINW = (() => { const v = []; for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2; for (let j = 0; j < 12; j++) { const q = j / 11, r = 2.06 - .94 * Math.pow(q, .6);
+  v.push([r * Math.cos(a + q * 1.3614), r * Math.sin(a + q * 1.3614)]); } } return v; })();
+const GEARV = (() => { const v = [], w = Math.PI / 5; for (let k = 0; k < 10; k++) for (const [f, r] of [[-.5, 1.6], [-.28, 1.6], [-.16, 2.06], [.16, 2.06], [.28, 1.6]]) v.push([r * Math.cos(k * w + f * w), r * Math.sin(k * w + f * w)]); return v; })();
+const HEARTV = (() => { const v = []; for (let k = 0; k < 240; k++) { const t = 2 * Math.PI * k / 240, x = 16 * Math.pow(Math.sin(t), 3), y = 13 * Math.cos(t) - .8 * (5 * Math.cos(2 * t) + 2 * Math.cos(3 * t) + Math.cos(4 * t)) + 2.5; v.push([y, x]); }
+  const m = Math.max(...v.map(p => Math.hypot(p[0], p[1]))); return v.map(p => [p[0] * 2.06 / m, p[1] * 2.06 / m]); })();
+const BHEARTV = (() => { const v = [], put = (a, r) => { const t = a * Math.PI / 180, rr = r || rayAt(HEARTV, t); v.push([rr * Math.cos(t), rr * Math.sin(t)]); };
+  for (let a = -160; a < 163; a += .75) put(a);
+  for (const [a, r] of [[163, 0], [168, 1.6], [171.5, 1.74], [174.5, 1.34], [177.5, 1.5], [180.5, 1.08], [183, 1.3], [185.5, 1.22], [189, 1.58], [192.5, 1.47], [197, 0]]) put(a, r);
+  return v; })();
+const VBARS = [[[-0.783, 0.55], [1.358, 1.204], [1.702, 0.078], [-0.438, -0.577]], [[-0.587, 0.377], [1.082, -0.625], [1.062, -1.765], [-0.526, -0.812]]];
+const XBARS = [[[-1.492, 0.475], [1.706, 1.154], [1.966, -0.067], [-1.233, -0.747]], [[-0.975, -1.788], [0.299, 1.711], [0.991, 0.493], [0.339, -1.3]]];
+const XPARTS = {45: XDIAMOND, 67: VBARS, 68: XBARS};
+Object.assign(CORNERS, {63: PINW, 64: GEARV, 66: HEARTV, 72: BHEARTV, 69: TANG(1, [88, 124, 96, 128, 104]), 70: TANG(1, [112, 140, 118, 146, 124, 132, 128]),
+  71: TANG(1, [118, 150, 126, 144, 120, 156, 130, 136])});
+Object.assign(CONCAVE, {63: 1, 64: 1, 66: 1, 72: 1});
+SHFN[65] = t => 1.58 + .48 * Math.cos(5 * t);
 for (const n of SHAPES) {
   const k0 = n === 62 ? 3 : n, seg = 2 * Math.PI / k0, P = new Float32Array(M1), f = SOFT[n] || 1;
   const side = t => { const local = ((t % seg) + seg) % seg; return Math.cos(Math.PI / k0) / Math.cos(local - Math.PI / k0); };
   let sum = 0;
   for (let m = 0; m <= M; m++) {
     const t = 2 * Math.PI * m / M;
-    P[m] = SHFN[n] ? SHFN[n](t) : n === 2 ? OVAL(t) : n === 33 ? REULEAUX(t) : n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : n === 45 ? Math.max(...XDIAMOND.map(V => outlineAt(V, t))) : CONCAVE[n] ? rayAt(CORNERS[n], t) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
+    P[m] = SHFN[n] ? SHFN[n](t) : n === 2 ? OVAL(t) : n === 33 ? REULEAUX(t) : n === 62 ? Math.max(side(t), side(t + Math.PI / 3)) : XPARTS[n] ? Math.max(...XPARTS[n].map(V => outlineAt(V, t))) : CONCAVE[n] ? rayAt(CORNERS[n], t) : CORNERS[n] ? outlineAt(CORNERS[n], t) : side(t);   /* the hexagram: the outline of two triangles, one turned 60 degrees */
     if (m < M) sum += P[m];
   }
   for (let m = 0; m <= M; m++) P[m] = f * P[m] * M / sum + 1 - f;
@@ -1412,13 +1427,13 @@ for (const n of SHAPES) {
    the record, the record hides them. POLY[45] (their outline) stays for the sizes worked out from it */
 const SUB45 = XDIAMOND.map(V => { const P = new Float32Array(M1); for (let m = 0; m <= M; m++) P[m] = outlineAt(V, 2 * Math.PI * m / M) / 1.66; return P; });
 const LAYER = f => { const P = new Float32Array(M1); for (let m = 0; m <= M; m++) P[m] = f(2 * Math.PI * m / M) / 1.66; return P; };
-const SUBS = {45: SUB45, 49: [LAYER(() => 2.02), LAYER(t => rayAt(PENT, t))], 52: [LAYER(t => Math.max(1.16, farAt(PETSEG, t))), LAYER(() => 1.16)]};
-const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1, 2: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1};
+const SUBS = {45: SUB45, 67: VBARS.map(V => LAYER(t => outlineAt(V, t))), 68: XBARS.map(V => LAYER(t => outlineAt(V, t))), 49: [LAYER(() => 2.02), LAYER(t => rayAt(PENT, t))], 52: [LAYER(t => Math.max(1.16, farAt(PETSEG, t))), LAYER(() => 1.16)]};
+const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1, 2: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1, 7: 1, 8: 1, 63: 1, 64: 1, 65: 1, 66: 1, 67: 1, 68: 1, 69: 1, 70: 1, 71: 1, 72: 1};
 for (const n of [0, ...SHAPES]) {
   const s = n ? 1.66 * Math.min(...POLY[n]) : 1.66;               /* the outer ribbon at the middle of a side */
   INK[n] = SHARP[n] ? [.68, .84] : [1.04 / s, (s - .2) / s];
 }
-const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3, 2: .85, 33: 1.15, 45: 1.25, 46: 1.2, 47: 1.3, 42: 1.2, 43: 1.25, 48: 1.3, 49: 1.2, 50: 1.3, 51: 1.3, 52: 1.2, 53: 1.2, 54: 1.3, 55: 1.2, 56: 1.2, 57: 1.15, 58: 1.25, 59: 1.25, 60: 1.25, 61: 1.2};
+const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3, 2: .85, 33: 1.15, 45: 1.25, 46: 1.2, 47: 1.3, 42: 1.2, 43: 1.25, 48: 1.3, 49: 1.2, 50: 1.3, 51: 1.3, 52: 1.2, 53: 1.2, 54: 1.3, 55: 1.2, 56: 1.2, 57: 1.15, 58: 1.25, 59: 1.25, 60: 1.25, 61: 1.2, 63: 1.3, 64: 1.2, 65: 1.1, 66: 1.15, 67: 1.25, 68: 1.25, 69: 1.2, 70: 1.15, 71: 1.15, 72: 1.2};
 let shapeT = 0, clockAt = 0, SHN = 6, SHP = 1;
 const ONES = new Float32Array(M1).fill(1);  /* the circle */
 const SHI = new Float32Array(M1), OJ = new Float32Array(M1), OMIN = new Float32Array(M1);   /* the shape as the inner ring takes it; the outer ring's share of the voice; its innermost line */
@@ -1427,15 +1442,31 @@ const SHI = new Float32Array(M1), OJ = new Float32Array(M1), OMIN = new Float32A
 let SHNA = 6, SHNB = 6;   /* which shapes it is changing from and to (the two triangles are drawn as two) */
 let SHA = POLY[6], SHB = POLY[6], SHQ = 0, SHZ = SQZ[6], SHE = 0, SHT = 0, SHJ = 1, SHKA = INK[6][0], SHKB = INK[6][1], SHR = 1;
 const CORNER = 2.04;                       /* past this a corner is eased in (the bars start at 2.1) */
-const LOOPS = (() => {                     /* the loops shapeAt plays: each loop is the last one with neighbours
-                                              swapped (places 0-1, 2-3 .. one loop, 1-2, 3-4 .. the next) - a shape moves at most one place
-                                              a loop, so it comes back only after (nearly) all the others, and every shape still goes to
-                                              every other in turn. 2n loops, then again */
-  const O = RING_CONFIG.order, n = O.length, out = [];
-  let cur = O.slice();
-  for (let L = 0; L < 2 * n; L++) {
-    out.push(cur.slice());
-    for (let p = L % 2; p + 1 < n; p += 2) { const t = cur[p]; cur[p] = cur[p + 1]; cur[p + 1] = t; }
+const FAMILY = {2: "r", 33: "r", 4: "r", 5: "r", 6: "r", 7: "r", 8: "r", 64: "r", 65: "r", 66: "r",
+  44: "s", 46: "s", 47: "s", 62: "s", 48: "s", 50: "s", 51: "s", 52: "s", 63: "s",
+  54: "i", 55: "i", 57: "i", 61: "i", 67: "i", 68: "i", 69: "i", 70: "i", 71: "i", 72: "i"};
+const LOOPS = (() => {
+  const fam = n => FAMILY[n] || "a", others = RING_CONFIG.order.filter(n => n), out = [];
+  const rnd = seed => () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  for (let r = 0; r < 24; r++) {
+    let L = null;
+    for (let tr = 0; !L && tr < 400; tr++) {
+      const R = rnd(1009 + r * 7919 + tr * 104729), left = {};
+      others.forEach(n => (left[fam(n)] = left[fam(n)] || []).push(n));
+      const seq = [0];
+      let last = "", ok = true;
+      for (let k = 0; k < others.length; k++) {
+        const fs = Object.keys(left).filter(f => left[f].length && f !== last);
+        if (!fs.length) { ok = false; break; }
+        const w = fs.map(f => left[f].length * left[f].length), tot = w.reduce((a, b) => a + b, 0);
+        let x = R() * tot, i = 0;
+        while (i < w.length - 1 && x >= w[i]) { x -= w[i]; i++; }
+        const f = fs[i];
+        seq.push(left[f].splice(Math.floor(R() * left[f].length), 1)[0]); last = f;
+      }
+      if (ok) L = seq;
+    }
+    out.push(L || [0].concat(others));
   }
   return out;
 })();
@@ -1465,10 +1496,10 @@ function shapeAt(t) {
   SHR = (1 - q) * ROOM[a] + q * ROOM[b];
   SHN = (q < .5 ? a : b) || a || b;
 }
-const ECH = [], ECHO_MS = 800;                                  /* the echoes going out (when, how hard); each lasts just under a beat (800 ms at most) */
-const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(140);   /* 140 bars */
-/* the bars as spikes of specks - each speck's fixed place across its bar, along it, its wobble and its drift past the
-   tip (its own small random numbers, made once, so the specks stay put and only breathe) */
+shapeAt(0);
+const ECH = [], ECHO_MS = 800;
+const BV = new Float32Array(NB), BG = new Float32Array(NB).fill(.15), BPREV = new Float32Array(140);
+
 const BJ = 96, BJT = new Float32Array(140 * BJ * 3);
 { let h = 20261025; for (let k = 0; k < BJT.length; k++) { h = (Math.imul(h, 1103515245) + 12345) | 0; BJT[k] = ((h >>> 8) & 0xffff) / 65536; } }
 const TS = [];                                                  /* stars popping off the bar tips (where, when, how fast) */   /* the audio bars - each band smoothed, and its own recent top */
@@ -3832,13 +3863,14 @@ function gxSize() {
   box.style.setProperty("--gd", D + "px");
   return D;
 }
-const GPITCH = 1 / Math.tan(15 * Math.PI / 180);          /* how tightly the arms wind */
-/* each arm wobbles in its own way, and the second one is turned a touch off the first.
-   The angle grows going out, so at any distance the side facing the middle is angle + a bit */
+
+const GPITCH = 1 / Math.tan(13 * Math.PI / 180);          /* how tightly the arms wind */
+
 /* a BARRED spiral. A long warm bar runs through the middle (half-length BAR_L of the galaxy's radius - long enough
    to show past the record), and the two arms leave its ends and sweep out about half a turn */
-const BAR_L = .4;
-const armAt = (k, u) => k * Math.PI + (k ? .1 : 0) + Math.log(Math.max(u, BAR_L) / BAR_L) * GPITCH * .9
+const BAR_L = .37;
+const ARM0 = [0, Math.PI + .1, Math.PI / 2 + .42, 3 * Math.PI / 2 + .46], ARM_IN = [0, 0, .44, .41];
+const armAt = (k, u) => ARM0[k] + Math.log(Math.max(u, BAR_L) / BAR_L) * GPITCH * .9
   + Math.min(1, Math.max(0, (u - BAR_L) / .15)) * (.08 * Math.sin(u * 8.5 + k * 2.3) + .04 * Math.sin(u * 21 + k * 4.1));
 const DUST_IN = .17;                                       /* how far inside the arm the dust runs (radians) */
 /* a bar dust lane at s (0 = the bar's end, 1 = the ring round the core): {u: distance in galaxy radii, a: angle} */
@@ -3847,31 +3879,33 @@ const laneAt = (k, s, j) => ({u: BAR_L * Math.pow(1 - s, 1.15) + .068 * s + (j |
 const ARM_THICK = 1.55;                                    /* how much thicker than thin the arms are */
 /* how strong an arm is along its length (0..1): it starts out of the bulge, thins and breaks in
    places, and fades out - arm 1 a little weaker and shorter */
-const armW = (k, u) => Math.max(0, Math.min(1, (u - BAR_L + .03) / .08)) * Math.max(0, 1 - Math.pow(u / (k ? .9 : .98), 6))   /* from the bar's ends */
-  * (k ? .82 : 1) * (.72 + .28 * Math.sin(u * 13 + k * 1.7));
-/* the plan - where the knots, pink clouds, spurs and feathers are, in galaxy units (u = 0..1
-   out from the middle, a = angle). Made once, from a fixed seed. */
+const armW = (k, u) => (k > 1 ? Math.max(0, Math.min(1, (u - ARM_IN[k]) / .1)) * Math.max(0, 1 - Math.pow(u / .95, 6)) * .56
+  : Math.max(0, Math.min(1, (u - BAR_L + .03) / .08)) * Math.max(0, 1 - Math.pow(u / (k ? .93 : .98), 6)) * (k ? .9 : 1))
+  * (.72 + .28 * Math.sin(u * 13 + k * 1.7));
+const ARMPICK = q => q < .36 ? 0 : q < .68 ? 1 : q < .84 ? 2 : 3;
+
 const GXP = (() => {
   let sd = 1969;
   const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
   const knots = [], spurs = [], feathers = [];
-  for (let k = 0; k < 2; k++) {
-    for (let i = 0; i < 16; i++) {                             /* star-forming regions come in groups */
+  for (let k = 0; k < 4; k++) {
+    for (let i = 0; i < (k > 1 ? 11 : 16); i++) {              /* star-forming regions come in groups */
       const u0 = .18 + .74 * r(); if (r() > armW(k, u0) + .1) continue;
       const big = r() < .3, m = big ? 3 + ((r() * 4) | 0) : 1 + ((r() * 2) | 0);
       for (let j = 0; j < m; j++) {
-        const u = u0 + (r() - .5) * .05, pink = r() < .35;
+        const u = u0 + (r() - .5) * .05, pink = r() < (k > 1 ? .6 : .35);
         knots.push({u, a: armAt(k, u) + (pink ? DUST_IN * .45 : (r() - .5) * .14) + (r() - .5) * .04,
           s: big && j === 0 ? .8 + .2 * r() : .25 + .5 * r() * r(), pink});
       }
     }
-    for (let i = 0; i < 4; i++) {                              /* spurs: a short branch leaving the arm, winding looser */
+    for (let i = 0; i < (k > 1 ? 2 : 4); i++) {                /* spurs: a short branch leaving the arm, winding looser */
       const u0 = .3 + .5 * r();
       spurs.push({k, u0, len: .1 + .12 * r(), da: (r() < .5 ? 1 : -1) * (.5 + .4 * r())});
     }
-    for (let i = 0; i < 5; i++)                                /* feathers: faint streaks out in the gap */
-      feathers.push({k, u0: .25 + .6 * r(), len: .05 + .1 * r(), off: Math.PI * (.3 + .4 * r())});
+    for (let i = 0; i < (k > 1 ? 3 : 5); i++)                  /* feathers: faint streaks out in the gap */
+      feathers.push({k, u0: Math.max(ARM_IN[k], .25) + .6 * r(), len: .05 + .1 * r(), off: Math.PI * (.15 + .2 * r())});
   }
+  spurs.push({k: 3, u0: .5, len: .2, da: .62, orion: 1});
   return {knots, spurs, feathers};
 })();
 const spurAt = (S, t) => { const u = S.u0 + S.len * t; return {u, a: armAt(S.k, S.u0) + S.da * t * S.len * 2.2}; };
@@ -3905,7 +3939,7 @@ function galaxyStars() {
       const K = GXP.knots[(r() * GXP.knots.length) | 0]; if (K.pink || r() > K.s + .2) continue;
       dot(K.u + gauss() * .02 * K.s, K.a + gauss() * .055 * K.s, .35 + .6 * r(), size(), BLUE[(r() * 3) | 0]);
     } else if (q < .62) {                                   /* along the arms, thinner where an arm is weak */
-      const k = r() < .55 ? 0 : 1, u = .1 + .9 * Math.pow(r(), .85), w = armW(k, u);
+      const k = ARMPICK(r()), u = .1 + .9 * Math.pow(r(), .85), w = armW(k, u);
       if (r() > w + .08) continue;
       dot(u, armAt(k, u) + gauss() * (.1 + .08 * u) * ARM_THICK, (.2 + .55 * r()) * (.5 + .5 * w), size(), BLUE[(r() * 3) | 0]);
     } else if (q < .68) {                                   /* the spurs and the feathers */
@@ -3994,10 +4028,10 @@ function galaxyFor(pal, now) {
     for (let i = 0; i <= 8; i++) { const u = i / 8, col = mix(mix(WARM, BLUE, Math.min(1, u * 1.6)), songMid, .15 + .3 * u);
       rg.addColorStop(u, rgba(col, (.22 * Math.exp(-u / .3) + .02) * (1 - Math.pow(u, 4)))); }
     g.fillStyle = rg; g.fillRect(0, 0, L, L); }
-  for (let k = 0; k < 2; k++) for (let i = 0; i < 90; i++) {                  /* the arms: blue-white with the song glowing through */
+  for (let k = 0; k < 4; k++) for (let i = 0; i < 90; i++) {                  /* the arms: blue-white with the song glowing through */
     const u = .1 + .88 * i / 89, w = armW(k, u); if (w < .03) continue;
     const [x, y] = at(u, armAt(k, u) + (r() - .5) * .06);
-    const col = mix(BLUE, mix(T[k], T2(k), Math.min(1, u * 1.25)), .45);
+    const col = k > 1 ? mix(mix(BLUE, PINK, .22), T[k - 2], .35) : mix(BLUE, mix(T[k], T2(k), Math.min(1, u * 1.25)), .45);
     blob(x, y, Rg * (.075 + .12 * u) * (.8 + .4 * r()) * ARM_THICK, col, (.15 * Math.pow(1 - u, .5) + .075) * w * (.65 + .7 * r()));
   }
   for (const S of GXP.spurs) for (let i = 0; i <= 12; i++) {                  /* the spurs, fading as they go */
@@ -4053,8 +4087,8 @@ function galaxyFor(pal, now) {
     if (Math.hypot(x - h, (yy - h) / .8) < Rg * .035) continue;               /* the nucleus shines through */
     dust(x, yy, Rg * (.006 + .014 * r()), .018 + .035 * r());
   }
-  for (let k = 0; k < 2; k++) for (let i = 0; i < 280; i++) {
-    const u = .13 + .72 * i / 279, w = armW(k, u);
+  for (let k = 0; k < 4; k++) for (let i = 0; i < 280; i++) {
+    const u = .13 + .72 * i / 279, w = Math.min(1, armW(k, u) * (k > 1 ? 1.5 : 1));
     if (Math.sin(u * 37 + k * 5) + .4 * Math.sin(u * 91 + k) < -.5 || w < .1) continue;   /* lanes that break in places */
     const [x, y] = at(u, armAt(k, u) + DUST_IN + .06 * (r() - .5));
     const rad = Rg * (.025 + .03 * r()) * (.7 + .6 * u) * (1 + (ARM_THICK - 1) * .6), al = (.06 + .12 * r()) * w;    /* many soft overlapping puffs - dust, not dots; wider with the arms */
@@ -4063,6 +4097,64 @@ function galaxyFor(pal, now) {
     g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
   }
   c.classList.add("on"); cs[1 - GX.flip].classList.remove("on");
+  try { andromeda(T, songMid); } catch (e) { /* the Milky Way still shows */ }
+}
+
+function andromeda(T, tint) {
+  const c = $("#nowgx .gxa"), box = $("#nowgx"); if (!c || !box) return;
+  const w = box.offsetWidth, hh = box.offsetHeight; if (!w || !hh) return;
+  const dpr = Math.min(1.5, devicePixelRatio || 1);
+  c.width = Math.round(w * dpr); c.height = Math.round(hh * dpr);
+  const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, hh);
+  const S = Math.min(w, hh), tn = tint || [200, 200, 220];
+  let sd = 31;
+  const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296, gauss = () => (r() + r() + r() + r() - 2) / 1.15;
+  g.globalCompositeOperation = "lighter";
+  const blob = (x, y, rx, ry, rot, col, al) => { g.save(); g.translate(x, y); g.rotate(rot); g.scale(1, ry / rx);
+    const rg = g.createRadialGradient(0, 0, 0, 0, 0, rx); rg.addColorStop(0, rgba(col, al)); rg.addColorStop(.45, rgba(col, al * .38)); rg.addColorStop(1, rgba(col, 0));
+    g.fillStyle = rg; g.fillRect(-rx, -rx, rx * 2, rx * 2); g.restore(); };
+  const WARM = [255, 228, 192], BLUE = [176, 200, 255], PINK = [255, 120, 170];
+  /* ANDROMEDA */
+  const ax = w * .22, ay = hh * .15, A = S * .2, inc = .24, rot = -.62;
+  const ca = Math.cos(rot), sa = Math.sin(rot), P = (u, v) => [ax + u * ca - v * sa, ay + u * sa + v * ca];   /* u along its long axis, v across */
+  blob(ax, ay, A * 1.15, A * 1.15 * inc, rot, mix(BLUE, tn, .2), .07);                       /* the faint outer disc */
+  for (let i = 0; i < 70; i++) { const t = i / 70 * 6.2832, rr = A * (.6 + .05 * Math.sin(t * 3)), [x, y] = P(Math.cos(t) * rr, Math.sin(t) * rr * inc);
+    blob(x, y, A * .09, A * .09 * .6, rot, mix(BLUE, tn, .15), .05 + .03 * r()); }            /* the ring of young stars, ~10 kpc */
+  for (let i = 0; i < 90; i++) { const t = i / 90 * 6.2832, rr = A * (.3 + .55 * r()), [x, y] = P(Math.cos(t) * rr, Math.sin(t) * rr * inc);
+    blob(x, y, A * .05, A * .03, rot, mix(BLUE, tn, .2), .03 + .03 * r()); }
+  blob(ax, ay, A * .36, A * .36 * .62, rot, WARM, .2);                                       /* the bulge - warm, old */
+  blob(ax, ay, A * .16, A * .16 * .7, rot, [255, 238, 214], .35);
+  blob(ax, ay, A * .04, A * .04, rot, [255, 250, 240], .8);                                  /* the nucleus */
+  for (let i = 0; i < 220; i++) { const u = gauss() * A * .45, v = gauss() * A * .08, [x, y] = P(u, v);   /* its stars, too far to see one by one: a grain */
+    g.fillStyle = rgba(r() < .6 ? [236, 240, 255] : WARM, .25 + .4 * r()); g.fillRect(x, y, .7, .7); }
+  { const [x, y] = P(A * .12, A * .2); blob(x, y, A * .045, A * .045, 0, [255, 240, 222], .5); }        /* M32 */
+  { const [x, y] = P(-A * .35, -A * .62); blob(x, y, A * .12, A * .07, rot + .5, [250, 232, 210], .14); }   /* M110 */
+  g.globalCompositeOperation = "destination-out";                                            /* dust lanes on the near side */
+  for (const [f, al] of [[.42, .55], [.7, .4], [.86, .25]]) for (let i = 0; i < 60; i++) {
+    const t = Math.PI * (.08 + .84 * i / 59), [x, y] = P(Math.cos(t) * A * f, Math.sin(t) * A * f * inc + A * .012);
+    const rg = g.createRadialGradient(x, y, 0, x, y, A * .028); rg.addColorStop(0, "rgba(0,0,0," + (al * (.5 + .5 * r())).toFixed(3) + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = rg; g.fillRect(x - A * .03, y - A * .03, A * .06, A * .06); }
+  g.globalCompositeOperation = "lighter";
+  /* THE MAGELLANIC CLOUDS */
+  const lx = w * .84, ly = hh * .44, Lr = S * .07;
+  blob(lx, ly, Lr * 1.3, Lr * .9, .3, mix(BLUE, tn, .25), .09);
+  blob(lx - Lr * .15, ly + Lr * .05, Lr * .55, Lr * .16, .45, [255, 236, 214], .3);          /* the LMC's off-centre bar */
+  for (let i = 0; i < 26; i++) blob(lx + gauss() * Lr * .7, ly + gauss() * Lr * .5, Lr * (.06 + .1 * r()), Lr * (.05 + .08 * r()), r() * 3, r() < .3 ? PINK : [220, 230, 255], .06 + .08 * r());
+  blob(lx + Lr * .55, ly - Lr * .22, Lr * .14, Lr * .12, 0, [255, 96, 140], .55);           /* the Tarantula Nebula */
+  blob(lx + Lr * .55, ly - Lr * .22, Lr * .04, Lr * .04, 0, [255, 230, 240], .8);
+  const sx = lx - Lr * 1.9, sy = ly + Lr * 1.15;
+  blob(sx, sy, Lr * .55, Lr * .26, -.5, [232, 236, 255], .16);                                /* the SMC */
+  blob(sx + Lr * .1, sy - Lr * .05, Lr * .2, Lr * .12, -.5, [255, 240, 225], .2);
+  for (let i = 0; i < 14; i++) { const t = i / 13; blob(sx + (lx - sx) * t + gauss() * Lr * .1, sy + (ly - sy) * t + gauss() * Lr * .1, Lr * .12, Lr * .08, 0, [200, 215, 255], .03); }   /* the Magellanic Bridge */
+  /* THE SAGITTARIUS DWARF's stream - a long faint arc round the far side */
+  for (let i = 0; i < 80; i++) { const t = i / 79, a = 3.6 + 1.6 * t, rr = S * (.62 + .05 * Math.sin(t * 5));
+    blob(w * .5 + Math.cos(a) * rr * 1.2, hh * .42 + Math.sin(a) * rr * .55, S * .035, S * .016, a + 1.57, mix([230, 220, 200], tn, .2), .025 * Math.sin(Math.PI * t)); }
+  /* globular clusters - small fuzzy balls of old stars round the halo */
+  for (let i = 0; i < 11; i++) { const x = w * (.05 + .9 * r()), y = hh * (.05 + .6 * r());
+    if (Math.hypot(x - ax, (y - ay) * 2) < A * 1.2 || Math.hypot(x - lx, y - ly) < Lr * 2.4) continue;
+    blob(x, y, S * .006, S * .006, 0, [255, 236, 210], .55); blob(x, y, S * .014, S * .014, 0, [255, 230, 200], .12); }
+  g.globalCompositeOperation = "source-over";
+  c.classList.add("on");
 }
 /* a supernova now and then (see .gxs .sn) - every 2.5 to 11 minutes, mostly in an arm, sometimes out in the disc, somewhere
    new each time; only while the player is open and a song plays (otherwise it just waits for the next turn) */
@@ -4074,8 +4166,7 @@ function supernova() {
   if (!box || document.hidden || !$("#now").classList.contains("show") || !document.body.classList.contains("playing")) return;
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const D = box.offsetWidth; if (!D) return;
-
-  const k = Math.random() < .55 ? 0 : 1, u = .18 + .27 * Math.random();
+  const k = ARMPICK(Math.random()), u = Math.max(ARM_IN[k], .18) + .27 * Math.random();
   const a = Math.random() < .8 ? armAt(k, u) + (Math.random() - .5) * .16 * ARM_THICK : Math.random() * 6.2832;
   const h = D / 2, Rg = h * .96, el = document.createElement("i");
   el.className = "sn";

@@ -1,3 +1,11 @@
+**New in 17.0:**
+
+- **Forty shapes:** the heptagon and the octagon are back, and new - a pinwheel (it takes the pentacle's place), a gear, a flower, a heart, a broken heart, a V and an X (each a rectangle and a parallelogram, crossing) and an irregular pentagon, heptagon and octagon
+- **Starts on the circle, then every shape once a round** in a new shuffled order, never two of the same kind back to back - and with several devices, all of them play the same order
+- **The Milky Way** replaces the galaxy behind the player - its bar, two major arms, two fainter minor ones and the Orion spur; supernovas happen in its arms; Andromeda (with M32 and M110) in the far background, the Large and Small Magellanic Clouds, the Sagittarius stream and a few globular clusters
+- **The inner ring's wave** moves a little more with the voice
+- **Widget shuffle and repeat** work while this device is the remote for another one - they toggle on the device that is playing
+
 **New in 16.0:**
 
 - **Fourteen more shapes - thirty now:** a pentagram, a pentacle (the star in its circle), a seven-point star, a unicursal hexagram, a protection knot (four pointed petals round a circle), a trapezoid, an irregular triangle, an irregular four-sided shape, a house, an irregular hexagon, a chevron, an arrow, an hourglass and an irregular concave shape - all sized to the ring, every one turning into every other in time

@@ -285,6 +285,9 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         if (A_TOGGLE.equals(a)) toggle();
         else if (A_NEXT.equals(a)) next(false);
         else if (A_PREV.equals(a)) prev();
+
+        else if (A_SHUF.equals(a) && remoteShown()) { rShuf = !rShuf; Connect.cmd("shuffle", "on", rShuf); changed(); }
+        else if (A_REP.equals(a) && remoteShown()) { rRep = "off".equals(rRep) ? "all" : "all".equals(rRep) ? "one" : "off"; Connect.cmd("repeat", "r", rRep); changed(); }
         else if (A_SHUF.equals(a)) setShuffle(!q.shuffle);
         else if (A_REP.equals(a)) setRepeat("off".equals(q.repeat) ? "all" : "all".equals(q.repeat) ? "one" : "off");
         else if (A_SEEK.equals(a)) seekPart(i.getIntExtra("permille", 0));
