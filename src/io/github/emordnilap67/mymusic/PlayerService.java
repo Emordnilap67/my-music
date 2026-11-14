@@ -1204,7 +1204,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                             artWait = null;
                             MAIN.removeCallbacks(artLate);
                         }
-                        if (b != null && s.key.equals(q.current())) {
+                        if (b != null && s.key.equals(shownKey())) {
                             art = b;
                             artKey = s.key;
                             changed();

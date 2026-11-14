@@ -34,10 +34,11 @@ known as MY MUSIC.*
   replaced automatically.
 - **A player worth looking at.** The record sits inside a ring of light that
   changes shape - forty of them, from a triangle, hexagon and octagon to a
-  pentagram, a pinwheel, a gear, a heart (and a broken one), a V and an X -
+  pentagram, a pinwheel, a gear, a pixel heart, a V and an X -
   and dances to the music
   (bass, voice and treble each move their own part, and both rings bounce
-  lightly on the beat), in colours taken from each song's own picture.
+  lightly on the beat), in colours taken from each song's own picture,
+  in front of a slowly turning Milky Way.
 - **Made for big libraries.** Thousands of songs in one playlist, sorted the
   way Spotify sorts, with a shuffle that never repeats a song until it has
   played them all.
@@ -191,10 +192,12 @@ top right) plays the music on another device.
   to shape - forty of them, every one once a round in a new shuffled order, never
   two of the same family (smooth, star, angular, irregular) back to back - and
   swells out to the bars as a circle. On every beat both rings grow a touch and settle back - not
-  dancing, just keeping the song's tempo. The Milky Way turns slowly behind it, as it is
-  mapped - a barred spiral of real kinds of stars (red dwarfs to blue giants, with the odd
-  supernova in its arms), two major arms off the bar, two fainter minor ones and the Orion
-  spur - with Andromeda far off in a corner and the Magellanic Clouds nearby. **Hold the
+  dancing, just keeping the song's tempo. The Milky Way turns slowly behind it, drawn
+  the way it is mapped - a bright golden core and a long bar, ragged arms leaving the
+  bar's ends and winding out close together, soft dust lanes, blue arms with small pink
+  star-forming knots, and the song's own colours glowing along them - a backdrop that
+  never outshines the ring. The odd supernova goes off inside it, where the screen shows
+  it, or far away in Andromeda or the Magellanic Clouds. **Hold the
   middle of the player** (or tap the record twice) for **galaxy only**: the
   record and the ring go, and only the galaxy stays. Every
   colour comes from the song's own picture, and the whole look fades into

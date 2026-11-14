@@ -1,3 +1,12 @@
+**New in 18.0:**
+
+- **A new Milky Way:** drawn the way it is mapped - a bright golden core and a long bar, ragged arms that leave the ends of the bar and wind out close together, soft thick dust lanes, blue and lavender arms with small pink star-forming knots, and the song's colours glowing along the arms. It is a backdrop now: a soft dark ring round the bars keeps the visualizer in front
+- **Supernovas everywhere:** most go off inside the Milky Way, always where the screen shows them - and some far away, in Andromeda, the Magellanic Clouds or a distant galaxy
+- **More colour:** songs with pale, washed-out pictures get richer colours in the ring and the player
+- **Shapes:** the heart is now a pixel heart that sits right round the record, the V and the X fill the whole ring, and the broken heart is gone - the circle and thirty-nine shapes
+- **The artists card** lists each artist once
+- **Fixed:** while this device is the remote, its widget and lock screen show the other device's cover again
+
 **New in 17.0:**
 
 - **Forty shapes:** the heptagon and the octagon are back, and new - a pinwheel (it takes the pentacle's place), a gear, a flower, a heart, a broken heart, a V and an X (each a rectangle and a parallelogram, crossing) and an irregular pentagon, heptagon and octagon

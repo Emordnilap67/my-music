@@ -606,32 +606,41 @@ body.playing .now.show .nowbg i.on{animation-play-state:running}
 .gx{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
   -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 56%,rgba(0,0,0,.35) 76%,transparent 92%);
   mask-image:linear-gradient(180deg,#000 0%,#000 56%,rgba(0,0,0,.35) 76%,transparent 92%)}
-.gxa{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.4s ease}.gxa.on{opacity:.9}   /* Andromeda + the satellites - far behind, still */
-.gxt{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:0;height:0;transform:rotate(-22deg) scaleY(.8)}
-/* seen more face-on - the bar
-   and the arms keep their real shape (was squashed to .56, a steep side view) */
+.gxa{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.4s ease;mix-blend-mode:screen}.gxa.on{opacity:.9}   /* Andromeda and the Milky Way's satellite galaxies - far behind, still */
+.gxt{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:0;height:0}   /* the Milky Way seen face-on */
+/* seen face-on, so the bar and the arms keep their real shape */
 .gxs{position:absolute;width:var(--gd,800px);height:var(--gd,800px);left:calc(var(--gd,800px) / -2);top:calc(var(--gd,800px) / -2);
   will-change:transform;animation:gxspin 415s linear infinite;animation-play-state:paused}   /* one turn in 415 s */
 .gxs canvas{position:absolute;inset:0;width:100%;height:100%}
 .gxs .gxc{opacity:0;transition:opacity 1.4s ease}
 .gxs .gxc.on{opacity:.9}
+.gxv{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:calc(var(--rr,80px) * 6.4);height:calc(var(--rr,80px) * 6.4);margin:calc(var(--rr,80px) * -3.2) 0 0 calc(var(--rr,80px) * -3.2);
+  border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(4,3,10,0) 0,rgba(4,3,10,0) 40%,rgba(4,3,10,.2) 52%,rgba(4,3,10,.26) 64%,rgba(4,3,10,.16) 78%,rgba(4,3,10,.05) 90%,rgba(4,3,10,0) 100%)}   /* a soft dark ring round the visualizer's bars, so the ring stands out - the galaxy's core stays bright */#nowgx .gxs .gxc.on{opacity:.5}   /* the song's glow on the Milky Way, soft (the visualizer carries the song) */
 body.playing .now.show .gxs{animation-play-state:running}
+/* the Milky Way's star-forming knots breathe slowly */
+.gxs .gxp{opacity:.56}   /* the galaxy is a backdrop, never brighter than the visualizer */
+.gxs .gxk{opacity:0;transition:opacity 1.4s ease}.gxs .gxk.on{opacity:1;animation:gxbreathe 9s ease-in-out infinite;animation-play-state:paused}
+body.playing .now.show .gxs .gxk.on{animation-play-state:running}
+@keyframes gxbreathe{0%,100%{opacity:.4}50%{opacity:.62}}
+.gxcore{position:absolute;width:var(--gc,500px);height:var(--gc,500px);left:calc(var(--gc,500px) / -2);top:calc(var(--gc,500px) / -2);opacity:0;transition:opacity 1.4s ease;
+  will-change:transform;animation:gxspin 415s linear infinite;animation-play-state:paused}   /* the core turns with the disc, so the bar stays on the arms */.gxcore.on{opacity:1}   /* the bright middle of the galaxy */
+body.playing .now.show .gxcore{animation-play-state:running}
 @keyframes gxspin{to{transform:rotate(-360deg)}}
 /* a star in the galaxy flares up white-blue and fades through warm orange,
    now and then, somewhere new (placed by supernova() - it turns and tilts with the galaxy) */
-.gxs .sn{position:absolute;width:var(--sn,40px);height:var(--sn,40px);margin:calc(var(--sn,40px) / -2) 0 0 calc(var(--sn,40px) / -2);
+.gx .sn{position:absolute;width:var(--sn,40px);height:var(--sn,40px);margin:calc(var(--sn,40px) / -2) 0 0 calc(var(--sn,40px) / -2);
   border-radius:50%;pointer-events:none;opacity:0;will-change:transform,opacity;
   background:radial-gradient(circle,#fff 0,rgba(255,255,255,.95) 6%,rgba(205,222,255,.75) 14%,rgba(255,196,150,.32) 32%,rgba(255,150,120,.1) 52%,transparent 70%);
   animation:supernova 6.5s ease-out forwards}
-.gxs .sn.big{background:radial-gradient(circle,#fff 0,#fff 9%,rgba(220,232,255,.9) 18%,rgba(255,205,155,.45) 36%,rgba(255,150,120,.14) 56%,transparent 72%)}
+.gx .sn.big{background:radial-gradient(circle,#fff 0,#fff 9%,rgba(220,232,255,.9) 18%,rgba(255,205,155,.45) 36%,rgba(255,150,120,.14) 56%,transparent 72%)}
 @keyframes supernova{0%{opacity:0;transform:scale(.15)}6%{opacity:var(--snp,1);transform:scale(.55)}18%{opacity:calc(var(--snp,1) * .95);transform:scale(.9)}
   45%{opacity:calc(var(--snp,1) * .55);transform:scale(1.25)}100%{opacity:0;transform:scale(1.7)}}
-@media (prefers-reduced-motion:reduce){.gxs .sn{display:none}}
+@media (prefers-reduced-motion:reduce){.gx .sn{display:none}}
 .cglow{position:absolute;left:-12%;right:-12%;bottom:0;height:52%;z-index:-1;pointer-events:none;opacity:.74;
   transform-origin:50% 72%;will-change:opacity,transform}
 .cglow i{position:absolute;inset:0;opacity:0;transition:opacity 1.3s ease}
 .cglow i.on{opacity:1}
-@media (prefers-reduced-motion:reduce){.gxs{animation:none}.cglow i,.gxs .gxc{transition:none}}
+@media (prefers-reduced-motion:reduce){.gxs,.gxcore,.gxs .gxk.on{animation:none}.cglow i,.gxs .gxc{transition:none}}
 /* the buttons' own glow eases to the new song's colour (small, so cheap) */
 .ctrl #prev,.ctrl #next,.now .big,.trk .knob{transition:border-color .8s ease,box-shadow .8s ease,background-color .8s ease}
 .ctrl #shuf,.ctrl #rep{transition:color .8s ease}
@@ -1077,7 +1086,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
 
 <section id="now" class="now" aria-label="Now playing" aria-hidden="true">
   <div class="nowbg" id="nowbg" aria-hidden="true"><i></i><i></i></div>
-  <div class="gx" id="nowgx" aria-hidden="true"><canvas class="gxa"></canvas><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas></div></div></div>
+  <div class="gx" id="nowgx" aria-hidden="true"><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas><canvas class="gxk"></canvas></div><canvas class="gxcore"></canvas></div><canvas class="gxa"></canvas><div class="gxv"></div></div>
   <div class="stars" id="nowstars" aria-hidden="true"><canvas></canvas><canvas class="tw"></canvas><canvas class="tw b"></canvas></div>
   <div class="cglow" id="nowglow" aria-hidden="true"><i></i><i></i></div>
   <div class="nowtop">
@@ -1172,11 +1181,11 @@ const rgba = (c, a) => "rgba(" + c.map(Math.round).join(",") + "," + a + ")";
 /* the colours as drawn: a third less saturated than the song's ("too much saturation") */
 /* the song's colours are now its picture's own (not pushed to neon first), so only a STRONG
    colour is calmed here - a soft one (brown, pastel, grey) is drawn as it is */
-/* every colour, strong or soft, 10% nearer its own grey on top of that */
-const DESAT = .9;
+const DESAT = 1;
 const tone = c => { const g = .3 * c[0] + .59 * c[1] + .11 * c[2], d = (Math.max(...c) - Math.min(...c)) / 255;
-  const k = (d > .38 ? (.38 + (d - .38) * .2) / d : 1) * DESAT;
-  return c.map(v => Math.max(0, Math.min(255, (g + (v - g) * k) * .95))); };
+  const k = (d > .55 ? (.55 + (d - .55) * .45) / d : d < .32 && d > .015 ? Math.min(2, .32 / d) : 1) * DESAT;
+  const lit = Math.min(...c) > 175 ? .9 : .97;                    /* a near-white one a little deeper, so its colour shows */
+  return c.map(v => Math.max(0, Math.min(255, (g + (v - g) * k) * lit))); };
 SC = schemeOf(null, DEF5);
 let TC = toneS(SC);
 /* the bass, from the raw readings (0..100 = -60..0 dB): its level now, its recent level, how loud
@@ -1276,7 +1285,7 @@ let spin = 0, spinV = 0, spinIn = 0, spinInV = 0;              /* the outer ring
    next, each held a moment, so it never shows lobes or a squeeze on the way. shapeT = ms of music played (the clock stops
    when paused). Every setting is in RING_CONFIG */
 const RING_CONFIG = {
-  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43, 48, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 7, 8, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72],
+  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43, 48, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 7, 8, 63, 64, 65, 66, 67, 68, 69, 70, 71],
   holdMs: {0: 21000, 3: 16000, 4: 16000,
            5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000, 42: 16000, 43: 16000, 48: 16000, 49: 16000, 50: 16000, 51: 16000, 52: 16000, 53: 16000, 54: 16000, 55: 16000, 56: 16000, 57: 16000, 58: 16000, 59: 16000, 60: 16000, 61: 16000, 7: 16000, 8: 16000, 63: 16000, 64: 16000, 65: 16000, 66: 16000, 67: 16000, 68: 16000, 69: 16000, 70: 16000, 71: 16000, 72: 16000},
   fadeMs: 6250,
@@ -1397,14 +1406,17 @@ const outlineAt = (V, t) => {              /* how far out a shape's outline is a
 const PINW = (() => { const v = []; for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2; for (let j = 0; j < 12; j++) { const q = j / 11, r = 2.06 - .94 * Math.pow(q, .6);
   v.push([r * Math.cos(a + q * 1.3614), r * Math.sin(a + q * 1.3614)]); } } return v; })();
 const GEARV = (() => { const v = [], w = Math.PI / 5; for (let k = 0; k < 10; k++) for (const [f, r] of [[-.5, 1.6], [-.28, 1.6], [-.16, 2.06], [.16, 2.06], [.28, 1.6]]) v.push([r * Math.cos(k * w + f * w), r * Math.sin(k * w + f * w)]); return v; })();
-const HEARTV = (() => { const v = []; for (let k = 0; k < 240; k++) { const t = 2 * Math.PI * k / 240, x = 16 * Math.pow(Math.sin(t), 3), y = 13 * Math.cos(t) - .8 * (5 * Math.cos(2 * t) + 2 * Math.cos(3 * t) + Math.cos(4 * t)) + 2.5; v.push([y, x]); }
+
+const HEARTV = [[1.669, -1.145], [1.669, -0.491], [1.342, -0.491], [1.342, -0.164], [1.014, -0.164], [1.014, 0.164], [1.342, 0.164], [1.342, 0.491], [1.669, 0.491], [1.669, 1.145], [1.342, 1.145], [1.342, 1.473], [1.014, 1.473], [1.014, 1.8], [0.033, 1.8], [0.033, 1.473], [-0.295, 1.473], [-0.295, 1.145], [-0.622, 1.145], [-0.622, 0.818], [-0.949, 0.818], [-0.949, 0.491], [-1.276, 0.491], [-1.276, 0.164], [-1.603, 0.164], [-1.603, -0.164], [-1.276, -0.164], [-1.276, -0.491], [-0.949, -0.491], [-0.949, -0.818], [-0.622, -0.818], [-0.622, -1.145], [-0.295, -1.145], [-0.295, -1.473], [0.033, -1.473], [0.033, -1.8], [1.014, -1.8], [1.014, -1.473], [1.342, -1.473], [1.342, -1.145]];
+const RHEART = (() => { const v = []; for (let k = 0; k < 240; k++) { const t = 2 * Math.PI * k / 240, x = 16 * Math.pow(Math.sin(t), 3), y = 13 * Math.cos(t) - .8 * (5 * Math.cos(2 * t) + 2 * Math.cos(3 * t) + Math.cos(4 * t)) + 2.5; v.push([y, x]); }
   const m = Math.max(...v.map(p => Math.hypot(p[0], p[1]))); return v.map(p => [p[0] * 2.06 / m, p[1] * 2.06 / m]); })();
-const BHEARTV = (() => { const v = [], put = (a, r) => { const t = a * Math.PI / 180, rr = r || rayAt(HEARTV, t); v.push([rr * Math.cos(t), rr * Math.sin(t)]); };
+const BHEARTV = (() => { const v = [], put = (a, r) => { const t = a * Math.PI / 180, rr = r || rayAt(RHEART, t); v.push([rr * Math.cos(t), rr * Math.sin(t)]); };
   for (let a = -160; a < 163; a += .75) put(a);
   for (const [a, r] of [[163, 0], [168, 1.6], [171.5, 1.74], [174.5, 1.34], [177.5, 1.5], [180.5, 1.08], [183, 1.3], [185.5, 1.22], [189, 1.58], [192.5, 1.47], [197, 0]]) put(a, r);
   return v; })();
-const VBARS = [[[-0.783, 0.55], [1.358, 1.204], [1.702, 0.078], [-0.438, -0.577]], [[-0.587, 0.377], [1.082, -0.625], [1.062, -1.765], [-0.526, -0.812]]];
-const XBARS = [[[-1.492, 0.475], [1.706, 1.154], [1.966, -0.067], [-1.233, -0.747]], [[-0.975, -1.788], [0.299, 1.711], [0.991, 0.493], [0.339, -1.3]]];
+
+const VBARS = [[[-1.695, 0.627], [1.245, 1.64], [1.636, 0.505], [-1.305, -0.507]], [[-1.041, 0.457], [1.937, -0.686], [0.97, -1.643], [-1.859, -0.557]]];
+const XBARS = [[[-1.923, -0.174], [1.628, 1.261], [2.003, 0.334], [-1.548, -1.101]], [[-0.66, 1.926], [1.294, -1.599], [0.191, -1.341], [-1.026, 0.854]]];
 const XPARTS = {45: XDIAMOND, 67: VBARS, 68: XBARS};
 Object.assign(CORNERS, {63: PINW, 64: GEARV, 66: HEARTV, 72: BHEARTV, 69: TANG(1, [88, 124, 96, 128, 104]), 70: TANG(1, [112, 140, 118, 146, 124, 132, 128]),
   71: TANG(1, [118, 150, 126, 144, 120, 156, 130, 136])});
@@ -3674,12 +3686,19 @@ function palette(px) {
   const ks = []; for (let k = 0; k < 512; k++) if (W[k]) ks.push(k);
   const sc = new Float64Array(512); for (const k of ks) sc[k] = score(k);
   ks.sort((p, q) => sc[q] - sc[p] || p - q);
-  const cand = ks.filter((k, i) => i === 0 || sc[k] >= .03 * total).map(k => onBlack(colourAt(k)));
+  const cand = ks.filter((k, i) => i === 0 || sc[k] >= .03 * total).map(k => vivid(onBlack(colourAt(k))));
   const out = [cand[0]];
   const two = cand.find(c => cdist(c, out[0]) >= 110);           /* clearly different */
   out.push(two || shade(out[0], .18));
   for (const c of cand) { if (out.length >= 5) break; if (out.every(o => cdist(o, c) >= 75)) out.push(c); }
   return fillPal(out);
+}
+
+function vivid(c) {
+  const mx = Math.max(...c), mn = Math.min(...c), d = (mx - mn) / 255, g = .3 * c[0] + .59 * c[1] + .11 * c[2];
+  if (d < .015 || d >= .34) return c;
+  const k = Math.min(2.2, .34 / d), lit = mn > 170 ? .88 : 1;
+  return c.map(v => Math.max(0, Math.min(255, (g + (v - g) * k) * lit)));
 }
 /* at least four colours (for the galaxy and the glow): shades of its own colours fill in */
 function fillPal(cols) {
@@ -3859,18 +3878,15 @@ function gxSize() {
      layer turning all the time, and the screen stuttered (a phone, upright, is unchanged: its height decides) */
   const d = $("#disc").getBoundingClientRect(), b = box.getBoundingClientRect(), D = Math.round(Math.min(Math.max(w * 1.75, h * .95), Math.max(w, h) * 1.15));
   box.style.setProperty("--gx", (d.left + d.width / 2 - b.left).toFixed(1) + "px");
+  box.style.setProperty("--rr", (d.width / 2).toFixed(1) + "px");
   box.style.setProperty("--gy", (d.top + d.height / 2 - b.top).toFixed(1) + "px");
   box.style.setProperty("--gd", D + "px");
   return D;
 }
-
-const GPITCH = 1 / Math.tan(13 * Math.PI / 180);          /* how tightly the arms wind */
-
-/* a BARRED spiral. A long warm bar runs through the middle (half-length BAR_L of the galaxy's radius - long enough
-   to show past the record), and the two arms leave its ends and sweep out about half a turn */
+const GPITCH = 1 / Math.tan(14 * Math.PI / 180);
 const BAR_L = .37;
 const ARM0 = [0, Math.PI + .1, Math.PI / 2 + .42, 3 * Math.PI / 2 + .46], ARM_IN = [0, 0, .44, .41];
-const armAt = (k, u) => ARM0[k] + Math.log(Math.max(u, BAR_L) / BAR_L) * GPITCH * .9
+const armAt = (k, u) => ARM0[k] + Math.log(Math.max(u, BAR_L) / BAR_L) * GPITCH * 1.05
   + Math.min(1, Math.max(0, (u - BAR_L) / .15)) * (.08 * Math.sin(u * 8.5 + k * 2.3) + .04 * Math.sin(u * 21 + k * 4.1));
 const DUST_IN = .17;                                       /* how far inside the arm the dust runs (radians) */
 /* a bar dust lane at s (0 = the bar's end, 1 = the ring round the core): {u: distance in galaxy radii, a: angle} */
@@ -3879,7 +3895,7 @@ const laneAt = (k, s, j) => ({u: BAR_L * Math.pow(1 - s, 1.15) + .068 * s + (j |
 const ARM_THICK = 1.55;                                    /* how much thicker than thin the arms are */
 /* how strong an arm is along its length (0..1): it starts out of the bulge, thins and breaks in
    places, and fades out - arm 1 a little weaker and shorter */
-const armW = (k, u) => (k > 1 ? Math.max(0, Math.min(1, (u - ARM_IN[k]) / .1)) * Math.max(0, 1 - Math.pow(u / .95, 6)) * .56
+const armW = (k, u) => (k > 1 ? Math.max(0, Math.min(1, (u - ARM_IN[k]) / .1)) * Math.max(0, 1 - Math.pow(u / .95, 6)) * .66
   : Math.max(0, Math.min(1, (u - BAR_L + .03) / .08)) * Math.max(0, 1 - Math.pow(u / (k ? .93 : .98), 6)) * (k ? .9 : 1))
   * (.72 + .28 * Math.sin(u * 13 + k * 1.7));
 const ARMPICK = q => q < .36 ? 0 : q < .68 ? 1 : q < .84 ? 2 : 3;
@@ -3889,11 +3905,11 @@ const GXP = (() => {
   const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
   const knots = [], spurs = [], feathers = [];
   for (let k = 0; k < 4; k++) {
-    for (let i = 0; i < (k > 1 ? 11 : 16); i++) {              /* star-forming regions come in groups */
+    for (let i = 0; i < (k > 1 ? 16 : 24); i++) {              /* star-forming regions come in groups (v170b: more) */
       const u0 = .18 + .74 * r(); if (r() > armW(k, u0) + .1) continue;
       const big = r() < .3, m = big ? 3 + ((r() * 4) | 0) : 1 + ((r() * 2) | 0);
       for (let j = 0; j < m; j++) {
-        const u = u0 + (r() - .5) * .05, pink = r() < (k > 1 ? .6 : .35);
+        const u = u0 + (r() - .5) * .05, pink = r() < (k > 1 ? .65 : .48);
         knots.push({u, a: armAt(k, u) + (pink ? DUST_IN * .45 : (r() - .5) * .14) + (r() - .5) * .04,
           s: big && j === 0 ? .8 + .2 * r() : .25 + .5 * r() * r(), pink});
       }
@@ -3910,9 +3926,211 @@ const GXP = (() => {
 })();
 const spurAt = (S, t) => { const u = S.u0 + S.len * t; return {u, a: armAt(S.k, S.u0) + S.da * t * S.len * 2.2}; };
 const featherAt = (F, t) => { const u = F.u0 + F.len * t; return {u, a: armAt(F.k, u) + F.off}; };
+
+const MWP = 11 * Math.PI / 180, MWK = 1 / Math.tan(MWP);
+
+const MWBAR = .24;
+
+const MWARM = [[0, MWBAR, .98], [Math.PI, MWBAR, .98], [Math.PI / 2 + .35, .32, .95], [3 * Math.PI / 2 + .35, .32, .95]];
+for (let i = 0; i < 8; i++) { const u0 = .34 + .04 * ((i * 7) % 4) + .05 * ((i * 5) % 3); MWARM.push([i * Math.PI / 4 + .2 + .13 * Math.sin(i * 2.3), u0, Math.min(.96, u0 + .28 + .07 * ((i * 3) % 5))]); }
+
+const mwPick = r => { const q = r(); return q < .4 ? (r() < .5 ? 0 : 1) : q < .65 ? (r() < .5 ? 2 : 3) : 4 + ((r() * 8) | 0); };
+const mwU = (k, t) => MWARM[k][1] + ((MWARM[k][2] || .98) - MWARM[k][1]) * t;          /* a point t (0..1) along arm k */
+const mwLit = (k, u) => Math.max(0, Math.min(1.25, .62 + .42 * Math.sin(u * 11.3 + k * 2.1) + .26 * Math.sin(u * 27.7 + k * 4.3) + .14 * Math.sin(u * 61 + k)));   /* bright and dim along the arm, with gaps */
+const mwTh = (k, u) => MWARM[k][0] + MWK * (1 + .1 * Math.sin(k * 2.1 + .4)) * Math.log(Math.max(u, MWARM[k][1]) / MWARM[k][1]) + .09 * Math.sin(u * 7.3 + k * 1.7) + .045 * Math.sin(u * 19.1 + k * 3.1);
+function drawMilkyWay(D) {
+  const box = $("#nowgx"); if (!box) return;
+  const dpr = Math.min(2, devicePixelRatio || 1, 2048 / D), R = D / 2 * .96, h = D / 2, S = D * dpr / 2048;
+  let sd = 1414;
+  const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296, gauss = () => (r() + r() + r() + r() - 2) / 1.15;
+  const P = (u, a, cx) => [(cx || h) + Math.cos(a) * u * R, (cx || h) + Math.sin(a) * u * R];
+  const canvas = (sel, size) => { const c = box.querySelector(sel); c.width = c.height = Math.round(size * dpr); const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, size, size); return [c, g]; };
+  const pick = (k) => (r() < (k > 1 ? .62 : 1) ? k : -1);
+  /* ---- the disc ---- */
+  const [c, g] = canvas(".gxp", D);
+  let rg = g.createRadialGradient(h, h, 0, h, h, R);
+  rg.addColorStop(0, "rgba(255,222,168,.68)"); rg.addColorStop(.2, "rgba(240,206,170,.52)"); rg.addColorStop(.45, "rgba(168,170,226,.38)");
+  rg.addColorStop(.72, "rgba(118,128,214,.24)"); rg.addColorStop(.9, "rgba(90,96,190,.09)"); rg.addColorStop(1, "rgba(0,0,0,0)");                  /* gold inside, blue-violet out */
+  g.fillStyle = rg; g.fillRect(0, 0, D, D);
+  g.save(); g.translate(h, h); g.scale(1, .42);
+  let bq = g.createRadialGradient(0, 0, 0, 0, 0, R * (MWBAR + .05));
+  bq.addColorStop(0, "rgba(255,250,236,1)"); bq.addColorStop(.3, "rgba(255,238,204,.95)"); bq.addColorStop(.62, "rgba(248,218,172,.6)"); bq.addColorStop(.85, "rgba(236,204,160,.22)"); bq.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = bq; g.fillRect(-R * (MWBAR + .05), -R * (MWBAR + .05), R * 2 * (MWBAR + .05), R * 2 * (MWBAR + .05)); g.restore();
+
+  { const q = g.createRadialGradient(h, h, 0, h, h, R * .5); q.addColorStop(0, "rgba(250,222,190,.38)"); q.addColorStop(.6, "rgba(232,206,190,.18)"); q.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = q; g.fillRect(0, 0, D, D); }
+  for (let i = 0; i < Math.round(5000 * Math.max(.4, S * S)); i++) {   /* the bar's old stars */
+    const t = (r() * 2 - 1) * MWBAR, y = gauss() * .032 * (1.2 - Math.abs(t) / MWBAR * .6), [x, yy] = [h + t * R, h + y * R];
+    g.globalAlpha = .18 + .4 * r(); g.fillStyle = r() < .6 ? "#FFE6BC" : "#FFF2DC"; const s2 = .5 + 1.1 * r() * r(); g.fillRect(x - s2 / 2, yy - s2 / 2, s2, s2);
+  }
+  g.globalAlpha = 1;
+  const barGlow = () => { g.save(); g.globalCompositeOperation = "lighter"; g.translate(h, h); g.scale(1, .4);
+    const q = g.createRadialGradient(0, 0, 0, 0, 0, R * MWBAR); q.addColorStop(0, "rgba(255,240,210,.55)"); q.addColorStop(.55, "rgba(250,220,170,.28)"); q.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = q; g.fillRect(-R * MWBAR, -R * MWBAR, R * 2 * MWBAR, R * 2 * MWBAR); g.restore(); };
+  const COLS = ["#DCE0EC", "#E6E8F0", "#C8D4FF", "#F2E2C4", "#F6DCB0", "#D2DAF0"];
+  const star = (x, y, s, al, col) => { g.globalAlpha = al; g.fillStyle = col; g.fillRect(x - s / 2, y - s / 2, s, s); };
+  g.globalCompositeOperation = "lighter";
+  for (let k = 0; k < MWARM.length; k++) {                                   /* the arms' glow: soft light along each arm, added up */
+    const nb = k > 11 ? 300 : k > 3 ? 420 : k > 1 ? 800 : 1200;
+    for (let i = 0; i < nb; i++) {
+      const u = mwU(k, Math.pow(r(), 1.15)), spread = (.03 + .06 * u) * (k > 1 ? 1.15 : 1) * (.7 + .6 * r());
+      if (r() > mwLit(k, u)) continue;
+      const [x, y] = P(u + gauss() * spread, mwTh(k, u) + gauss() * .035), rad = R * (.036 + .07 * u) * (.6 + .8 * r());
+      const warm = Math.max(0, 1 - u / .42), q2 = r(), col = warm > 0 ? [Math.round(200 + 55 * warm), Math.round(204 - 4 * warm), Math.round(236 - 90 * warm)] : (q2 < .38 ? [140, 176, 255] : q2 < .55 ? [196, 160, 255] : q2 < .62 ? [120, 210, 236] : [214, 220, 245]);
+      const q = g.createRadialGradient(x, y, 0, x, y, rad);
+      q.addColorStop(0, "rgba(" + col + "," + ((.04 + .028 * r()) * (k > 1 ? .75 : 1) * (1 - .4 * u)).toFixed(3) + ")"); q.addColorStop(.5, "rgba(" + col + "," + ((.016 + .01 * r()) * (1 - .4 * u)).toFixed(3) + ")"); q.addColorStop(1, "rgba(" + col + ",0)");
+      g.globalAlpha = 1; g.fillStyle = q; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    }
+  }
+
+  const NEB = [[255, 70, 140], [255, 92, 110], [240, 80, 190], [90, 150, 255], [70, 120, 255], [150, 110, 255], [70, 200, 220]];
+  for (let i = 0; i < 340; i++) {
+    const k = mwPick(r), u = .2 + .76 * r(); if (r() > mwLit(k, u)) continue;
+    const [x, y] = P(u + gauss() * .03, mwTh(k, u) + gauss() * .04), rad = R * (.018 + .045 * r()) * (.6 + u), col = NEB[(r() * NEB.length) | 0];
+    const q = g.createRadialGradient(x, y, 0, x, y, rad);
+    q.addColorStop(0, "rgba(" + col + "," + (.07 + .08 * r()).toFixed(3) + ")"); q.addColorStop(.55, "rgba(" + col + "," + (.025 + .03 * r()).toFixed(3) + ")"); q.addColorStop(1, "rgba(" + col + ",0)");
+    g.globalAlpha = 1; g.fillStyle = q; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  for (let i = 0; i < 900; i++) {
+    const u = MWBAR * .85 + .34 * Math.pow(r(), .9), [x, y] = P(u, r() * 6.2832), rad = R * (.018 + .028 * r());
+    const q = g.createRadialGradient(x, y, 0, x, y, rad); q.addColorStop(0, "rgba(242,216,192," + (.035 + .035 * r()).toFixed(3) + ")"); q.addColorStop(1, "rgba(242,216,192,0)");
+    g.globalAlpha = 1; g.fillStyle = q; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  g.globalCompositeOperation = "source-over";
+  for (let i = 0; i < Math.round(7000 * Math.max(.35, S * S)); i++) {
+    const u = MWBAR * .85 + .34 * Math.pow(r(), .9), [x, y] = P(u, r() * 6.2832);
+    star(x, y, .5 + 1.1 * r() * r(), .1 + .18 * r(), r() < .6 ? "#F4E2C8" : "#EADCE4");
+  }
+  for (let k = 0; k < MWARM.length; k++) {                                   /* the arms: tens of thousands of faint stars */
+    const n = Math.round((k > 11 ? 2600 : k > 3 ? 3600 : k > 1 ? 7000 : 11000) * Math.max(.35, S * S));
+    for (let i = 0; i < n; i++) {
+      const u = mwU(k, Math.pow(r(), 1.2)), spread = (.018 + .05 * u) * (k > 1 ? 1.2 : 1);
+      if (r() > mwLit(k, u) * 1.1) continue;
+      const [x, y] = P(u + gauss() * spread, mwTh(k, u) + gauss() * .03);
+      const warm = u < .4, col = warm ? COLS[r() < .55 ? 3 : (r() < .5 ? 4 : 1)] : COLS[r() < .22 ? 2 : (r() < .5 ? 0 : (r() < .5 ? 1 : 5))];
+      star(x, y, .5 + 1.4 * r() * r(), (.05 + .1 * r()) * (k > 1 ? .7 : 1) * (1.1 - .55 * u), col);
+    }
+  }
+  for (let f = 0; f < 80; f++) {                                  /* flocculent spurs between the arms, each with a soft glow */
+    const ka = mwPick(r), u0 = mwU(ka, .15 + .8 * r()), a0 = mwTh(ka, u0), len = .06 + .16 * r(), n = Math.round(700 * Math.max(.35, S * S));
+    g.globalCompositeOperation = "lighter";
+    for (let b = 0; b < 16; b++) { const t = b / 15, u = u0 + len * t, [x, y] = P(u, a0 + MWK * .55 * Math.log(u / u0)), rad = R * (.025 + .03 * u);
+      const q = g.createRadialGradient(x, y, 0, x, y, rad); q.addColorStop(0, "rgba(205,212,232," + (.045 * Math.sin(Math.PI * t)).toFixed(3) + ")"); q.addColorStop(1, "rgba(205,212,232,0)");
+      g.globalAlpha = 1; g.fillStyle = q; g.fillRect(x - rad, y - rad, rad * 2, rad * 2); }
+    g.globalCompositeOperation = "source-over";
+    for (let i = 0; i < n; i++) {
+      const t = r(), u = u0 + len * t, [x, y] = P(u + gauss() * .018, a0 + MWK * .55 * Math.log(u / u0) + gauss() * .02);
+      star(x, y, .5 + r(), (.04 + .07 * r()) * Math.sin(Math.PI * t), COLS[r() < .3 ? 2 : 0]);
+    }
+  }
+  for (let i = 0; i < Math.round(9000 * Math.max(.4, S * S)); i++) {   /* the disc between them: old stars, thinning out */
+    const u = Math.min(1.02, -Math.log(1 - r() * .98) * .3), [x, y] = P(u, r() * 6.2832);
+    star(x, y, .5 + .8 * r(), (.04 + .12 * r()) * (1 - .6 * u), COLS[u < .35 ? 3 : (r() < .5 ? 0 : 5)]);
+  }
+
+  const off = document.createElement("canvas"); off.width = off.height = c.width;
+  const go = off.getContext("2d"); go.setTransform(dpr, 0, 0, dpr, 0, 0); go.lineCap = "round"; go.lineJoin = "round";
+  const DUST = ["92,54,30", "78,44,24", "100,62,34", "70,40,22"];
+  const lane = (k, u, a, len, w, al) => {
+    go.beginPath(); let [x, y] = P(u, a); go.moveTo(x, y);
+    const steps = 8 + Math.round(len * 80);
+    for (let s = 0; s < steps; s++) {
+      const ds = len / steps; u += ds * Math.sin(MWP) + gauss() * .0016; a += ds * Math.cos(MWP) / Math.max(u, .05) + gauss() * .006 / Math.max(u * 3, .6);
+      [x, y] = P(u, a); go.lineTo(x, y);
+    }
+    go.globalAlpha = al; go.strokeStyle = "rgb(" + DUST[(r() * DUST.length) | 0] + ")"; go.lineWidth = w; go.stroke();
+  };
+  for (let k = 0; k < MWARM.length; k++) {                                   /* broad soft clouds along each arm's inner edge */
+    const nb = k > 11 ? 220 : k > 3 ? 230 : k > 1 ? 420 : 700;
+    for (let i = 0; i < nb; i++) {
+      const u = Math.max(.05, mwU(k, Math.pow(r(), 1.1))); if (r() > mwLit(k + 5, u) * .95) continue;
+      const [x, y] = P(u - (.012 + .022 * r()) + gauss() * .008, mwTh(k, u) + gauss() * .035);
+      const rad = R * (.012 + .022 * u) * (.7 + .6 * r()), q = go.createRadialGradient(x, y, 0, x, y, rad), col = DUST[(r() * DUST.length) | 0];
+      q.addColorStop(0, "rgba(" + col + "," + ((.16 + .14 * r()) * (k > 1 ? .8 : 1)).toFixed(3) + ")"); q.addColorStop(1, "rgba(" + col + ",0)");
+      go.globalAlpha = 1; go.fillStyle = q; go.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    }
+  }
+  for (const sg of [1, -1]) for (let i = 0; i < 0; i++) {
+    const t = .07 + (MWBAR - .07) * (i / 159), bend = Math.pow(t / MWBAR, 3) * .05, x = h + sg * t * R, y = h - sg * R * (.034 + bend) + gauss() * R * .003;
+    const rad = R * (.007 + .006 * (t / MWBAR)), q = go.createRadialGradient(x, y, 0, x, y, rad), col = DUST[(r() * DUST.length) | 0];
+    q.addColorStop(0, "rgba(" + col + "," + (.045 * Math.min(1, (t - .07) / .08)).toFixed(3) + ")"); q.addColorStop(1, "rgba(" + col + ",0)");
+    go.fillStyle = q; go.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  for (let i = 0; i < Math.round(2600 * Math.max(.45, S)); i++) {
+    const u = MWBAR * .9 + .3 * Math.pow(r(), .8), a = r() * 6.2832, [x, y] = P(u, a), rad = (1 + 2.2 * r()) * D / 1000, col = DUST[(r() * DUST.length) | 0];
+    const q = go.createRadialGradient(x, y, 0, x, y, rad); q.addColorStop(0, "rgba(" + col + "," + (.22 + .22 * r()).toFixed(3) + ")"); q.addColorStop(1, "rgba(" + col + ",0)");
+    go.fillStyle = q; go.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  const nd = Math.round(1500 * Math.max(.45, S));                 /* wide strands along the arms */
+  for (let i = 0; i < nd; i++) {
+    const k = mwPick(r), u = Math.max(.05, mwU(k, Math.pow(r(), 1.1))); if (r() > mwLit(k + 5, u)) continue;
+    lane(k, u - (.008 + .025 * r()), mwTh(k, u) + gauss() * .025, .02 + .07 * r(), (2.2 + 4.5 * r()) * D / 1000, (.14 + .2 * r()) * (u < .22 ? .55 : 1));
+  }
+  for (let i = 0; i < Math.round(320 * Math.max(.4, S)); i++) {    /* a few soft strands in the gaps */
+    const u = .2 + .7 * r(); lane(0, u, r() * 6.2832, .02 + .05 * r(), (1.6 + 2.6 * r()) * D / 1000, .08 + .1 * r());
+  }
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+  const blurOK = "filter" in g;
+  if (blurOK) g.filter = "blur(" + Math.max(2.5, c.width / 420).toFixed(1) + "px)";
+  g.globalAlpha = blurOK ? 1 : .75; g.drawImage(off, 0, 0);
+  if (blurOK) { g.filter = "blur(" + Math.max(1, c.width / 1400).toFixed(1) + "px)"; g.globalAlpha = .28; g.drawImage(off, 0, 0); }
+  g.filter = "none"; g.restore();
+  barGlow();
+  for (let i = 0; i < Math.round(520 * Math.max(.4, S * S)); i++) {   /* blue-white young clusters, out in the arms */
+    const k = mwPick(r), u = .38 + .6 * r(), [x, y] = P(u + gauss() * .03, mwTh(k, u) + gauss() * .05);
+    const rad = (1 + 2.6 * r() * r()) * D / 1000, q = g.createRadialGradient(x, y, 0, x, y, rad * 2.4);
+    q.addColorStop(0, "rgba(240,246,255,.95)"); q.addColorStop(.35, "rgba(150,186,255,.42)"); q.addColorStop(1, "rgba(0,0,0,0)");
+    g.globalAlpha = .45 + .5 * r(); g.fillStyle = q; g.fillRect(x - rad * 2.4, y - rad * 2.4, rad * 4.8, rad * 4.8);
+  }
+  for (let i = 0; i < Math.round(2600 * Math.max(.4, S * S)); i++) {  /* field stars in front */
+    const [x, y] = P(Math.sqrt(r()) * 1.04, r() * 6.2832);
+    star(x, y, .5 + 1.1 * r() * r() * r(), .3 + .6 * r(), r() < .2 ? "#FFE8C8" : (r() < .2 ? "#CFE0FF" : "#FFFFFF"));
+  }
+  g.globalAlpha = 1;
+
+  const [, gk] = canvas(".gxk", D);
+  for (let i = 0; i < 420; i++) {
+    const k = mwPick(r), u = .2 + .76 * r(); if (r() > mwLit(k, u)) continue;
+    const m = 1 + ((r() * 4) | 0), a0 = mwTh(k, u) + gauss() * .035, u0 = u + gauss() * .018;
+    for (let j = 0; j < m; j++) {
+      const [x, y] = P(u0 + gauss() * .006, a0 + gauss() * .01 / Math.max(u, .2)), rad = (.35 + .9 * r() * r()) * D / 1000, q = gk.createRadialGradient(x, y, 0, x, y, rad * 2.2);
+      q.addColorStop(0, "rgba(255,170,190,.8)"); q.addColorStop(.4, "rgba(232,70,110,.35)"); q.addColorStop(1, "rgba(0,0,0,0)");
+      gk.globalAlpha = .3 + .35 * r(); gk.fillStyle = q; gk.fillRect(x - rad * 2.2, y - rad * 2.2, rad * 4.4, rad * 4.4);
+    }
+  }
+  box.querySelector(".gxk").classList.add("on");
+  /* ---- the core: bulge, bar, its own dust lanes - turns faster ---- */
+  const C = Math.round(D * .62), hc = C / 2;
+  box.style.setProperty("--gc", C + "px");
+  const [, gc] = canvas(".gxcore", C);
+  const Pc = (u, a) => [hc + Math.cos(a) * u * R, hc + Math.sin(a) * u * R];
+  rg = gc.createRadialGradient(hc, hc, 0, hc, hc, R * .36);
+  rg.addColorStop(0, "rgba(255,246,228,1)"); rg.addColorStop(.1, "rgba(255,234,196,.95)"); rg.addColorStop(.3, "rgba(250,220,176,.72)");
+  rg.addColorStop(.55, "rgba(240,206,162,.4)"); rg.addColorStop(.8, "rgba(230,196,156,.13)"); rg.addColorStop(1, "rgba(0,0,0,0)");
+  gc.fillStyle = rg; gc.fillRect(0, 0, C, C);
+  gc.save(); gc.translate(hc, hc); gc.scale(1, .42);
+  rg = gc.createRadialGradient(0, 0, 0, 0, 0, R * (MWBAR + .04)); rg.addColorStop(0, "rgba(255,244,222,.9)"); rg.addColorStop(.45, "rgba(252,226,182,.6)"); rg.addColorStop(.8, "rgba(240,206,160,.2)"); rg.addColorStop(1, "rgba(0,0,0,0)");
+  gc.fillStyle = rg; gc.fillRect(-R * (MWBAR + .04), -R * (MWBAR + .04), R * 2 * (MWBAR + .04), R * 2 * (MWBAR + .04)); gc.restore();
+  for (let i = 0; i < Math.round(2400 * Math.max(.4, S * S)); i++) {           /* the bulge's old stars */
+    const u = Math.abs(gauss()) * .09, [x, y] = Pc(u, r() * 6.2832);
+    gc.globalAlpha = .25 + .5 * r(); gc.fillStyle = r() < .6 ? "#FFE9C4" : "#FFF6E6"; const s = .5 + 1.2 * r() * r(); gc.fillRect(x - s / 2, y - s / 2, s, s);
+  }
+  gc.lineCap = "round";
+  for (let i = 0; i < 0; i++) {
+    const k = r() < .5 ? 0 : 1; let u = .06 + .22 * r(), a = mwTh(k, Math.max(u, .15)) + .6 + gauss() * .2 - (k ? 0 : 0);
+    gc.beginPath(); let [x, y] = Pc(u, a); gc.moveTo(x, y);
+    const len = .02 + .05 * r(), steps = 14;
+    for (let s = 0; s < steps; s++) { u += len / steps * Math.sin(.2) + gauss() * .001; a += len / steps * Math.cos(.2) / Math.max(u, .03) + gauss() * .01; [x, y] = Pc(u, a); gc.lineTo(x, y); }
+    gc.globalAlpha = (.05 + .1 * r()) * Math.min(1, u / .12); gc.strokeStyle = "rgb(" + DUST[(r() * DUST.length) | 0] + ")"; gc.lineWidth = (.3 + .8 * r()) * D / 1000; gc.stroke();
+  }
+  rg = gc.createRadialGradient(hc, hc, 0, hc, hc, R * .03); rg.addColorStop(0, "rgba(255,255,250,1)"); rg.addColorStop(1, "rgba(255,240,210,0)");
+  gc.globalAlpha = 1; gc.fillStyle = rg; gc.fillRect(hc - R * .03, hc - R * .03, R * .06, R * .06);
+  box.querySelector(".gxcore").classList.add("on");
+}
 function galaxyStars() {
   const D = gxSize(); if (!D) return;
-  const c = $("#nowgx .gxp"), dpr = Math.min(1.5, devicePixelRatio || 1, 2048 / D);   /* the star layer never past 2048 px */
+  try { drawMilkyWay(D); if (GX.pal) galaxyFor(GX.pal, true); return; } catch (e) {   }
+  const c = $("#nowgx .gxp"), dpr = Math.min(1.5, devicePixelRatio || 1, 2048 / D);
   c.width = c.height = Math.round(D * dpr);
   const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
   let sd = 67;
@@ -3999,6 +4217,38 @@ function galaxyStars() {
     rg.addColorStop(0, "rgba(255,170,205,.85)"); rg.addColorStop(.4, "rgba(255,105,165,.3)"); rg.addColorStop(1, "rgba(0,0,0,0)");
     g.globalAlpha = .3 + .35 * r(); g.fillStyle = rg; g.fillRect(x - rad * 3, y - rad * 3, rad * 6, rad * 6);
   }
+
+  for (let n = 0; n < 150; n++) {                                           /* dust: broken, wavy strands along the arms */
+    const k = ARMPICK(r()), u0 = Math.max(ARM_IN[k], BAR_L) + .6 * r(), len = .03 + .1 * r(), off = DUST_IN * (r() * 1.6 - .5), ph = r() * 6.28;
+    if (armW(k, u0) < .15) continue;
+    g.beginPath();
+    for (let i = 0; i <= 24; i++) {
+      const u = u0 + len * i / 24, [x, y] = P2(u + .006 * Math.sin(i * .9 + ph), armAt(k, u) + off + .03 * Math.sin(u * 70 + ph) + .015 * (r() - .5));
+      if (i) g.lineTo(x, y); else g.moveTo(x, y);
+    }
+    g.strokeStyle = "rgba(84,50,28," + (.2 + .22 * r()).toFixed(3) + ")"; g.lineWidth = Math.max(.7, D * (.001 + .0018 * r())); g.stroke();
+  }
+  for (let i = 0; i < 220; i++) {
+    const k = ARMPICK(r()), u = Math.max(ARM_IN[k], BAR_L) + .58 * r(); if (armW(k, u) < .15) continue;
+    const a0 = armAt(k, u) + DUST_IN * (r() - .35), len = .015 + .04 * r(), tilt = (r() < .5 ? -1 : 1) * (.4 + .9 * r());
+    g.beginPath();
+    for (let q = 0; q <= 8; q++) { const t = q / 8, [x, y] = P2(u + len * t * .6, a0 + len * t * tilt); if (q) g.lineTo(x, y); else g.moveTo(x, y); }
+    g.strokeStyle = "rgba(84,50,28," + (.12 + .16 * r()).toFixed(3) + ")"; g.lineWidth = Math.max(.5, D * (.0007 + .0012 * r())); g.stroke();
+  }
+  for (let i = 0; i < 700; i++) {                                              /* pink knots */
+    const k = ARMPICK(r()), u = .2 + .78 * r(), w = armW(k, u); if (r() > w + .04) continue;
+    const [x, y] = P2(u + (r() - .5) * .09, armAt(k, u) + (r() - .5) * .22 * ARM_THICK), rad = D * (.001 + .0028 * r() * r());
+    const rg = g.createRadialGradient(x, y, 0, x, y, rad * 2.6);
+    rg.addColorStop(0, "rgba(255,196,220,.95)"); rg.addColorStop(.35, "rgba(255,112,168,.45)"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.globalAlpha = .45 + .45 * r(); g.fillStyle = rg; g.fillRect(x - rad * 2.6, y - rad * 2.6, rad * 5.2, rad * 5.2);
+  }
+  for (let i = 0; i < 520; i++) {                                              /* blue-white young clusters */
+    const k = ARMPICK(r()), u = .25 + .73 * r(), w = armW(k, u); if (r() > w + .04) continue;
+    const [x, y] = P2(u + (r() - .5) * .1, armAt(k, u) + (r() - .5) * .26 * ARM_THICK), rad = D * (.0008 + .0018 * r() * r());
+    const rg = g.createRadialGradient(x, y, 0, x, y, rad * 2.4);
+    rg.addColorStop(0, "rgba(236,244,255,.95)"); rg.addColorStop(.4, "rgba(150,186,255,.4)"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.globalAlpha = .4 + .5 * r(); g.fillStyle = rg; g.fillRect(x - rad * 2.4, y - rad * 2.4, rad * 4.8, rad * 4.8);
+  }
   g.globalAlpha = 1;
   if (GX.pal) galaxyFor(GX.pal, true);
 }
@@ -4011,6 +4261,21 @@ function galaxyFor(pal, now) {
   c.width = c.height = L;
   const g = c.getContext("2d"), h = L / 2, Rg = L / 2 * .96, T = pal.map(v => mix(v, [128, 128, 128], .12));
   const T2 = k => T[k + 2] || T[k];
+  if ($("#nowgx .gxk.on")) { g.clearRect(0, 0, L, L);
+
+    { let sd2 = 8181; const r2 = () => (sd2 = (Math.imul(sd2, 1664525) + 1013904223) >>> 0) / 4294967296;
+      const hh = L / 2, RR = L / 2 * .96, mid = mix(T[0], T[1], .5);
+      g.globalCompositeOperation = "lighter";
+      let q = g.createRadialGradient(hh, hh, 0, hh, hh, RR); q.addColorStop(0, rgba(mid, .16)); q.addColorStop(.5, rgba(mid, .08)); q.addColorStop(1, rgba(mid, 0));
+      g.fillStyle = q; g.fillRect(0, 0, L, L);
+      for (let k = 0; k < MWARM.length; k++) for (let i = 0; i < (k < 4 ? 70 : 34); i++) {
+        const u = mwU(k, r2()); if (r2() > mwLit(k, u)) continue;
+        const a = mwTh(k, u) + (r2() - .5) * .08, x = hh + Math.cos(a) * u * RR, y = hh + Math.sin(a) * u * RR, rad = RR * (.04 + .07 * u), col = T[k % T.length] || mid;
+        q = g.createRadialGradient(x, y, 0, x, y, rad); q.addColorStop(0, rgba(col, (.07 + .05 * r2()) * (1 - .3 * u))); q.addColorStop(1, rgba(col, 0));
+        g.fillStyle = q; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+      }
+      g.globalCompositeOperation = "source-over"; }
+    c.classList.add("on"); cs[1 - GX.flip].classList.remove("on"); try { andromeda(T, mix(T[0], T[1], .5)); } catch (e) { /* the Milky Way still shows */ } return; }
   let sd = 2969;
   const r = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
   const WARM = [255, 226, 186], CORE = [255, 244, 226], BLUE = [168, 194, 255], PINK = [255, 118, 168];
@@ -4025,14 +4290,14 @@ function galaxyFor(pal, now) {
   /* the disc: brightest in the middle and fading outward smoothly (like a real one), warm inside,
      bluer and more the song's further out */
   { const rg = g.createRadialGradient(h, h, 0, h, h, Rg);
-    for (let i = 0; i <= 8; i++) { const u = i / 8, col = mix(mix(WARM, BLUE, Math.min(1, u * 1.6)), songMid, .15 + .3 * u);
-      rg.addColorStop(u, rgba(col, (.22 * Math.exp(-u / .3) + .02) * (1 - Math.pow(u, 4)))); }
+    for (let i = 0; i <= 8; i++) { const u = i / 8, col = mix(mix(WARM, BLUE, Math.min(1, u * 1.6)), songMid, .06 + .12 * u);
+      rg.addColorStop(u, rgba(mix(col, [214, 220, 236], .35 * u), (.28 * Math.exp(-u / .34) + .035) * (1 - Math.pow(u, 4)))); }
     g.fillStyle = rg; g.fillRect(0, 0, L, L); }
   for (let k = 0; k < 4; k++) for (let i = 0; i < 90; i++) {                  /* the arms: blue-white with the song glowing through */
     const u = .1 + .88 * i / 89, w = armW(k, u); if (w < .03) continue;
     const [x, y] = at(u, armAt(k, u) + (r() - .5) * .06);
-    const col = k > 1 ? mix(mix(BLUE, PINK, .22), T[k - 2], .35) : mix(BLUE, mix(T[k], T2(k), Math.min(1, u * 1.25)), .45);
-    blob(x, y, Rg * (.075 + .12 * u) * (.8 + .4 * r()) * ARM_THICK, col, (.15 * Math.pow(1 - u, .5) + .075) * w * (.65 + .7 * r()));
+    const col = k > 1 ? mix(mix(BLUE, PINK, .3), T[k - 2], .15) : mix(BLUE, mix(T[k], T2(k), Math.min(1, u * 1.25)), .14);
+    blob(x, y, Rg * (.075 + .12 * u) * (.8 + .4 * r()) * ARM_THICK, mix(col, [226, 232, 248], .25), (.2 * Math.pow(1 - u, .5) + .11) * w * (.65 + .7 * r()));
   }
   for (const S of GXP.spurs) for (let i = 0; i <= 12; i++) {                  /* the spurs, fading as they go */
     const t = i / 12, P = spurAt(S, t), [x, y] = at(P.u, P.a);
@@ -4056,16 +4321,18 @@ function galaxyFor(pal, now) {
     blob(h + t * BAR_L * Rg, h, Rg * (.13 + .08 * e), mix(WARM, songMid, .12), .036 + .06 * e, .7);
   }
   for (const sg of [-1, 1]) blob(h + sg * BAR_L * Rg, h, Rg * .045, mix([210, 222, 255], songMid, .15), .12);   /* bright where the arms begin */
-  blob(h, h, Rg * .27, mix(WARM, songMid, .15), .08, .86);                    /* the bulge: soft, falling off like a real one */
-  blob(h, h, Rg * .15, WARM, .13, .84);
-  blob(h, h, Rg * .075, mix(WARM, CORE, .5), .2, .86);
+  blob(h, h, Rg * .46, [255, 214, 160], .14, .8);
+  blob(h, h, Rg * .34, mix([255, 222, 168], songMid, .04), .3, .78);
+  blob(h, h, Rg * .22, [255, 228, 180], .28, .74);                    /* the bulge: soft, falling off like a real one */
+  blob(h, h, Rg * .15, [255, 236, 200], .36, .72);
+  blob(h, h, Rg * .075, mix(WARM, CORE, .5), .42, .8);
   { const nr = Rg * .06;                                                      /* the nuclear ring: young clusters, blue-white and pink */
     for (let i = 0; i < 18; i++) {
       const a = i / 18 * 6.2832 + (r() - .5) * .3, rr = nr * (.9 + .2 * r());
       const x = h + Math.cos(a) * rr, y = h + Math.sin(a) * rr * .8;
       blob(x, y, Rg * (.006 + .008 * r()), r() < .35 ? mix(PINK, [255, 255, 255], .35) : [222, 232, 255], .12 + .14 * r());
     } }
-  blob(h, h, Rg * .028, CORE, .55, .9);                                       /* the nucleus: small and bright */
+  blob(h, h, Rg * .028, CORE, .8, .9);                                       /* the nucleus: small and bright */
   blob(h, h, Rg * .011, [255, 252, 244], .7);
   g.globalCompositeOperation = "destination-out";                             /* dust: broken, patchy, inside each arm */
   const dust = (x, y, rad, al) => { const rg = g.createRadialGradient(x, y, 0, x, y, rad);
@@ -4096,10 +4363,15 @@ function galaxyFor(pal, now) {
     rg.addColorStop(0, "rgba(0,0,0," + al + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
     g.fillStyle = rg; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
   }
+  g.globalCompositeOperation = "lighter";
+  blob(h, h, Rg * .42, [255, 210, 150], .13, .8);
+  blob(h, h, Rg * .26, [255, 224, 176], .2, .76);
+  blob(h, h, Rg * .14, [255, 236, 204], .22, .74);
+  g.globalCompositeOperation = "source-over";
   c.classList.add("on"); cs[1 - GX.flip].classList.remove("on");
   try { andromeda(T, songMid); } catch (e) { /* the Milky Way still shows */ }
 }
-
+let GXA = null;
 function andromeda(T, tint) {
   const c = $("#nowgx .gxa"), box = $("#nowgx"); if (!c || !box) return;
   const w = box.offsetWidth, hh = box.offsetHeight; if (!w || !hh) return;
@@ -4115,16 +4387,16 @@ function andromeda(T, tint) {
     g.fillStyle = rg; g.fillRect(-rx, -rx, rx * 2, rx * 2); g.restore(); };
   const WARM = [255, 228, 192], BLUE = [176, 200, 255], PINK = [255, 120, 170];
   /* ANDROMEDA */
-  const ax = w * .22, ay = hh * .15, A = S * .2, inc = .24, rot = -.62;
+  const ax = w * .24, ay = hh * .16, A = S * .3, inc = .24, rot = -.62;
   const ca = Math.cos(rot), sa = Math.sin(rot), P = (u, v) => [ax + u * ca - v * sa, ay + u * sa + v * ca];   /* u along its long axis, v across */
-  blob(ax, ay, A * 1.15, A * 1.15 * inc, rot, mix(BLUE, tn, .2), .07);                       /* the faint outer disc */
+  blob(ax, ay, A * 1.15, A * 1.15 * inc, rot, mix(BLUE, tn, .2), .17);                       /* the faint outer disc */
   for (let i = 0; i < 70; i++) { const t = i / 70 * 6.2832, rr = A * (.6 + .05 * Math.sin(t * 3)), [x, y] = P(Math.cos(t) * rr, Math.sin(t) * rr * inc);
-    blob(x, y, A * .09, A * .09 * .6, rot, mix(BLUE, tn, .15), .05 + .03 * r()); }            /* the ring of young stars, ~10 kpc */
+    blob(x, y, A * .09, A * .09 * .6, rot, mix(BLUE, tn, .15), .09 + .05 * r()); }            /* the ring of young stars, ~10 kpc */
   for (let i = 0; i < 90; i++) { const t = i / 90 * 6.2832, rr = A * (.3 + .55 * r()), [x, y] = P(Math.cos(t) * rr, Math.sin(t) * rr * inc);
-    blob(x, y, A * .05, A * .03, rot, mix(BLUE, tn, .2), .03 + .03 * r()); }
-  blob(ax, ay, A * .36, A * .36 * .62, rot, WARM, .2);                                       /* the bulge - warm, old */
-  blob(ax, ay, A * .16, A * .16 * .7, rot, [255, 238, 214], .35);
-  blob(ax, ay, A * .04, A * .04, rot, [255, 250, 240], .8);                                  /* the nucleus */
+    blob(x, y, A * .05, A * .03, rot, mix(BLUE, tn, .2), .06 + .05 * r()); }
+  blob(ax, ay, A * .36, A * .36 * .62, rot, WARM, .42);                                       /* the bulge - warm, old */
+  blob(ax, ay, A * .16, A * .16 * .7, rot, [255, 238, 214], .62);
+  blob(ax, ay, A * .045, A * .045, rot, [255, 250, 240], 1);                                  /* the nucleus */
   for (let i = 0; i < 220; i++) { const u = gauss() * A * .45, v = gauss() * A * .08, [x, y] = P(u, v);   /* its stars, too far to see one by one: a grain */
     g.fillStyle = rgba(r() < .6 ? [236, 240, 255] : WARM, .25 + .4 * r()); g.fillRect(x, y, .7, .7); }
   { const [x, y] = P(A * .12, A * .2); blob(x, y, A * .045, A * .045, 0, [255, 240, 222], .5); }        /* M32 */
@@ -4136,19 +4408,25 @@ function andromeda(T, tint) {
     g.fillStyle = rg; g.fillRect(x - A * .03, y - A * .03, A * .06, A * .06); }
   g.globalCompositeOperation = "lighter";
   /* THE MAGELLANIC CLOUDS */
-  const lx = w * .84, ly = hh * .44, Lr = S * .07;
-  blob(lx, ly, Lr * 1.3, Lr * .9, .3, mix(BLUE, tn, .25), .09);
-  blob(lx - Lr * .15, ly + Lr * .05, Lr * .55, Lr * .16, .45, [255, 236, 214], .3);          /* the LMC's off-centre bar */
+  const lx = w * .82, ly = hh * .34, Lr = S * .09;
+  blob(lx, ly, Lr * 1.3, Lr * .9, .3, mix(BLUE, tn, .25), .2);
+  blob(lx - Lr * .15, ly + Lr * .05, Lr * .55, Lr * .16, .45, [255, 236, 214], .45);          /* the LMC's off-centre bar */
   for (let i = 0; i < 26; i++) blob(lx + gauss() * Lr * .7, ly + gauss() * Lr * .5, Lr * (.06 + .1 * r()), Lr * (.05 + .08 * r()), r() * 3, r() < .3 ? PINK : [220, 230, 255], .06 + .08 * r());
   blob(lx + Lr * .55, ly - Lr * .22, Lr * .14, Lr * .12, 0, [255, 96, 140], .55);           /* the Tarantula Nebula */
   blob(lx + Lr * .55, ly - Lr * .22, Lr * .04, Lr * .04, 0, [255, 230, 240], .8);
   const sx = lx - Lr * 1.9, sy = ly + Lr * 1.15;
-  blob(sx, sy, Lr * .55, Lr * .26, -.5, [232, 236, 255], .16);                                /* the SMC */
+  blob(sx, sy, Lr * .55, Lr * .26, -.5, [232, 236, 255], .3);                                /* the SMC */
+  GXA = {ax: ax, ay: ay, A: A, rot: rot, inc: inc, lx: lx, ly: ly, Lr: Lr, sx: sx, sy: sy, w: w, h: hh};
   blob(sx + Lr * .1, sy - Lr * .05, Lr * .2, Lr * .12, -.5, [255, 240, 225], .2);
   for (let i = 0; i < 14; i++) { const t = i / 13; blob(sx + (lx - sx) * t + gauss() * Lr * .1, sy + (ly - sy) * t + gauss() * Lr * .1, Lr * .12, Lr * .08, 0, [200, 215, 255], .03); }   /* the Magellanic Bridge */
   /* THE SAGITTARIUS DWARF's stream - a long faint arc round the far side */
   for (let i = 0; i < 80; i++) { const t = i / 79, a = 3.6 + 1.6 * t, rr = S * (.62 + .05 * Math.sin(t * 5));
     blob(w * .5 + Math.cos(a) * rr * 1.2, hh * .42 + Math.sin(a) * rr * .55, S * .035, S * .016, a + 1.57, mix([230, 220, 200], tn, .2), .025 * Math.sin(Math.PI * t)); }
+
+  for (let i = 0; i < 18; i++) { const x = w * (.03 + .94 * r()), y = hh * (.03 + .62 * r());
+    if (Math.hypot(x - ax, (y - ay) * 2.2) < A * 1.3 || Math.hypot(x - lx, y - ly) < Lr * 2.6) continue;
+    const big = S * (.008 + .016 * r()), flat = .25 + .6 * r(), ang = r() * 3.14;
+    blob(x, y, big * 1.8, big * 1.8 * flat, ang, mix([226, 214, 196], tn, .1), .16); blob(x, y, big * .45, big * .45 * flat, ang, [255, 236, 210], .5); }
   /* globular clusters - small fuzzy balls of old stars round the halo */
   for (let i = 0; i < 11; i++) { const x = w * (.05 + .9 * r()), y = hh * (.05 + .6 * r());
     if (Math.hypot(x - ax, (y - ay) * 2) < A * 1.2 || Math.hypot(x - lx, y - ly) < Lr * 2.4) continue;
@@ -4166,9 +4444,14 @@ function supernova() {
   if (!box || document.hidden || !$("#now").classList.contains("show") || !document.body.classList.contains("playing")) return;
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const D = box.offsetWidth; if (!D) return;
-  const k = ARMPICK(Math.random()), u = Math.max(ARM_IN[k], .18) + .27 * Math.random();
-  const a = Math.random() < .8 ? armAt(k, u) + (Math.random() - .5) * .16 * ARM_THICK : Math.random() * 6.2832;
+  if (GXA && Math.random() < .3) { supernovaFar(); return; }
   const h = D / 2, Rg = h * .96, el = document.createElement("i");
+  const B = $("#nowgx"), cs = getComputedStyle(B), gx = parseFloat(cs.getPropertyValue("--gx")) || B.offsetWidth / 2, gy = parseFloat(cs.getPropertyValue("--gy")) || B.offsetHeight * .4;
+  const top = Math.min(gx, B.offsetWidth - gx, gy, B.offsetHeight - gy) * .92 / Rg;
+  let k = ARMPICK(Math.random()), lo = Math.max(ARM_IN[k], .18), hi = Math.min(lo + .27, top);
+  if (hi < lo + .04) { k = Math.random() < .5 ? 0 : 1; lo = .18; hi = Math.max(lo + .04, Math.min(.45, top)); }
+  const u = lo + (hi - lo) * Math.random();
+  const a = Math.random() < .8 ? mwTh(k, u) + (Math.random() - .5) * .1 : Math.random() * 6.2832;
   el.className = "sn";
   el.style.left = (h + Math.cos(a) * u * Rg).toFixed(1) + "px";
   el.style.top = (h + Math.sin(a) * u * Rg).toFixed(1) + "px";
@@ -4180,6 +4463,23 @@ function supernova() {
   el.style.animationDuration = big ? "9s" : "6s";
   el.addEventListener("animationend", () => el.remove(), {once: true});
   box.appendChild(el);
+}
+function supernovaFar() {
+  const far = $("#nowgx"); if (!far || !GXA) return;
+  const G = GXA, q = Math.random(), el = document.createElement("i");
+  let x, y, sz;
+  if (q < .45) { const u = (Math.random() - .5) * 1.4 * G.A, v = (Math.random() - .5) * 1.4 * G.A * G.inc;          /* in Andromeda's disc */
+    x = G.ax + u * Math.cos(G.rot) - v * Math.sin(G.rot); y = G.ay + u * Math.sin(G.rot) + v * Math.cos(G.rot); sz = G.A * (.18 + .12 * Math.random()); }
+  else if (q < .7) { x = G.lx + (Math.random() - .5) * G.Lr * 1.6; y = G.ly + (Math.random() - .5) * G.Lr; sz = G.Lr * (.7 + .5 * Math.random()); }   /* the LMC */
+  else if (q < .82) { x = G.sx + (Math.random() - .5) * G.Lr * .8; y = G.sy + (Math.random() - .5) * G.Lr * .4; sz = G.Lr * (.5 + .4 * Math.random()); }   /* the SMC */
+  else { x = G.w * (.06 + .88 * Math.random()); y = G.h * (.05 + .55 * Math.random()); sz = Math.min(G.w, G.h) * (.025 + .02 * Math.random()); }   /* far off */
+  el.className = "sn";
+  el.style.left = x.toFixed(1) + "px"; el.style.top = y.toFixed(1) + "px";
+  el.style.setProperty("--sn", Math.round(sz) + "px");
+  el.style.setProperty("--snp", (.55 + .35 * Math.random()).toFixed(2));
+  el.style.animationDuration = "7s";
+  el.addEventListener("animationend", () => el.remove(), {once: true});
+  far.appendChild(el);
 }
 supernovaSoon();
 /* the glow behind the buttons: four of the song's colours, low on the screen; fades over the last */
@@ -4661,14 +4961,14 @@ function fitArtists(na, parts) {
   return {text: parts[0], more: parts.length - 1, cut: true};          /* the first name alone, cut short with ... */
 }
 function drawArtists() {
-  const na = $("#nartist"), parts = (na.dataset.all || "").split(/\s*,\s*/).filter(Boolean);
+  const na = $("#nartist"), parts = mainArtists((na.dataset.all || "").split(/\s*,\s*/).filter(Boolean))   ;
   if (!parts.length) { na.textContent = ""; na.classList.remove("more"); return; }
   const f = fitArtists(na, parts);
   na.innerHTML = '<span class="an">' + esc(f.text) + '</span>' + (f.more ? '<b class="aplus">+' + f.more + '</b>' : '');
   na.classList.toggle("more", f.cut); na.title = f.cut ? "Tap to see every artist" : "";
 }
 function artOpen() {
-  const na = $("#nartist"), card = $("#nartall"), parts = (na.dataset.all || "").split(/\s*,\s*/).filter(Boolean);
+  const na = $("#nartist"), card = $("#nartall"), parts = mainArtists((na.dataset.all || "").split(/\s*,\s*/).filter(Boolean))   ;
   card.innerHTML = '<small>' + (parts.length > 1 ? "Artists" : "Artist") + '</small>' + parts.map(a => '<div>' + esc(a) + '</div>').join("");
   const m = na.closest(".meta").getBoundingClientRect(), n = $("#now").getBoundingClientRect();
   card.style.bottom = Math.round(n.bottom - m.top + 8) + "px";           /* just above the song's name */
