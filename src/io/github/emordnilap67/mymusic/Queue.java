@@ -166,6 +166,35 @@ final class Queue {
         else if (n < upNext.size()) upNext.remove(n);
     }
 
+    /**
+     * A song tapped in Up next plays now. n = its place in upcoming() (the
+     * queue first, then the list); key = the song shown there, so if Up next
+     * moved meanwhile the song is found by its key, never a neighbour. A
+     * queued song comes off the queue and plays (the other queued songs stay);
+     * a song of the list: the list moves on to it (the ones before it are
+     * passed over this time round) and the queue still plays first after it.
+     * Returns the song to play, or null when it is no longer in Up next.
+     */
+    String jump(int n, String key) {
+        List<String> up = upcoming(Math.max(n + 1, 40));
+        if (key != null && !key.isEmpty() && (n < 0 || n >= up.size() || !key.equals(up.get(n)))) n = up.indexOf(key);
+        if (n < 0 || n >= up.size()) return null;
+        if (n < upNext.size()) {
+            extra = upNext.remove(n);
+            return extra;
+        }
+        String want = up.get(n);
+        List<String> keep = new ArrayList<>(upNext);
+        upNext.clear();
+        String k = null;
+        for (int guard = order.size() * 2 + 2; guard > 0; guard--) {
+            k = next(false);
+            if (k == null || k.equals(want)) break;
+        }
+        upNext.addAll(keep);
+        return k;
+    }
+
     int size() {
         return order.size();
     }

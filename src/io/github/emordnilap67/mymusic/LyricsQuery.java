@@ -276,7 +276,7 @@ final class LyricsQuery {
         String song = sf[0], ft = sf[1];
         if (list == null) {
             list = new java.util.ArrayList<>();
-            if (!a.isEmpty()) list.add(a);
+            if (!a.isEmpty()) for (String x : a.split("\\s*,\\s*")) list.add(x);
         }
         addArtists(list, ft);
         list = mainArtists(list);
@@ -324,19 +324,31 @@ final class LyricsQuery {
 
     private static final Pattern ART_CO = Pattern.compile("\\b(llc|inc|ltd|limited|productions?|publishing|records|recordings|music group|entertainment)\\b\\.?", CI);
 
+    private static final Pattern ART_INIT = Pattern.compile("^\\p{Lu}\\.\\s|^[-\\s]+$|\\s-$");
+    private static final Pattern ART_LEGAL = Pattern.compile("^\\p{Lu}[\\p{Ll}'\u2019-]+(\\s\\p{Lu}[\\p{Ll}'\u2019-]+){2,}$");
+    private static final Pattern ART_BAND = Pattern.compile("\\b(the|of|and)\\b", CI);
+
     static List<String> mainArtists(List<String> list) {
         List<String> L = new java.util.ArrayList<>();
-        for (int i = 0; i < list.size(); i++) {
-            String x = list.get(i) == null ? "" : list.get(i).trim();
-            if (x.isEmpty()) continue;
+        for (String x0 : list) {
+            String x = x0 == null ? "" : x0.trim();
+            if (key(x).isEmpty()) continue;
             if (!L.isEmpty() && list.size() > 1 && ART_CO.matcher(x).find()) continue;
             L.add(x);
         }
-        String first = L.isEmpty() ? "" : L.get(0).toLowerCase().replaceAll("\\s+", " ");
-        for (int i = 1; i < L.size(); i++) if (L.get(i).toLowerCase().replaceAll("\\s+", " ").equals(first)) { L = new java.util.ArrayList<>(L.subList(0, i)); break; }
         List<String> out = new java.util.ArrayList<>();
-        java.util.Set<String> seen = new java.util.HashSet<>();
-        for (String x : L) if (seen.add(x.toLowerCase().replaceAll("\\s+", " "))) out.add(x);
+        for (String x : L) {
+            String q = key(x);
+            if (!out.isEmpty()) {
+                if (q.equals(key(out.get(out.size() - 1)))) continue;
+                if (ART_INIT.matcher(x).find() || (ART_LEGAL.matcher(x).find() && !ART_BAND.matcher(x).find())) break;
+                boolean seen = false;
+                for (String y : out) { String p = key(y); if (p.equals(q) || (p.length() > 3 && (q.endsWith(p) || q.startsWith(p)))) seen = true; }
+                if (seen) break;
+            }
+            out.add(x);
+            if (out.size() == 3) break;
+        }
         return out;
     }
 

@@ -538,6 +538,7 @@ footer.mini.cv{background:#090710}
    being sung big, each word filling left to right in the song's colour; the next line waiting under it; three
    dots counting down the last three seconds of a long break */
 .karbtn{color:var(--ink)}
+#nmore{color:var(--ink)}   /* white like the mic and the note, so it is easy to see */
 .karbtn svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 /* Connect - play on another device (Spotify's green) */
 #ndev svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#ndev.on{color:#1ED760}
@@ -618,10 +619,19 @@ body.playing .now.show .nowbg i.on{animation-play-state:running}
 /* galaxy only takes the dark space and the lens away with the record and the ring - the plain galaxy fades back in its place */
 .gxv{transition:opacity 1.2s ease}.now.bare .gxv{opacity:0}
 .now.bare .gxs canvas.gxl{opacity:0}.now.bare .gxs canvas.gxu{opacity:1}
+/* the event horizon's turning layer (horizon / horizonStreaks) - RIGHT TO LEFT, one turn in 104 s, the other way to the visualizer;
+   it turns only while a song plays with the player open, and galaxy only takes it away with the dark ring */
+.gxh{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:var(--gh,600px);height:var(--gh,600px);margin:calc(var(--gh,600px) / -2) 0 0 calc(var(--gh,600px) / -2);
+  pointer-events:none;will-change:transform;animation:gxhspin 104s linear infinite;animation-play-state:paused;transition:opacity 1.2s ease}
+.gxh canvas{position:absolute;inset:0;width:100%;height:100%}
+.gxh .gxhs{opacity:0;transition:opacity 1.2s ease}.gxh .gxhs.on{opacity:1}
+body.playing .now.show .gxh{animation-play-state:running}
+.now.bare .gxh{opacity:0}
+@keyframes gxhspin{to{transform:rotate(-360deg)}}
 .gxs .gxc{opacity:0;transition:opacity 1.4s ease}
 .gxs .gxc.on{opacity:.9}
-.gxv{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:calc(var(--rr,80px) * 6.4);height:calc(var(--rr,80px) * 6.4);margin:calc(var(--rr,80px) * -3.2) 0 0 calc(var(--rr,80px) * -3.2);
-  border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(4,3,10,0) 0,rgba(4,3,10,0) 40%,rgba(4,3,10,.05) 46%,rgba(4,3,10,.13) 52%,rgba(4,3,10,.2) 58%,rgba(4,3,10,.24) 64%,rgba(4,3,10,.25) 69%,rgba(4,3,10,.235) 74%,rgba(4,3,10,.19) 79%,rgba(4,3,10,.13) 84%,rgba(4,3,10,.075) 88%,rgba(4,3,10,.035) 92%,rgba(4,3,10,.012) 95%,rgba(4,3,10,0) 97%)}   /* a soft dark space round the visualizer's bars, so the ring stands out - it eases off in small steps and ends under the lens ring, so it has no edge */#nowgx .gxs .gxc.on{opacity:.5}   /* the song's glow on the Milky Way, soft (the visualizer carries the song) */
+.gxv{position:absolute;left:var(--gx,50%);top:var(--gy,40%);width:calc(var(--rr,80px) * 7.2);height:calc(var(--rr,80px) * 7.2);margin:calc(var(--rr,80px) * -3.6) 0 0 calc(var(--rr,80px) * -3.6);
+  border-radius:50%;pointer-events:none;background:radial-gradient(circle closest-side,rgba(3,2,9,0) 0,rgba(3,2,9,0.000) 50.3%,rgba(3,2,9,0.050) 57.8%,rgba(3,2,9,0.085) 61.1%,rgba(3,2,9,0.129) 65.3%,rgba(3,2,9,0.168) 69.4%,rgba(3,2,9,0.199) 72.8%,rgba(3,2,9,0.211) 75.0%,rgba(3,2,9,0.272) 76.4%,rgba(3,2,9,0.391) 77.8%,rgba(3,2,9,0.508) 79.2%,rgba(3,2,9,0.591) 80.6%,rgba(3,2,9,0.623) 81.9%,rgba(3,2,9,0.626) 82.8%,rgba(3,2,9,0.607) 88.3%,rgba(3,2,9,0.597) 89.4%,rgba(3,2,9,0.540) 90.8%,rgba(3,2,9,0.422) 92.2%,rgba(3,2,9,0.270) 93.6%,rgba(3,2,9,0.126) 95.0%,rgba(3,2,9,0.032) 96.4%,rgba(3,2,9,0.001) 97.8%,rgba(3,2,9,0) 100%)}    #nowgx .gxs .gxc.on{opacity:.5}    
 body.playing .now.show .gxs{animation-play-state:running}
 /* the Milky Way's star-forming knots breathe slowly */
 .gxs .gxp{opacity:.56}   /* the galaxy is a backdrop, never brighter than the visualizer */
@@ -633,19 +643,24 @@ body.playing .now.show .gxcore{animation-play-state:running}
 @keyframes gxspin{to{transform:rotate(-360deg)}}
 /* a star in the galaxy flares up white-blue and fades through warm orange,
    now and then, somewhere new (placed by supernova() - it turns and tilts with the galaxy) */
+/* they ADD light (plus-lighter - over the bright core they were only a pale patch), every one at full strength (the small ones were .4-.65),
+   stronger colours further out, bigger, bright for longer, and the big ones flash a four-point star glint */
 .gx .sn{position:absolute;width:var(--sn,40px);height:var(--sn,40px);margin:calc(var(--sn,40px) / -2) 0 0 calc(var(--sn,40px) / -2);
-  border-radius:50%;pointer-events:none;opacity:0;will-change:transform,opacity;
-  background:radial-gradient(circle,#fff 0,rgba(255,255,255,.95) 6%,rgba(205,222,255,.75) 14%,rgba(255,196,150,.32) 32%,rgba(255,150,120,.1) 52%,transparent 70%);
-  animation:supernova 6.5s ease-out forwards}
-.gx .sn.big{background:radial-gradient(circle,#fff 0,#fff 9%,rgba(220,232,255,.9) 18%,rgba(255,205,155,.45) 36%,rgba(255,150,120,.14) 56%,transparent 72%)}
-@keyframes supernova{0%{opacity:0;transform:scale(.15)}6%{opacity:var(--snp,1);transform:scale(.55)}18%{opacity:calc(var(--snp,1) * .95);transform:scale(.9)}
-  45%{opacity:calc(var(--snp,1) * .55);transform:scale(1.25)}100%{opacity:0;transform:scale(1.7)}}
+  border-radius:50%;pointer-events:none;opacity:0;will-change:transform,opacity;mix-blend-mode:plus-lighter;
+  background:radial-gradient(circle closest-side,#fff 0,#fff 11%,rgba(228,238,255,.97) 22%,rgba(195,215,255,.78) 37%,rgba(255,206,160,.46) 56%,rgba(255,156,122,.18) 76%,rgba(255,150,120,.05) 90%,transparent 100%);   /* closest-side: it fades out INSIDE its circle - no disc edge */
+  animation:supernova 7s ease-out forwards}
+.gx .sn.big{background:radial-gradient(circle closest-side,#fff 0,#fff 17%,rgba(236,243,255,1) 28%,rgba(205,224,255,.85) 41%,rgba(255,212,165,.52) 60%,rgba(255,162,128,.2) 79%,rgba(255,150,120,.06) 91%,transparent 100%)}
+.gx .sn.big::before,.gx .sn.big::after{content:"";position:absolute;left:-55%;right:-55%;top:calc(50% - 1.5px);height:3px;border-radius:3px;
+  background:linear-gradient(90deg,transparent,rgba(214,228,255,.5) 30%,rgba(240,246,255,.95) 46%,#fff 50%,rgba(240,246,255,.95) 54%,rgba(214,228,255,.5) 70%,transparent)}
+.gx .sn.big::after{transform:rotate(90deg)}
+@keyframes supernova{0%{opacity:0;transform:scale(.15)}5%{opacity:var(--snp,1);transform:scale(.6)}22%{opacity:var(--snp,1);transform:scale(.95)}
+  50%{opacity:calc(var(--snp,1) * .75);transform:scale(1.25)}100%{opacity:0;transform:scale(1.7)}}
 @media (prefers-reduced-motion:reduce){.gx .sn{display:none}}
 .cglow{position:absolute;left:-12%;right:-12%;bottom:0;height:52%;z-index:-1;pointer-events:none;opacity:.74;
   transform-origin:50% 72%;will-change:opacity,transform}
 .cglow i{position:absolute;inset:0;opacity:0;transition:opacity 1.3s ease}
 .cglow i.on{opacity:1}
-@media (prefers-reduced-motion:reduce){.gxs,.gxcore,.gxs .gxk.on{animation:none}.cglow i,.gxs .gxc{transition:none}}
+@media (prefers-reduced-motion:reduce){.gxs,.gxcore,.gxh,.gxs .gxk.on{animation:none}.cglow i,.gxs .gxc{transition:none}}
 /* the buttons' own glow eases to the new song's colour (small, so cheap) */
 .ctrl #prev,.ctrl #next,.now .big,.trk .knob{transition:border-color .8s ease,box-shadow .8s ease,background-color .8s ease}
 .ctrl #shuf,.ctrl #rep{transition:color .8s ease}
@@ -775,6 +790,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
 .qrow .tx{flex:1;min-width:0}
 .qrow .tx b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .qrow .tx span{display:block;color:var(--mist);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qrow[data-n]{cursor:pointer;border-radius:10px;transition:background .15s}.qrow[data-n]:active,.qrow.tap{background:rgba(255,255,255,.07)}   /* every song in Up next taps to play */
 .qrow .qx{flex:none;width:34px;height:34px;border-radius:50%;color:var(--mist);font-size:21px;line-height:1}
 .qhead{color:var(--mist);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:14px 2px 6px}
 .qhead:first-child{margin-top:4px}
@@ -1091,7 +1107,7 @@ button,a,input,.song,.pl{touch-action:manipulation}
 
 <section id="now" class="now" aria-label="Now playing" aria-hidden="true">
   <div class="nowbg" id="nowbg" aria-hidden="true"><i></i><i></i></div>
-  <div class="gx" id="nowgx" aria-hidden="true"><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas><canvas class="gxk"></canvas><canvas class="gxcore"></canvas><canvas class="gxu"></canvas><canvas class="gxl"></canvas></div></div><canvas class="gxa"></canvas><div class="gxv"></div></div>
+  <div class="gx" id="nowgx" aria-hidden="true"><div class="gxt"><div class="gxs"><canvas class="gxc"></canvas><canvas class="gxc"></canvas><canvas class="gxp"></canvas><canvas class="gxk"></canvas><canvas class="gxcore"></canvas><canvas class="gxu"></canvas><canvas class="gxl"></canvas></div></div><canvas class="gxa"></canvas><div class="gxv"></div><div class="gxh"><canvas class="gxhs"></canvas><canvas class="gxhs"></canvas></div></div>
   <div class="stars" id="nowstars" aria-hidden="true"><canvas></canvas><canvas class="tw"></canvas><canvas class="tw b"></canvas></div>
   <div class="cglow" id="nowglow" aria-hidden="true"><i></i><i></i></div>
   <div class="nowtop">
@@ -1758,7 +1774,7 @@ function frame(t, id) {
   spinInV += ((live && RING_CONFIG.innerTurnMs > 0 ? 2 * Math.PI * 1000 / RING_CONFIG.innerTurnMs : 0) - spinInV) * Math.min(1, dt / (live ? 1600 : 700));
   spinIn = (spinIn - spinInV * dt / 1000) % (2 * Math.PI);
   if (live) { shapeT += dt; shapeAt(shapeT); }
-  if (live && performance.now() - clockAt > 2000) { clockAt = performance.now(); self.postMessage({t: "clock", st: shapeT, sp: spin, at: Date.now()}); }
+  if (live && performance.now() - clockAt > 2000) { clockAt = performance.now(); self.postMessage({t: "clock", st: shapeT, sp: spin, sv: spinV, at: Date.now()}); }
   /* the warp: each outer wave flows into the new shape (two soft steps, so it starts smoothly),
      the cloud a little slower; the shape eases back to plain when the beats stop */
   const wd = Math.exp(-dt / (live ? 2200 : 450));
@@ -2199,14 +2215,23 @@ const nameClean = t => t.replace(/\s*[(\[]([^()\[\]]*)[)\]]/g, (g, x) => NJUNK.t
   .replace(/\s+\|\s.*$/, "").replace(/\s+(HQ|HD)$/i, "").replace(/\s{2,}/g, " ").trim();
 
 const ART_CO = /\b(llc|inc|ltd|limited|productions?|publishing|records|recordings|music group|entertainment)\b\.?/i;
+
+const ART_INIT = /^\p{Lu}\.\s|^[-\s]+$|\s-$/u, ART_LEGAL = /^\p{Lu}[\p{Ll}'’-]+(\s\p{Lu}[\p{Ll}'’-]+){2,}$/u, ART_BAND = /\b(the|of|and)\b/i;
 function mainArtists(list) {
-  const k = x => String(x).toLowerCase().replace(/\s+/g, " ").trim();
-  let L = list.filter(x => k(x));
+  let L = list.map(x => String(x || "").trim()).filter(x => nameKey(x));
   if (L.length > 1) L = L.filter((x, i) => i === 0 || !ART_CO.test(x));
-  const again = L.findIndex((x, i) => i > 0 && k(x) === k(L[0]));
-  if (again > 0) L = L.slice(0, again);
-  const seen = {};
-  return L.filter(x => seen[k(x)] ? false : (seen[k(x)] = 1));
+  const out = [];
+  for (const x of L) {
+    const q = nameKey(x);
+    if (out.length) {
+      if (q === nameKey(out[out.length - 1])) continue;
+      if (ART_INIT.test(x) || (ART_LEGAL.test(x) && !ART_BAND.test(x))) break;
+      if (out.some(y => { const p = nameKey(y); return p === q || (p.length > 3 && (q.endsWith(p) || q.startsWith(p))); })) break;
+    }
+    out.push(x);
+    if (out.length === 3) break;
+  }
+  return out;
 }
 function songParts(title, artist) {
   let t = String(title || "").trim(), list = null;
@@ -2224,7 +2249,7 @@ function songParts(title, artist) {
     else { t = r; list = splitArtists(l); }                          /* a channel's upload: "Artist - Song" */
   }
   const [song, ft] = nameFeats(t);
-  if (!list) list = a ? [a] : [];
+  if (!list) list = a ? a.split(/\s*,\s*/) : [];
   addArtists(list, ft);
   return {title: nameClean(song) || song || t, artists: mainArtists(list).join(", ")};
 }
@@ -3098,7 +3123,11 @@ $("#back").onclick = () => goBack("#/");
 /* ---------- the player says what is going on ---------- */
 window.onNative = st => { if (!dragging) apply(st); };
 function apply(st) {
-  if (st && st.remote && st.ring && RW.w) RW.w.postMessage({t: "sync", st: +st.ring.st || 0, sp: +st.ring.sp || 0, at: +st.ring.at || 0, live: !!st.playing});
+  if (st && st.remote && st.ring && RW.w) {
+    const age = st.ringNow && st.gotAt ? Math.max(0, Math.min(10000, +st.ringNow - (+st.ring.at || 0))) : -1;
+    RW.w.postMessage({t: "sync", st: +st.ring.st || 0, sp: +st.ring.sp || 0, at: age >= 0 ? +st.gotAt - age : +st.ring.at || 0, live: !!st.playing});
+  }
+  if (st && !st.remote) rclkPlaying(!!st.playing);
   ST = st || {}; stAt = performance.now();
   const s = ST.key ? KEYS.get(ST.key) || null : null;
   if (s !== cur) { cur = s; if (s) showSong(s); markOn(); idle(loadPlays, 2000); }     /* play counts when free */
@@ -3475,22 +3504,34 @@ function renderUp() {
 function renderQueue() {
   const ups = upList(), nxs = nxList(), rest = nxs.slice(ups.length);
   upSig = (ST.up || []).join("\n") + "|" + (ST.nx || []).join("\n");
-  const row = (s, i, x) => '<div class="qrow"' + (x ? ' data-q="' + i + '"' : '') + '><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
+  const row = (s, i, x, n) => '<div class="qrow" data-n="' + n + '"' + (x ? ' data-q="' + i + '"' : '') + '><div class="th"><img loading="lazy" alt="" src="' + artUrl(s.p, s.file) +
     '" onerror="this.remove()"></div><div class="tx"><b>' + esc(showName(s)) + '</b><span>' + esc(showArtist(s) || "Unknown artist") +
     '</span></div>' + (x ? '<button class="qx" aria-label="Take off the queue">&times;</button>' : '') + '</div>';
+  /* every row taps to play: data-n = its place in Up next as the player counts it (the queue first, then the list), and its key goes
+     along, so the player plays exactly the song shown (Queue.jump) */
+  qKeys = (ST.up || []).slice(); const nxRaw = ST.nx || [];
+  for (let n = qKeys.length; n < nxRaw.length; n++) qKeys[n] = nxRaw[n];
+  const upRows = [], restRows = [];
+  (ST.up || []).forEach((k, i) => { const s = KEYS.get(k); if (s) upRows.push(row(s, i, true, i)); });
+  for (let n = (ST.up || []).length; n < nxRaw.length; n++) { const s = KEYS.get(nxRaw[n]); if (s) restRows.push(row(s, 0, false, n)); }
   let h = "";
-  if (ups.length) h += '<div class="qhead">Queued</div>' + ups.map((s, i) => row(s, i, true)).join("");
-  const mixed = rest.some(s => s.p !== (rest[0] && rest[0].p));          /* favorites from several playlists */
-  if (rest.length) h += '<div class="qhead">' + (mixed ? "Next" : "Next from " + esc(rest[0].p)) + (ST.shuffle ? " - shuffled" : "") + '</div>' + rest.map(s => row(s, 0, false)).join("");
+  if (ups.length) h += '<div class="qhead">Queued</div>' + upRows.join("");
+  const mixed = rest.some(s => s.p !== (rest[0] && rest[0].p));
+  if (rest.length) h += '<div class="qhead">' + (mixed ? "Next" : "Next from " + esc(rest[0].p)) + (ST.shuffle ? " - shuffled" : "") + '</div>' + restRows.join("");
   if (!h) h = '<div class="qhead">Nothing after this song</div>';
   $("#qList").innerHTML = h;
   $("#qSub").textContent = ups.length ? "Queued songs play first, top first - then your playlist carries on." : "The songs coming up, in the order they'll play.";
   $("#qClear").classList.toggle("hidden", !ups.length);
 }
 $("#upnext").onclick = () => { renderQueue(); $("#qsheet").classList.remove("hidden"); };
+let qKeys = [];
 $("#qList").addEventListener("click", e => {
-  const x = e.target.closest(".qx"); if (!x || !N) return;
-  N.unqueue(+x.closest(".qrow").dataset.q); setTimeout(ask, 200);
+  if (!N) return;
+  const x = e.target.closest(".qx");
+  if (x) { N.unqueue(+x.closest(".qrow").dataset.q); setTimeout(ask, 200); return; }
+  const r = e.target.closest(".qrow[data-n]"); if (!r || !N.jump) return;
+  const n = +r.dataset.n, k = qKeys[n], s = k && KEYS.get(k); if (!k) return;
+  r.classList.add("tap"); N.jump(n, k); if (s) toast("Playing " + showName(s)); setTimeout(ask, 250);
 });
 $("#qClear").onclick = () => { if (N) N.unqueue(-1); toast("Queue cleared"); setTimeout(ask, 200); };
 $("#qClose").onclick = () => $("#qsheet").classList.add("hidden");
@@ -3840,7 +3881,8 @@ const stype = q => { for (const t of STYPES) if ((q -= t[0]) < 0) return t; retu
 function drawStars() {
   const box = $("#nowstars"); if (!box) return;
   const w = box.offsetWidth, h = box.offsetHeight; if (!w || !h) return;
-  const dpr = Math.min(2, devicePixelRatio || 1), key = w + "x" + h + "@" + dpr;
+  const dr = $("#disc") ? $("#disc").getBoundingClientRect() : {left: 0, top: 0, width: 0};
+  const dpr = Math.min(2, devicePixelRatio || 1), key = w + "x" + h + "@" + dpr + ":" + Math.round(dr.left) + "," + Math.round(dr.top) + "," + Math.round(dr.width);
   if (drawStars.key === key) return;
   drawStars.key = key; GX.key = "";
   galaxyStars();
@@ -3870,11 +3912,7 @@ function drawStars() {
     }
   }
 }
-if (window.ResizeObserver) new ResizeObserver(() => { drawStars.key = ""; if ($("#now").classList.contains("show")) idle(drawStars, 600); }).observe($("#now"));
-/* the galaxy. Its stars are drawn once per screen size (white and blue-white, crowding into
-   two spiral arms and a bright middle behind the record); its glow is drawn once per song, small
-   and soft, in the song's colours - arm one runs colour 1 into colour 3, arm two colour 2 into
-   colour 4 - and fades over the last song's. CSS tilts it and turns it very slowly. */
+if (window.ResizeObserver) new ResizeObserver(() => { if ($("#now").classList.contains("show")) idle(drawStars, 600); }).observe($("#now"));
 const GX = {key: "", flip: 0, pal: null};
 function gxSize() {
   const box = $("#nowgx"); if (!box) return 0;
@@ -4132,22 +4170,17 @@ function drawMilkyWay(D) {
   gc.globalAlpha = 1; gc.fillStyle = rg; gc.fillRect(hc - R * .03, hc - R * .03, R * .06, R * .06);
   box.querySelector(".gxcore").classList.add("on");
   try { galaxyLens(D, dpr, C); } catch (e) { }
+  try { horizon(); } catch (e) { }
 }
-/* A GRAVITATIONAL LENS round the visualizer, as if something heavy sat behind the record and bent the galaxy's light round it. In a
-   band from just outside the bars (2.6 x the record) to 4.7 x, the light is taken from closer in: on the ring (3 x) it comes from
-   1.5 x - the bright core and the ends of the bar - so their light is stretched into a soft, thin EINSTEIN RING, a little brighter
-   where the bar's ends land; outside it the arms bend round it, and by 4.7 x the bending has faded to nothing (no edge anywhere - the
-   band starts and ends with no bend and no step). The same band is taken out of the disc, the knots and the core underneath, so
-   nothing shows twice, and the song's colours behind are untouched. Drawn once per screen size, on a layer that turns with the disc
-   (the bend is the same all the way round, so it turns with it exactly) - nothing extra while it plays. */
+
 function galaxyLens(D, dpr, C) {
   const box = $("#nowgx"), L = box && box.querySelector(".gxs .gxl"); if (!L) return;
   const rr = parseFloat(getComputedStyle(box).getPropertyValue("--rr")) || D * .09;
-  const E = rr * 3.05, R1 = rr * 2.6, R2 = rr * 4.7, B = rr * 1.5, SI = rr * .13, SO = rr * .45;
+  const E = rr * 3.05, R1 = rr * 2.75, R2 = rr * 3.85, B = rr * 1.0, SI = rr * .09, SO = rr * .6;
   const half = Math.ceil(R2) + 2, S = half * 2, k = Math.min(1.5, devicePixelRatio || 1, 1400 / S), W = Math.round(S * k);
   const ss = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
-  const bend = r => r <= R1 || r >= R2 ? 0 : r < E ? Math.exp(-((E - r) / SI) * ((E - r) / SI)) * ss((r - R1) / (E - R1)) : Math.exp(-((r - E) / SO) * ((r - E) / SO)) * ss((R2 - r) / (R2 - E));   /* 1 on the ring, falling fast inside it and slowly outside - a thin bright ring, the arms bending round it */
-  const wOf = r => .85 * ss(Math.min(1, bend(r) * 3));                                                     /* how much of the bent light shows */
+  const bend = r => r <= R1 || r >= R2 ? 0 : r < E ? Math.exp(-((E - r) / SI) * ((E - r) / SI)) * ss((r - R1) / (E - R1)) : Math.exp(-((r - E) / SO) * ((r - E) / SO)) * Math.sqrt(ss((R2 - r) / (R2 - E)));      /* 1 on the ring, falling fast inside it and slowly outside - a thin bright ring, the arms bending round it */
+  const wOf = r => .95 * ss(Math.min(1, bend(r) * 3));                                                        /* how much of the bent light shows */
   box.style.setProperty("--gl", S + "px");
   const disc = box.querySelector(".gxs .gxp"), knots = box.querySelector(".gxs .gxk"), core = box.querySelector(".gxcore"), U = box.querySelector(".gxs .gxu");
   /* what the lens bends: the disc (at its .56), the knots (half, between breaths) and the core, as they sit */
@@ -4177,12 +4210,127 @@ function galaxyLens(D, dpr, C) {
     const a0 = sp[i0 + 3] * (1 - fx) * (1 - fy), a1 = sp[i1 + 3] * fx * (1 - fy), a2 = sp[i2 + 3] * (1 - fx) * fy, a3 = sp[i3 + 3] * fx * fy, a = a0 + a1 + a2 + a3;
     if (a < .5) continue;
     const j = (y * W + x) * 4;
-    o[j] = (sp[i0] * a0 + sp[i1] * a1 + sp[i2] * a2 + sp[i3] * a3) / a;
-    o[j + 1] = (sp[i0 + 1] * a0 + sp[i1 + 1] * a1 + sp[i2 + 1] * a2 + sp[i3 + 1] * a3) / a;
-    o[j + 2] = (sp[i0 + 2] * a0 + sp[i1 + 2] * a1 + sp[i2 + 2] * a2 + sp[i3 + 2] * a3) / a;
+    const mg = 1 + .6 * gb;
+    o[j] = Math.min(255, mg * (sp[i0] * a0 + sp[i1] * a1 + sp[i2] * a2 + sp[i3] * a3) / a);
+    o[j + 1] = Math.min(255, mg * (sp[i0 + 1] * a0 + sp[i1 + 1] * a1 + sp[i2 + 1] * a2 + sp[i3 + 1] * a3) / a);
+    o[j + 2] = Math.min(255, mg * (sp[i0 + 2] * a0 + sp[i1 + 2] * a1 + sp[i2 + 2] * a2 + sp[i3 + 2] * a3) / a);
     o[j + 3] = a * w;
   }
   lg.putImageData(out, 0, 0); if (ug) ug.putImageData(uo, 0, 0);
+}
+/* THE EVENT HORIZON round the visualizer: a black ring in the gravitational lens's place (.gxv - the bent galaxy still shows through it),
+   and on top of it a layer turning RIGHT TO LEFT, one turn in 104 s: soft dark lanes spiralling in, a thin photon ring in the song's
+   colours, and short streaks of light orbiting it - the song's colours, a few bright stars with glowing heads, a little of the galaxy's
+   own light. Drawn once per screen size and once per song (by the processor, so a song change never stalls the screen); what moves is
+   only the layer's turn. Galaxy only takes it away. */
+const HZ = {key: "", flip: 0, R: 3.75};
+const hzR = s => { let sd = s; return () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296; };
+const hzSS = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+function hzSize() {
+  const box = $("#nowgx"), h = box && box.querySelector(".gxh"); if (!h) return null;
+  const rr = parseFloat(getComputedStyle(box).getPropertyValue("--rr")) || 0; if (!rr) return null;
+  const S = Math.round(rr * HZ.R * 2), k = Math.min(1.5, devicePixelRatio || 1, 1400 / S);
+  box.style.setProperty("--gh", S + "px");
+  return {h, rr, S, k, W: Math.round(S * k)};
+}
+/* the dark lanes: wide soft strokes spiralling in (the inner end ahead - it turns that way), blurred, only across the black ring */
+function horizon() {
+  const z = hzSize(); if (!z) return;
+  const {h, rr, S} = z, k = z.k * .5, W = Math.max(2, Math.round(S * k)), m = S / 2;      /* soft by nature - half size */
+  const c = HZ.lanes || (HZ.lanes = document.createElement("canvas")); c.width = c.height = W; HZ.key = "";
+  const g = c.getContext("2d", {willReadFrequently: true}); g.setTransform(k, 0, 0, k, 0, 0);
+  const r = hzR(3051);
+  g.lineCap = "round"; g.lineJoin = "round";
+  for (let j = 0; j < 11; j++) {
+    const a0 = j / 11 * 6.2832 + (r() - .5) * .45, wind = .8 + .7 * r(), r0 = rr * (3.5 + .08 * r()), r1 = rr * (2.68 + .08 * r());
+    for (let s = 0; s < 3; s++) {
+      const off = (r() - .5) * .22;
+      g.beginPath();
+      for (let i = 0; i <= 48; i++) {
+        const t = i / 48, rad = r0 + (r1 - r0) * t, a = a0 + off - wind * t + .04 * Math.sin(t * 7 + j);
+        const x = m + Math.cos(a) * rad, y = m + Math.sin(a) * rad;
+        if (i) g.lineTo(x, y); else g.moveTo(x, y);
+      }
+      g.strokeStyle = "rgba(1,0,4," + (.16 + .14 * r()).toFixed(3) + ")"; g.lineWidth = rr * (.12 + .2 * r()); g.stroke();
+    }
+  }
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  if ("filter" in g) {
+    const off = document.createElement("canvas"); off.width = off.height = W;
+    const o = off.getContext("2d", {willReadFrequently: true}); o.filter = "blur(" + Math.max(1, rr * k * .1).toFixed(1) + "px)"; o.drawImage(c, 0, 0);
+    g.clearRect(0, 0, W, W); g.drawImage(off, 0, 0);
+  }
+  g.globalCompositeOperation = "destination-in";                           /* only across the black ring - no edge anywhere */
+  const eg = g.createRadialGradient(W / 2, W / 2, 0, W / 2, W / 2, W / 2);
+  for (let i = 0; i <= 84; i++) { const x = i / 84 * HZ.R; eg.addColorStop(i / 84, "rgba(0,0,0," + (hzSS((x - 2.68) / .3) * (1 - hzSS((x - 3.12) / .38))).toFixed(4) + ")"); }
+  g.fillStyle = eg; g.fillRect(0, 0, W, W);
+  g.globalCompositeOperation = "source-over";
+}
+/* the light dragged round it, in the song's colours (the visualizer's own pair; the default look's five) */
+function horizonStreaks(pal) {
+  const z = hzSize(); if (!z || !pal || !pal.length) return;
+  const {h, rr, S, k, W} = z, m = S / 2, E = rr * 3.05;
+  const P = (pal.def ? pal.slice(0, 5) : pal.slice(0, 2)).map(v => mix(v, [128, 128, 128], .06));
+  const key = P.map(rgb).join() + "@" + W; if (HZ.key === key) return; HZ.key = key;
+  const cs = h.querySelectorAll(".gxhs"); if (cs.length < 2) return;
+  const c = cs[HZ.flip = 1 - HZ.flip], old = cs[1 - HZ.flip];
+
+  const g = c.getContext("2d", {willReadFrequently: true});
+  if (c.width !== W || c.height !== W) c.width = c.height = W; else { g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, W); }
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  if (HZ.lanes && HZ.lanes.width > 2) g.drawImage(HZ.lanes, 0, 0, W, W);                                    /* the dark lanes first */
+  g.setTransform(k, 0, 0, k, 0, 0);
+  const r = hzR(6767), gauss = () => (r() + r() + r() + r() - 2) / 1.15, WH = [255, 255, 255];
+  const conic = typeof g.createConicGradient === "function";
+  /* the photon ring: soft glow and a thin bright line on the Einstein ring, the song's colours taking turns round it, brighter in places
+     (so the turn shows) */
+  const n = 14, ringCol = [], ringV = [];
+  for (let i = 0; i < n; i++) { ringCol.push(mix(P[i % P.length], WH, .22)); ringV.push(.45 + .55 * r()); }
+  const ring = (wd, al) => {
+    let q;
+    if (conic) { q = g.createConicGradient(0, m, m); for (let i = 0; i <= n; i++) q.addColorStop(i / n, rgba(ringCol[i % n], (al * ringV[i % n]).toFixed(4))); }
+    else q = rgba(mix(P[0], P[1] || P[0], .5), (al * .7).toFixed(4));
+    g.strokeStyle = q; g.lineWidth = wd; g.beginPath(); g.arc(m, m, E, 0, 6.2832); g.stroke();
+  };
+  g.globalCompositeOperation = "lighter";
+  ring(rr * .5, .05); ring(rr * .26, .07);
+   ring(rr * .085, .11); ring(rr * .03, .26);
+  /* one streak: head at a0 (the end it turns toward), fading out behind it */
+  const arc = (rad, a0, len, wd, col, al) => {
+    const head = mix(col, WH, .55);
+    g.lineWidth = wd; g.lineCap = "butt";
+    if (conic) {
+      const q = g.createConicGradient(a0, m, m), f = len / 6.2832;
+      q.addColorStop(0, rgba(head, al.toFixed(4))); q.addColorStop(f * .15, rgba(col, (al * .85).toFixed(4))); q.addColorStop(f * .55, rgba(col, (al * .32).toFixed(4)));
+      q.addColorStop(f, rgba(col, 0)); q.addColorStop(1, rgba(col, 0));
+      g.strokeStyle = q; g.beginPath(); g.arc(m, m, rad, a0, a0 + len); g.stroke();
+    } else for (let i = 0; i < 12; i++) {
+      g.strokeStyle = rgba(i < 2 ? head : col, (al * Math.pow(1 - i / 12, 1.5)).toFixed(4));
+      g.beginPath(); g.arc(m, m, rad, a0 + len * i / 12, a0 + len * (i + 1) / 12 + .003); g.stroke();
+    }
+  };
+  const dot = (rad, a, s, col, al) => {
+    const x = m + Math.cos(a) * rad, y = m + Math.sin(a) * rad, q = g.createRadialGradient(x, y, 0, x, y, s);
+    q.addColorStop(0, rgba(WH, Math.min(1, al).toFixed(4))); q.addColorStop(.3, rgba(mix(col, WH, .4), (al * .55).toFixed(4))); q.addColorStop(1, rgba(col, 0));
+    g.fillStyle = q; g.fillRect(x - s, y - s, s * 2, s * 2);
+  };
+  const GAL = [[255, 232, 200], [205, 220, 255], [255, 214, 172]];        /* the galaxy's own light, bent round */
+
+  for (let i = 0; i < 220; i++) {
+    const q = r(), near = r() < .3, rad = near ? E + gauss() * rr * .12 : rr * (2.78 + .72 * r()), x = rad / rr;
+    if (x < 2.78 || x > 3.5) continue;                                    /* the old lens band - never over the bars */
+    const on = Math.exp(-Math.pow((rad - E) / (rr * .26), 2)), env = hzSS((x - 2.78) / .16) * (1 - hzSS((x - 3.22) / .28));
+    const len = .04 + .34 * on * (.3 + .7 * r()) + .08 * r() * r(), a0 = r() * 6.2832, bright = r() < .14;
+    let al = (bright ? .55 + .35 * r() : .1 + .26 * r()) * (.6 + .4 * on) * env, wd = rr * (bright ? .016 + .016 * r() : .008 + .012 * r() * r()) * (1 + .4 * on), col, star = false;
+    if (al < .02) continue;
+    if (q < .64) col = P[(r() * P.length) | 0];
+    else if (q < .87) { const t = stype(r()); col = t[1].split(",").map(Number); star = true; al = Math.min(.95, al * 1.2); wd *= .85; }
+    else { col = GAL[(r() * GAL.length) | 0]; al *= .75; }
+    arc(rad, a0, len, wd, col, al);
+    if (bright || (star && r() < .5)) dot(rad, a0 + .004, rr * (.03 + .03 * r()) * (bright ? 1.3 : .8), col, al * 1.5);
+  }
+  g.globalCompositeOperation = "source-over";
+  c.classList.add("on"); old.classList.remove("on");
 }
 function galaxyStars() {
   const D = gxSize(); if (!D) return;
@@ -4314,6 +4462,7 @@ function galaxyFor(pal, now) {
   const box = $("#nowgx"); if (!box || !$("#now").classList.contains("show") && !now) { GX.key = ""; return; }
   const D = box.querySelector(".gxp").width ? parseFloat(getComputedStyle(box).getPropertyValue("--gd")) : gxSize(); if (!D) return;
   const key = pal.map(rgb).join() + D; if (GX.key === key) return; GX.key = key;
+  try { horizonStreaks(pal); } catch (e) { }
   const cs = box.querySelectorAll(".gxc"), c = cs[GX.flip = 1 - GX.flip], L = Math.min(520, Math.round(D * .5));
   c.width = c.height = L;
   const g = c.getContext("2d"), h = L / 2, Rg = L / 2 * .96, T = pal.map(v => mix(v, [128, 128, 128], .12));
@@ -4446,23 +4595,33 @@ function andromeda(T, tint) {
   /* ANDROMEDA */
   const ax = w * .24, ay = hh * .16, A = S * .3, inc = .24, rot = -.62;
   const ca = Math.cos(rot), sa = Math.sin(rot), P = (u, v) => [ax + u * ca - v * sa, ay + u * sa + v * ca];   /* u along its long axis, v across */
-  blob(ax, ay, A * 1.15, A * 1.15 * inc, rot, mix(BLUE, tn, .2), .17);                       /* the faint outer disc */
-  for (let i = 0; i < 70; i++) { const t = i / 70 * 6.2832, rr = A * (.6 + .05 * Math.sin(t * 3)), [x, y] = P(Math.cos(t) * rr, Math.sin(t) * rr * inc);
-    blob(x, y, A * .09, A * .09 * .6, rot, mix(BLUE, tn, .15), .09 + .05 * r()); }            /* the ring of young stars, ~10 kpc */
-  for (let i = 0; i < 90; i++) { const t = i / 90 * 6.2832, rr = A * (.3 + .55 * r()), [x, y] = P(Math.cos(t) * rr, Math.sin(t) * rr * inc);
-    blob(x, y, A * .05, A * .03, rot, mix(BLUE, tn, .2), .06 + .05 * r()); }
-  blob(ax, ay, A * .36, A * .36 * .62, rot, WARM, .42);                                       /* the bulge - warm, old */
-  blob(ax, ay, A * .16, A * .16 * .7, rot, [255, 238, 214], .62);
-  blob(ax, ay, A * .045, A * .045, rot, [255, 250, 240], 1);                                  /* the nucleus */
-  for (let i = 0; i < 220; i++) { const u = gauss() * A * .45, v = gauss() * A * .08, [x, y] = P(u, v);   /* its stars, too far to see one by one: a grain */
-    g.fillStyle = rgba(r() < .6 ? [236, 240, 255] : WARM, .25 + .4 * r()); g.fillRect(x, y, .7, .7); }
-  { const [x, y] = P(A * .12, A * .2); blob(x, y, A * .045, A * .045, 0, [255, 240, 222], .5); }        /* M32 */
-  { const [x, y] = P(-A * .35, -A * .62); blob(x, y, A * .12, A * .07, rot + .5, [250, 232, 210], .14); }   /* M110 */
-  g.globalCompositeOperation = "destination-out";                                            /* dust lanes on the near side */
-  for (const [f, al] of [[.42, .55], [.7, .4], [.86, .25]]) for (let i = 0; i < 60; i++) {
-    const t = Math.PI * (.08 + .84 * i / 59), [x, y] = P(Math.cos(t) * A * f, Math.sin(t) * A * f * inc + A * .012);
-    const rg = g.createRadialGradient(x, y, 0, x, y, A * .028); rg.addColorStop(0, "rgba(0,0,0," + (al * (.5 + .5 * r())).toFixed(3) + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
-    g.fillStyle = rg; g.fillRect(x - A * .03, y - A * .03, A * .06, A * .06); }
+  const PLUM = [188, 118, 220], LAV = [164, 156, 246], INDIGO = [132, 128, 236], KNOT = [255, 110, 176], GOLD = [255, 206, 132], AMBER = [255, 222, 172];
+  const tiny = c => mix(c, tn, .1);                                                           /* a touch of the song */
+  blob(ax, ay, A * 1.2, A * 1.2 * inc, rot, tiny(INDIGO), .18);                               /* the faint outer disc - blue-violet */
+  blob(ax, ay, A * .8, A * .8 * inc, rot, tiny(LAV), .11);
+  const arm = (k, t) => { const ph = 11 * t, rr = A * .2 * Math.exp(.142 * ph);              /* two arms, ~8 deg, two turns out to ~.95 A */
+    const th = k * Math.PI + ph + .4; return [Math.cos(th) * rr, Math.sin(th) * rr, rr]; };
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 260; i++) {                                 /* the arms - blue-violet, a plum cast */
+    const t = i / 259, [u, v, rr] = arm(k, t + (r() - .5) * .004), j = A * .016 * gauss(), q = Math.hypot(u, v) || 1;
+    const [x, y] = P(u + u / q * j, (v + v / q * j) * inc), fade = Math.min(1, t * 5) * (1 - .3 * t);
+    blob(x, y, A * (.05 + .04 * t + .02 * r()), A * (.03 + .015 * t), rot, tiny(r() < .5 ? LAV : PLUM), (.06 + .05 * r()) * fade);
+    if (r() < .12 && t > .2) blob(x, y, A * .018, A * .014, rot, KNOT, .3 + .3 * r());           /* star-forming knots */
+  }
+  blob(ax, ay, A * .46, A * .46 * .5, rot, GOLD, .34);                                        /* the bulge - big, oval, yellow-gold old stars */
+  blob(ax, ay, A * .26, A * .26 * .56, rot, GOLD, .4);
+  blob(ax, ay, A * .12, A * .12 * .66, rot, AMBER, .66);
+  blob(ax, ay, A * .04, A * .04, rot, [255, 248, 230], 1);                                    /* the nucleus */
+  for (let i = 0; i < 240; i++) { const u = gauss() * A * .45, v = gauss() * A * .08, [x, y] = P(u, v);   /* its stars, too far to see one by one: a grain */
+    g.fillStyle = rgba(r() < .6 ? [226, 220, 255] : AMBER, .25 + .4 * r()); g.fillRect(x, y, .7, .7); }
+  { const [x, y] = P(A * .12, A * .2); blob(x, y, A * .045, A * .045, 0, [255, 228, 194], .5); }        /* M32 - small, round, bright */
+  { const [x, y] = P(-A * .35, -A * .62); blob(x, y, A * .13, A * .07, rot + .5, [240, 220, 206], .15); }   /* M110 - a faint oval */
+  g.globalCompositeOperation = "destination-out";                                            /* the dust lanes along the arms - near side */
+  for (let k = 0; k < 2; k++) for (let i = 0; i < 220; i++) {
+    const t = .12 + .82 * i / 219, [u, v, rr] = arm(k, t), q = Math.hypot(u, v) || 1, d = rr * .93 / q, [x, y] = P(u * d, v * d * inc + A * .008);
+    if (v < -A * .06) continue;                                                               /* the far side shows little dust */
+    const near = Math.min(1, (v + A * .06) / (A * .25)), rg = g.createRadialGradient(x, y, 0, x, y, A * .024);
+    rg.addColorStop(0, "rgba(0,0,0," + ((.25 + .25 * r()) * near * (1 - .45 * t)).toFixed(3) + ")"); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = rg; g.fillRect(x - A * .026, y - A * .026, A * .052, A * .052); }
   g.globalCompositeOperation = "lighter";
   /* THE MAGELLANIC CLOUDS */
   const lx = w * .82, ly = hh * .34, Lr = S * .09;
@@ -4494,7 +4653,7 @@ function andromeda(T, tint) {
 /* a supernova now and then (see .gxs .sn) - every 2.5 to 11 minutes, mostly in an arm, sometimes out in the disc, somewhere
    new each time; only while the player is open and a song plays (otherwise it just waits for the next turn) */
 let snTimer = 0;
-const supernovaSoon = () => { clearTimeout(snTimer); snTimer = setTimeout(supernova, 150000 + Math.random() * 510000); };
+const supernovaSoon = () => { clearTimeout(snTimer); snTimer = setTimeout(supernova, 136000 + Math.random() * 464000); };
 function supernova() {
   supernovaSoon();
   const box = $("#nowgx .gxs");
@@ -4515,9 +4674,9 @@ function supernova() {
   /* 2 in 5 are BIG and bright (2-4x the size, a white-hot core, 9 s), the rest small and faint (6 s) */
   const big = Math.random() < .4;
   if (big) el.classList.add("big");
-  el.style.setProperty("--sn", Math.round(D * (big ? .1 + .06 * Math.random() : .03 + .02 * Math.random())) + "px");
-  el.style.setProperty("--snp", big ? "1" : (.4 + .25 * Math.random()).toFixed(2));
-  el.style.animationDuration = big ? "9s" : "6s";
+  el.style.setProperty("--sn", Math.round(D * (big ? .13 + .07 * Math.random() : .045 + .025 * Math.random())) + "px");
+  el.style.setProperty("--snp", "1");
+  el.style.animationDuration = big ? "10s" : "7s";
   el.addEventListener("animationend", () => el.remove(), {once: true});
   box.appendChild(el);
 }
@@ -4532,9 +4691,9 @@ function supernovaFar() {
   else { x = G.w * (.06 + .88 * Math.random()); y = G.h * (.05 + .55 * Math.random()); sz = Math.min(G.w, G.h) * (.025 + .02 * Math.random()); }   /* far off */
   el.className = "sn";
   el.style.left = x.toFixed(1) + "px"; el.style.top = y.toFixed(1) + "px";
-  el.style.setProperty("--sn", Math.round(sz) + "px");
-  el.style.setProperty("--snp", (.55 + .35 * Math.random()).toFixed(2));
-  el.style.animationDuration = "7s";
+  el.style.setProperty("--sn", Math.round(sz * 1.3) + "px");
+  el.style.setProperty("--snp", "1");
+  el.style.animationDuration = "8s";
   el.addEventListener("animationend", () => el.remove(), {once: true});
   far.appendChild(el);
 }
@@ -4555,6 +4714,7 @@ function glowFor(pal) {
 let glowAt = 0;
 function ringMsg(m) {
   if (m && m.t === "clock") {
+    RCLK.st = m.st; RCLK.sp = m.sp; RCLK.at = m.at; RCLK.sv = m.sv || RCLK.sv; RCLK.run = true;
     if (N && N.ringClock && !(typeof CX !== "undefined" && CX.remote)) { try { N.ringClock(JSON.stringify({st: m.st, sp: m.sp, at: m.at})); } catch (e) {} }
     return;
   }
@@ -4648,12 +4808,23 @@ function pollStop() { if (RW.poll) { clearInterval(RW.poll); RW.poll = 0; } }
 function ringStart() {
   vizOK = !!N && N.micAllowed();
   ringThread(); sizeRing();
+  if (RCLK.halted && RW.w && !(typeof CX !== "undefined" && CX.remote)) {
+    RCLK.halted = false; const c = rclkNow(); RW.w.postMessage({t: "sync", st: c.st, sp: c.sp, at: c.at, live: false});
+  }
   const live = vizOK && !!ST.playing && !RING.off && ringVisible() && !calm.matches;
   if (live !== RW.live) { RW.live = live; RW.w.postMessage({t: "live", on: live}); }
   if (live) pollStart(); else pollStop();
 }
+
+const RCLK = {st: 0, sp: 0, at: Date.now(), sv: 0, run: false};
+function rclkNow() { const dt = RCLK.run ? Math.max(0, Date.now() - RCLK.at) : 0; return {st: RCLK.st + dt, sp: (RCLK.sp + RCLK.sv * dt / 1000) % (2 * Math.PI), at: Date.now()}; }
+function rclkPlaying(p) { if (!!p === RCLK.run) return; const c = rclkNow(); RCLK.st = c.st; RCLK.sp = c.sp; RCLK.at = c.at; RCLK.run = !!p; }
+setInterval(() => {
+  if (RW.live || !RCLK.run || (typeof CX !== "undefined" && CX.remote) || !N || !N.ringClock) return;
+  try { N.ringClock(JSON.stringify(rclkNow())); } catch (e) {}
+}, 2000);
 function ringStop() {
-  pollStop();
+  pollStop(); RCLK.halted = true;
   if (RW.w) { RW.live = null; RW.w.postMessage({t: "halt"}); }
   try { N && N.vizStop(); } catch (e) {}
 }

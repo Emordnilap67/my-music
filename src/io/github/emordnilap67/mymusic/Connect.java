@@ -337,7 +337,7 @@ final class Connect {
         });
         String s = out[0];
         String res = s.length() > 2 ? "{\"dev\":" + Library.q(myName) + "," + s.substring(1) : "{\"dev\":" + Library.q(myName) + "}";
-        if (!myRing.isEmpty() && System.currentTimeMillis() - myRingAt < 10000) res = res.substring(0, res.length() - 1) + ",\"ring\":" + myRing + "}";
+        if (!myRing.isEmpty() && System.currentTimeMillis() - myRingAt < 10000) res = res.substring(0, res.length() - 1) + ",\"ring\":" + myRing + ",\"ringNow\":" + System.currentTimeMillis() + "}";
         return res;
     }
 
@@ -399,6 +399,7 @@ final class Connect {
                     case "shuffle": p.setShuffle(o.optBoolean("on")); break;
                     case "repeat": p.setRepeat(o.optString("r", "off")); break;
                     case "unqueue": p.unqueue(o.optInt("n", -1)); break;
+                    case "jump": p.jump(o.optInt("n", -1), o.optString("key")); break;
                     case "enqueue": p.enqueue(o.optString("key"), o.optBoolean("first")); break;
                     case "play": {
                         JSONArray a = o.optJSONArray("keys");
@@ -764,7 +765,7 @@ final class Connect {
         }
         fails = 0;
         String s = r.trim();
-        remoteState = "{\"remote\":" + Library.q(p.name) + (s.length() > 2 ? "," + s.substring(1) : "}");
+        remoteState = "{\"remote\":" + Library.q(p.name) + ",\"gotAt\":" + System.currentTimeMillis() + (s.length() > 2 ? "," + s.substring(1) : "}");
         push(remoteState);
         final String st = s;
         MAIN.post(new Runnable() {                       // this device's notification, lock screen and widget show it

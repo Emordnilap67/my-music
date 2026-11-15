@@ -380,6 +380,18 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         changed();
     }
 
+    /** a song tapped in Up next plays now (Queue.jump) */
+    void jump(int n, String key) {
+        if (Connect.remote != null) { Connect.cmd("jump", "n", n, "key", key); return; }
+        String k = q.jump(n, key);
+        saveQueue();
+        if (k == null) {
+            changed();
+            return;
+        }
+        load(k, 0, true);
+    }
+
     void toggle() {
         if (Connect.remote != null) { Connect.cmd("toggle"); return; }     // Connect: it is the remote now
         if (isPlaying() || (wantPlay && preparing)) pause();

@@ -1072,6 +1072,18 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             });
         }
 
+        /** play the song tapped in Up next (n = its place, key = the song shown there) */
+        @JavascriptInterface
+        public void jump(final int n, final String key) {
+            if (Connect.remote != null) { Connect.cmd("jump", "n", n, "key", key); return; }
+            PlayerService.run(MainActivity.this, new PlayerService.Job() {
+                @Override
+                public void run(PlayerService p) {
+                    p.jump(n, key);
+                }
+            });
+        }
+
         @JavascriptInterface
         public void prev() {
             Slow.mark(MainActivity.this);              // the freeze watch (Slow.java)

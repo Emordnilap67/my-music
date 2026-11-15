@@ -1,3 +1,13 @@
+**New in 20.0:**
+
+- **An event horizon round the visualizer:** the gravitational lens is now a narrow dark ring with light orbiting it - a thin photon ring in the song's own colours and short streaks going round right to left (one turn in about a minute and three-quarters): the song's colours, a few bright stars with glowing heads and a little of the galaxy's light. The galaxy bends harder round it, brighter towards the ring the way a real lens magnifies what is behind it. Galaxy only takes it all away
+- **Tap any song in Up next to play it,** like Spotify: a queued song plays at once and the rest of the queue stays; a song further down the list - the list jumps to it and your queue still plays next. Works from the remote too (both devices need 20.0)
+- **Brighter supernovas,** about three times, a little bigger and a little more often - the big ones flash a four-point glint
+- **Andromeda as it really looks:** tilted almost edge-on, a big golden bulge, tight blue-violet arms with pink star-forming knots and dark dust lanes - its own colours, not the Milky Way's
+- **Just the main artists, at most three:** the list stops where the songwriters start, so no more "+9"
+- **Smoother:** the lens band is thinner, the ring on a remote and on the playing device stay in step even after the ring was hidden, no freeze when a song changes, and coming back to the app no longer redraws the whole galaxy
+- **The three-dot button** in the player is as bright as the others
+
 **New in 19.0:**
 
 - **A gravitational lens round the visualizer:** the galaxy's light bends round the record as if something heavy sat behind it - a soft, thin Einstein ring where the dark space round the ring ends, and the arms curving round it outside. The bending fades out smoothly, so there is no edge anywhere

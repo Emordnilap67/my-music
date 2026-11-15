@@ -152,7 +152,8 @@ top right) plays the music on another device.
   and Treble sliders, your phone's presets and every band under Advanced.
   Home screen > **Equalizer**.
 - **Queue:** **Play next** or **Add to queue** from the song menu. The player
-  always shows what's **Up next**; tap it to see or change the queue.
+  always shows what's **Up next**; tap it to see or change the queue, and tap
+  any song in it to play it right away.
 - **Favourites:** tap the heart in the player. The heart filter in any
   playlist lists your favourites from every playlist. Keep your music
   folder the same on a phone and a tablet with a sync app and your hearts
@@ -196,9 +197,10 @@ top right) plays the music on another device.
   the way it is mapped - a bright golden core and a long bar, ragged arms leaving the
   bar's ends and winding out close together, soft dust lanes, blue arms with small pink
   star-forming knots, and the song's own colours glowing along them - a backdrop that
-  never outshines the ring, its light bent round the visualizer into a soft Einstein ring
-  as if by a gravitational lens. The odd supernova goes off inside it, where the screen shows
-  it, or far away in Andromeda or the Magellanic Clouds. **Hold the
+  never outshines the ring, its light bent round the visualizer as if by a gravitational lens,
+  round a narrow dark event horizon where streaks of light in the song's colours orbit slowly
+  the other way. The odd supernova flares up inside it, where the screen shows it, or far away
+  in Andromeda or the Magellanic Clouds. **Hold the
   middle of the player** (or tap the record twice) for **galaxy only**: the
   record and the ring go, and only the galaxy stays. Every
   colour comes from the song's own picture, and the whole look fades into
