@@ -33,9 +33,9 @@ known as MY MUSIC.*
   full-screen **karaoke** mode, and badly timed lyrics are caught and
   replaced automatically.
 - **A player worth looking at.** The record sits inside a ring of light that
-  changes shape - forty of them, from a triangle, hexagon and octagon to a
-  pentagram, a pinwheel, a gear, a pixel heart, a V and an X -
-  and dances to the music
+  changes shape - forty-six of them, from a triangle, hexagon and octagon to a
+  pentagram, a pinwheel, a gear, a pixel heart, a cross, a plus, a four-leaf
+  clover and the card suits - and dances to the music
   (bass, voice and treble each move their own part, and both rings bounce
   lightly on the beat), in colours taken from each song's own picture,
   in front of a slowly turning Milky Way.
@@ -190,16 +190,18 @@ top right) plays the music on another device.
   bars follows the music (bass at the bottom, voice at the sides, treble at
   the top), the voice ripples the inner wave and the high notes make a cloud
   of stars drift and twinkle. The ring starts on a circle and melts from shape
-  to shape - forty of them, every one once a round in a new shuffled order, never
-  two of the same family (smooth, star, angular, irregular) back to back - and
-  swells out to the bars as a circle. On every beat both rings grow a touch and settle back - not
+  to shape - forty-six of them, every one once a round in a new order, never
+  two of the same family (smooth, star, angular, irregular) back to back, the
+  curvy ones spread out and never two in a row, related shapes kept apart, and
+  the newest ones up front in the first round - and swells out to the bars as a circle. On every beat both rings grow a touch and settle back - not
   dancing, just keeping the song's tempo. The Milky Way turns slowly behind it, drawn
   the way it is mapped - a bright golden core and a long bar, ragged arms leaving the
   bar's ends and winding out close together, soft dust lanes, blue arms with small pink
   star-forming knots, and the song's own colours glowing along them - a backdrop that
   never outshines the ring, its light bent round the visualizer as if by a gravitational lens,
   round a narrow dark event horizon where streaks of light in the song's colours orbit slowly
-  the other way. The odd supernova flares up inside it, where the screen shows it, or far away
+  the other way. Every few minutes a supernova flares up - real kinds, each with its own colours,
+  leaving a soft glowing remnant for a minute or two - wherever the screen shows it, or far away
   in Andromeda or the Magellanic Clouds. **Hold the
   middle of the player** (or tap the record twice) for **galaxy only**: the
   record and the ring go, and only the galaxy stays. Every
@@ -209,8 +211,9 @@ top right) plays the music on another device.
 - **Big playlists stay quick:** thousands of songs draw in the background
   while you use the app, and songs arriving from a download never hold up a
   tap.
-- **Tablets:** the app turns sideways on a tablet, with a wide home page,
-  and the widget fits any size, upright or sideways. Sideways, the player
+- **Phones and tablets:** the app turns sideways on any phone or tablet (it
+  follows your auto-rotate), with a wide home page, and the widget fits any
+  size, upright or sideways. Sideways, the player
   splits in two - the record and the lyrics on the left, the song's name,
   the bar and the buttons on the right.
 - **Play on another device (Connect):** with Carmen Musicum open on two

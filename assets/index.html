@@ -326,7 +326,7 @@ body:has(#home:not(.hidden)){background:radial-gradient(110% 45% at 22% 0%,#1c0f
 #home .pls{margin:6px -14px 0}
 /* WIDE: a tablet held sideways - the frame uses the screen (up to 1500 px), the 67 and the name sit side by side and
    smaller, six playlists a row (12 a page), song lists and sheets wider */
-@media (orientation:landscape) and (min-width:900px){
+@media (orientation:landscape) and (min-width:600px){
   #home{margin:10px max(18px,calc((100% - 1500px) / 2)) 0}
   .home{max-width:none}
   .hero{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:28px;text-align:left}
@@ -521,7 +521,7 @@ footer.mini.cv{background:#090710}
    line being sung sits about a third of the way down), and on a tablet held sideways the record / lyrics take the left
    side and the name, the bar and the buttons the right - nothing overlaps */
 @supports (width:1cqh){.lyr{padding:36cqh 6px 56cqh}}
-@media (orientation:landscape) and (min-width:900px){
+@media (orientation:landscape) and (min-width:600px){
   .now{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,1fr);grid-template-rows:auto minmax(0,1fr) auto auto auto minmax(0,1fr);
     column-gap:clamp(24px,4vw,72px);padding:12px max(24px,3vw) calc(16px + env(safe-area-inset-bottom))}
   .nowtop{grid-column:1 / -1;grid-row:1}
@@ -538,6 +538,7 @@ footer.mini.cv{background:#090710}
    being sung big, each word filling left to right in the song's colour; the next line waiting under it; three
    dots counting down the last three seconds of a long break */
 .karbtn{color:var(--ink)}
+#nclose{color:var(--ink)}   /* the close arrow white too, like the three dots */
 #nmore{color:var(--ink)}   /* white like the mic and the note, so it is easy to see */
 .karbtn svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 /* Connect - play on another device (Spotify's green) */
@@ -618,6 +619,8 @@ body.playing .now.show .nowbg i.on{animation-play-state:running}
 .gxs canvas.gxl,.gxs canvas.gxu{mix-blend-mode:plus-lighter}   /* added to what the band left in the layers below, so bent and unbent light always sum to exactly what was there - no faint circle where they meet */
 /* galaxy only takes the dark space and the lens away with the record and the ring - the plain galaxy fades back in its place */
 .gxv{transition:opacity 1.2s ease}.now.bare .gxv{opacity:0}
+/* the dark ring stays hidden until the galaxy has been put round the record, then fades in - no dark ring in the wrong spot for a moment */
+.gx:not(.placed) .gxv{opacity:0}
 .now.bare .gxs canvas.gxl{opacity:0}.now.bare .gxs canvas.gxu{opacity:1}
 /* the event horizon's turning layer (horizon / horizonStreaks) - RIGHT TO LEFT, one turn in 104 s, the other way to the visualizer;
    it turns only while a song plays with the player open, and galaxy only takes it away with the dark ring */
@@ -649,13 +652,24 @@ body.playing .now.show .gxcore{animation-play-state:running}
   border-radius:50%;pointer-events:none;opacity:0;will-change:transform,opacity;mix-blend-mode:plus-lighter;
   background:radial-gradient(circle closest-side,#fff 0,#fff 11%,rgba(228,238,255,.97) 22%,rgba(195,215,255,.78) 37%,rgba(255,206,160,.46) 56%,rgba(255,156,122,.18) 76%,rgba(255,150,120,.05) 90%,transparent 100%);   /* closest-side: it fades out INSIDE its circle - no disc edge */
   animation:supernova 7s ease-out forwards}
-.gx .sn.big{background:radial-gradient(circle closest-side,#fff 0,#fff 17%,rgba(236,243,255,1) 28%,rgba(205,224,255,.85) 41%,rgba(255,212,165,.52) 60%,rgba(255,162,128,.2) 79%,rgba(255,150,120,.06) 91%,transparent 100%)}
-.gx .sn.big::before,.gx .sn.big::after{content:"";position:absolute;left:-55%;right:-55%;top:calc(50% - 1.5px);height:3px;border-radius:3px;
+.gx .sn.snb{background:radial-gradient(circle closest-side,#fff 0,#fff 17%,rgba(236,243,255,1) 28%,rgba(205,224,255,.85) 41%,rgba(255,212,165,.52) 60%,rgba(255,162,128,.2) 79%,rgba(255,150,120,.06) 91%,transparent 100%)}
+.gx .sn.snb::before,.gx .sn.snb::after{content:"";position:absolute;left:-55%;right:-55%;top:calc(50% - 1.5px);height:3px;border-radius:3px;
   background:linear-gradient(90deg,transparent,rgba(214,228,255,.5) 30%,rgba(240,246,255,.95) 46%,#fff 50%,rgba(240,246,255,.95) 54%,rgba(214,228,255,.5) 70%,transparent)}
-.gx .sn.big::after{transform:rotate(90deg)}
+.gx .sn.snb::after{transform:rotate(90deg)}
 @keyframes supernova{0%{opacity:0;transform:scale(.15)}5%{opacity:var(--snp,1);transform:scale(.6)}22%{opacity:var(--snp,1);transform:scale(.95)}
   50%{opacity:calc(var(--snp,1) * .75);transform:scale(1.25)}100%{opacity:0;transform:scale(1.7)}}
-@media (prefers-reduced-motion:reduce){.gx .sn{display:none}}
+/* every kind of supernova has its own light curve - a hot layer and a cool layer that cross-fade as it cools - then the remnant (.snr) */
+@keyframes snhii{0%{opacity:0;transform:scale(.15)}4%{opacity:1;transform:scale(.62)}16%{opacity:1;transform:scale(.92)}34%{opacity:.5;transform:scale(1.05)}100%{opacity:0;transform:scale(1.2)}}
+@keyframes sncii{0%,10%{opacity:0;transform:scale(.8)}30%{opacity:.85;transform:scale(1)}66%{opacity:.75;transform:scale(1.12)}82%{opacity:.22;transform:scale(1.2)}100%{opacity:0;transform:scale(1.3)}}
+@keyframes snhia{0%{opacity:0;transform:scale(.15)}3%{opacity:1;transform:scale(.72)}12%{opacity:1;transform:scale(1)}30%{opacity:.42;transform:scale(1.12)}100%{opacity:0;transform:scale(1.3)}}
+@keyframes sncia{0%,10%{opacity:0;transform:scale(.9)}24%{opacity:.5;transform:scale(1)}36%{opacity:.34}52%{opacity:.46;transform:scale(1.12)}100%{opacity:0;transform:scale(1.32)}}
+@keyframes snhibc{0%{opacity:0;transform:scale(.2)}3%{opacity:1;transform:scale(.8)}10%{opacity:1;transform:scale(1)}40%{opacity:.25;transform:scale(1.25)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes sncibc{0%,8%{opacity:0;transform:scale(.9)}22%{opacity:.6;transform:scale(1.05)}55%{opacity:.25;transform:scale(1.25)}100%{opacity:0;transform:scale(1.45)}}
+@keyframes snhcrab{0%{opacity:0;transform:scale(.15)}5%{opacity:.85;transform:scale(.6)}18%{opacity:.75;transform:scale(.9)}40%{opacity:.3;transform:scale(1)}100%{opacity:0;transform:scale(1.1)}}
+@keyframes snccrab{0%,6%{opacity:0;transform:scale(.7)}22%{opacity:.95;transform:scale(.95)}60%{opacity:.7;transform:scale(1.08)}100%{opacity:0;transform:scale(1.2)}}
+.gx .snr{position:absolute;pointer-events:none;opacity:0;mix-blend-mode:plus-lighter;will-change:transform,opacity}
+@keyframes snrem{0%{opacity:0;transform:scale(.28)}6%{opacity:.75;transform:scale(.5)}18%{opacity:1;transform:scale(.7)}40%{opacity:.85;transform:scale(.86)}70%{opacity:.45;transform:scale(.95)}100%{opacity:0;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.gx .sn,.gx .snr{display:none}}
 .cglow{position:absolute;left:-12%;right:-12%;bottom:0;height:52%;z-index:-1;pointer-events:none;opacity:.74;
   transform-origin:50% 72%;will-change:opacity,transform}
 .cglow i{position:absolute;inset:0;opacity:0;transition:opacity 1.3s ease}
@@ -686,6 +700,8 @@ body.playing .now.show .infobg i.on{animation-play-state:running}
 .meta p .aplus{flex:none;font-size:12px;font-weight:600;line-height:1.3;padding:0 7px;border-radius:999px;color:#fff;text-shadow:none;
   background:color-mix(in srgb,var(--c1,#8a5cff) 28%,transparent);border:1px solid color-mix(in srgb,var(--c1,#8a5cff) 60%,transparent)}
 .meta p.more{cursor:pointer}
+/* the artists under the song name nearly white, easy to read over the galaxy */
+.meta p{color:#ECE8F8;font-weight:500;text-shadow:0 1px 6px rgba(0,0,0,.55)}
 .artall{position:absolute;left:22px;right:22px;z-index:6;width:max-content;max-width:calc(100% - 44px);max-height:46vh;overflow-y:auto;margin:0 auto;
   box-sizing:border-box;padding:10px 20px 12px;border-radius:18px;text-align:center;background:rgba(12,10,26,.95);
   border:1px solid color-mix(in srgb,var(--c1,#8a5cff) 45%,transparent);
@@ -798,6 +814,16 @@ button,a,input,.song,.pl{touch-action:manipulation}
 /* backup */
 .kstat{color:var(--mist);font-size:14px;margin:0 0 12px;line-height:1.45}
 .kstat b{color:var(--ink);font-weight:600}
+/* phones turn too: sideways from 600 px wide the player is two columns (record left, name / bar / buttons right); on a short
+   screen the name, the gaps and the play button get a little smaller so shuffle and repeat stay on screen */
+@media (orientation:landscape) and (min-width:600px) and (max-height:440px){
+  .meta{margin:2px 0 6px}
+  .meta h3{font-size:clamp(18px,5.4vh,24px)!important;-webkit-line-clamp:1}
+  .ctrl{margin-top:4px}
+  .big{width:64px!important;height:64px!important}
+  .ctrl .ib{width:46px!important;height:46px!important}
+  .ctrl #next{width:50px!important;height:50px!important}
+}
 </style>
 </head>
 <body>
@@ -1306,9 +1332,9 @@ let spin = 0, spinV = 0, spinIn = 0, spinInV = 0;              /* the outer ring
    next, each held a moment, so it never shows lobes or a squeeze on the way. shapeT = ms of music played (the clock stops
    when paused). Every setting is in RING_CONFIG */
 const RING_CONFIG = {
-  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43, 48, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 7, 8, 63, 64, 65, 66, 67, 68, 69, 70, 71],
+  order: [6, 3, 0, 5, 4, 41, 62, 40, 44, 2, 33, 45, 46, 47, 42, 43, 48, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 7, 8, 63, 64, 65, 66, 67, 68, 69, 70, 71, 73, 74, 75, 76, 78, 77],
   holdMs: {0: 21000, 3: 16000, 4: 16000,
-           5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000, 42: 16000, 43: 16000, 48: 16000, 49: 16000, 50: 16000, 51: 16000, 52: 16000, 53: 16000, 54: 16000, 55: 16000, 56: 16000, 57: 16000, 58: 16000, 59: 16000, 60: 16000, 61: 16000, 7: 16000, 8: 16000, 63: 16000, 64: 16000, 65: 16000, 66: 16000, 67: 16000, 68: 16000, 69: 16000, 70: 16000, 71: 16000, 72: 16000},
+           5: 16000, 6: 16000, 62: 16000, 41: 16000, 40: 16000, 44: 16000, 2: 16000, 33: 16000, 45: 16000, 46: 16000, 47: 16000, 42: 16000, 43: 16000, 48: 16000, 49: 16000, 50: 16000, 51: 16000, 52: 16000, 53: 16000, 54: 16000, 55: 16000, 56: 16000, 57: 16000, 58: 16000, 59: 16000, 60: 16000, 61: 16000, 7: 16000, 8: 16000, 63: 16000, 64: 16000, 65: 16000, 66: 16000, 67: 16000, 68: 16000, 69: 16000, 70: 16000, 71: 16000, 72: 16000, 73: 16000, 74: 16000, 75: 16000, 76: 16000, 77: 16000, 78: 16000},
   fadeMs: 6250,
   circleSwell: .38,
   circleSwellMs: 7500,
@@ -1317,17 +1343,17 @@ const RING_CONFIG = {
   outerTurnMs: 52000,
   innerJiggle: 1.15,
   outerJiggle: 1 / 5,
-  outerBounce: .03,
-  innerBounce: .03,
+  outerBounce: .0321,
+  innerBounce: .0321,
   afterimageMs: 600,
   glow: true,                              /* the outer ring's soft glowing band */
   afterimage: true,                        /* a faint copy of the outer ring trailing its turn */
   cornerWeighting: false,                  /* a heavier outer line while it is a polygon, lighter as it rounds */
   innerTicks: "none"                       /* "dashes": a dashed line turning with the inner ring | "none" */
 };
-const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06, 33: 2.06, 45: 2.06, 46: 2.06, 47: 2.06, 42: 2.06, 43: 2.06, 48: 2.06, 49: 2.02, 50: 2.06, 51: 2.06, 52: 2.06, 53: 2.06, 54: 2.06, 55: 2.06, 56: 2.06, 57: 2.06, 58: 2.06, 59: 2.06, 60: 2.06, 61: 2.06, 63: 2.06, 64: 2.06, 65: 2.06, 66: 2.06, 67: 2.06, 68: 2.06, 69: 2.06, 70: 2.06, 71: 2.06, 72: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8, 2: .25, 33: .35, 45: .8, 46: .8, 47: .8, 42: .8, 43: .8, 48: .8, 49: .8, 50: .8, 51: .8, 52: .8, 53: .8, 54: .8, 55: .8, 56: .8, 57: .8, 58: .8, 59: .8, 60: .8, 61: .8, 63: .8, 64: .8, 65: .8, 66: .8, 67: .8, 68: .8, 69: .8, 70: .8, 71: .8, 72: .8};
+const POLY = {}, SOFT = {}, PEAK = {3: 2.06, 62: 2.06, 41: 2.06, 40: 2.06, 44: 2.06, 33: 2.06, 45: 2.06, 46: 2.06, 47: 2.06, 42: 2.06, 43: 2.06, 48: 2.06, 49: 2.02, 50: 2.06, 51: 2.06, 52: 2.06, 53: 2.06, 54: 2.06, 55: 2.06, 56: 2.06, 57: 2.06, 58: 2.06, 59: 2.06, 60: 2.06, 61: 2.06, 63: 2.06, 64: 2.06, 65: 2.06, 66: 2.06, 67: 2.06, 68: 2.06, 69: 2.06, 70: 2.06, 71: 2.06, 72: 2.06, 73: 2.06, 74: 2.06, 75: 2.06, 76: 2.06, 77: 2.06, 78: 2.06}, SQZ = {3: .8, 4: .55, 5: .3, 6: .2, 7: .15, 8: .12, 62: .8, 41: .8, 40: .8, 44: .8, 2: .25, 33: .35, 45: .8, 46: .8, 47: .8, 42: .8, 43: .8, 48: .8, 49: .8, 50: .8, 51: .8, 52: .8, 53: .8, 54: .8, 55: .8, 56: .8, 57: .8, 58: .8, 59: .8, 60: .8, 61: .8, 63: .8, 64: .8, 65: .8, 66: .8, 67: .8, 68: .8, 69: .8, 70: .8, 71: .8, 72: .8, 73: .8, 74: .8, 75: .8, 76: .8, 77: .8, 78: .8};   /* SQZ: how much closer the outer lines keep to it */
 const SHAPES = RING_CONFIG.order.filter(n => n);
-const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1, 63: 1, 64: 1, 65: 1, 66: 1, 67: 1, 68: 1, 69: 1, 70: 1, 71: 1, 72: 1};
+const SHARP = {3: 1, 62: 1, 41: 1, 40: 1, 44: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1, 63: 1, 64: 1, 65: 1, 66: 1, 67: 1, 68: 1, 69: 1, 70: 1, 71: 1, 72: 1, 73: 1, 74: 1, 75: 1, 76: 1, 77: 1, 78: 1};
 const KITE = [[2.06, 0], [-.368, 1.439], [-1.22, 0], [-.368, -1.439]];
 /* the DIAMOND (a rhombus) - long points 2.06 (61 degree tips), short points 1.22 (119 degrees), every side 1.05 from
    the middle like the kite's: the record fits inside it */
@@ -1442,6 +1468,38 @@ const XPARTS = {45: XDIAMOND, 67: VBARS, 68: XBARS};
 Object.assign(CORNERS, {63: PINW, 64: GEARV, 66: HEARTV, 72: BHEARTV, 69: TANG(1, [88, 124, 96, 128, 104]), 70: TANG(1, [112, 140, 118, 146, 124, 132, 128]),
   71: TANG(1, [118, 150, 126, 144, 120, 156, 130, 136])});
 Object.assign(CONCAVE, {63: 1, 64: 1, 66: 1, 72: 1});
+/* the CROSS (73): a long upright beam and a crossbar the same width, the crossbar high; the record sits on the crossing, so the four
+   arms come out from under it - the top one short, the sides longer, the bottom the longest. One outline, nothing through the middle */
+CORNERS[73] = (() => { const h = .55, c = .35, T = 1.7, L = 1.8, B = Math.sqrt(2.06 * 2.06 - h * h);
+  return [[T, h], [c + h, h], [c + h, L], [c - h, L], [c - h, h], [-B, h], [-B, -h], [c - h, -h], [c - h, -L], [c + h, -L], [c + h, -h], [T, -h]]; })();
+CONCAVE[73] = 1;
+/* the PLUS (78): the rectangle and the same rectangle turned a quarter, one outline - arms as thick as the rectangle, up, down, left
+   and right, their corners right up against the bars */
+CORNERS[78] = (() => { const a = 1.083, b = 1.7525;
+  return [[b, a], [a, a], [a, b], [-a, b], [-a, a], [-b, a], [-b, -a], [-a, -a], [-a, -b], [a, -b], [a, -a], [b, -a]]; })();
+CONCAVE[78] = 1;
+/* the card suits and the clover are made of rounds, points and stems; MARCH turns "is this point inside?" into the ring's outline -
+   how far a line from the middle goes before it first leaves the shape */
+const MARCH = f => t => { const c = Math.cos(t), s = Math.sin(t); let a = 0, b;
+  for (b = .02; b < 2.4 && f(b * c, b * s); b += .02) a = b;
+  for (let i = 0; i < 16; i++) { const m = (a + b) / 2; if (f(m * c, m * s)) a = m; else b = m; } return a; };
+const DISC = (cu, cv, r) => (u, v) => (u - cu) * (u - cu) + (v - cv) * (v - cv) < r * r;
+const DROP = (pu, pv, cu, cv, r) => {      /* a point, a round, and everything between them */
+  const du = cu - pu, dv = cv - pv, d = Math.hypot(du, dv), au = du / d, av = dv / d, ta = r / Math.sqrt(d * d - r * r), tm = (d * d - r * r) / d, inD = DISC(cu, cv, r);
+  return (u, v) => { if (inD(u, v)) return true; const wu = u - pu, wv = v - pv, t = wu * au + wv * av; return t >= 0 && t <= tm && Math.abs(wu * av - wv * au) <= t * ta; };
+};
+const STEM = (top, bot, w0, w1, k) => (u, v) => u <= -top && u >= -bot && Math.abs(v) <= w0 + (w1 - w0) * Math.pow((-u - top) / (bot - top), k);
+const ANY = fs => (u, v) => fs.some(f => f(u, v));
+/* the SPADE (75) and the CLUB (76) - smooth and round - and the FOUR-LEAF CLOVER (74), four heart-shaped leaves */
+SHFN[75] = MARCH(ANY([DISC(0, 0, .9), DISC(-.5, .62, 1), DISC(-.5, -.62, 1), DROP(2.06, 0, -.5, .62, 1), DROP(2.06, 0, -.5, -.62, 1), STEM(.9, 2, .12, .46, 1.8)]));
+SHFN[76] = (() => { const A = 128 * Math.PI / 180, d = 1.11;
+  return MARCH(ANY([DISC(0, 0, 1.08), DISC(d, 0, .95), DISC(d * Math.cos(A), d * Math.sin(A), .95), DISC(d * Math.cos(A), -d * Math.sin(A), .95), STEM(.9, 2, .12, .46, 1.8)])); })();
+SHFN[74] = (() => { const fs = [DISC(0, 0, .9)];
+  for (let k = 0; k < 4; k++) { const f = Math.PI / 4 + k * Math.PI / 2, cu = Math.cos(f), cv = Math.sin(f);
+    for (const sg of [1, -1]) { const lu = 1.42 * cu - sg * .36 * cv, lv = 1.42 * cv + sg * .36 * cu; fs.push(DISC(lu, lv, .62), DROP(0, 0, lu, lv, .62)); } }
+  return MARCH(ANY(fs)); })();
+/* the WIDE DIAMOND (77): the diamond made wider */
+CORNERS[77] = [[2.06, 0], [0, 1.6], [-2.06, 0], [0, -1.6]];
 SHFN[65] = t => 1.58 + .48 * Math.cos(5 * t);
 for (const n of SHAPES) {
   const k0 = n === 62 ? 3 : n, seg = 2 * Math.PI / k0, P = new Float32Array(M1), f = SOFT[n] || 1;
@@ -1461,13 +1519,13 @@ for (const n of SHAPES) {
 const SUB45 = XDIAMOND.map(V => { const P = new Float32Array(M1); for (let m = 0; m <= M; m++) P[m] = outlineAt(V, 2 * Math.PI * m / M) / 1.66; return P; });
 const LAYER = f => { const P = new Float32Array(M1); for (let m = 0; m <= M; m++) P[m] = f(2 * Math.PI * m / M) / 1.66; return P; };
 const SUBS = {45: SUB45, 67: VBARS.map(V => LAYER(t => outlineAt(V, t))), 68: XBARS.map(V => LAYER(t => outlineAt(V, t))), 49: [LAYER(() => 2.02), LAYER(t => rayAt(PENT, t))], 52: [LAYER(t => Math.max(1.16, farAt(PETSEG, t))), LAYER(() => 1.16)]};
-const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1, 2: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1, 7: 1, 8: 1, 63: 1, 64: 1, 65: 1, 66: 1, 67: 1, 68: 1, 69: 1, 70: 1, 71: 1, 72: 1};
+const INK = {}, ROOM = {0: 1, 3: 1, 4: .8, 5: 1, 6: 1, 7: 1, 8: 1, 62: 1, 41: 1, 40: 1, 44: 1, 2: 1, 33: 1, 45: 1, 46: 1, 47: 1, 42: 1, 43: 1, 48: 1, 49: 1, 50: 1, 51: 1, 52: 1, 53: 1, 54: 1, 55: 1, 56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1, 7: 1, 8: 1, 63: 1, 64: 1, 65: 1, 66: 1, 67: 1, 68: 1, 69: 1, 70: 1, 71: 1, 72: 1, 73: 1, 74: 1, 75: 1, 76: 1, 77: 1, 78: 1};
 for (const n of [0, ...SHAPES]) {
   const s = n ? 1.66 * Math.min(...POLY[n]) : 1.66;               /* the outer ribbon at the middle of a side */
   INK[n] = SHARP[n] ? [.68, .84] : [1.04 / s, (s - .2) / s];
 }
-const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3, 2: .85, 33: 1.15, 45: 1.25, 46: 1.2, 47: 1.3, 42: 1.2, 43: 1.25, 48: 1.3, 49: 1.2, 50: 1.3, 51: 1.3, 52: 1.2, 53: 1.2, 54: 1.3, 55: 1.2, 56: 1.2, 57: 1.15, 58: 1.25, 59: 1.25, 60: 1.25, 61: 1.2, 63: 1.3, 64: 1.2, 65: 1.1, 66: 1.15, 67: 1.25, 68: 1.25, 69: 1.2, 70: 1.15, 71: 1.15, 72: 1.2};
-let shapeT = 0, clockAt = 0, SHN = 6, SHP = 1;
+const SHAPEJIG = {0: .8, 3: 1.3, 4: 1.2, 5: 1.1, 6: 1, 7: .95, 8: .9, 62: 1.3, 41: 1.25, 40: 1.25, 44: 1.3, 2: .85, 33: 1.15, 45: 1.25, 46: 1.2, 47: 1.3, 42: 1.2, 43: 1.25, 48: 1.3, 49: 1.2, 50: 1.3, 51: 1.3, 52: 1.2, 53: 1.2, 54: 1.3, 55: 1.2, 56: 1.2, 57: 1.15, 58: 1.25, 59: 1.25, 60: 1.25, 61: 1.2, 63: 1.3, 64: 1.2, 65: 1.1, 66: 1.15, 67: 1.25, 68: 1.25, 69: 1.2, 70: 1.15, 71: 1.15, 72: 1.2, 73: 1.25, 74: 1.1, 75: 1.2, 76: 1.1, 77: 1.25, 78: 1.2};
+let shapeT = 0, clockAt = 0, SHN = 6, SHP = 1;          /* the shape it mostly is now (for the stroke weight) and how much polygon it is: 1 .. 0 round */
 const ONES = new Float32Array(M1).fill(1);  /* the circle */
 const SHI = new Float32Array(M1), OJ = new Float32Array(M1), OMIN = new Float32Array(M1);   /* the shape as the inner ring takes it; the outer ring's share of the voice; its innermost line */
 /* the shape it is changing from, to, how far (0 .. 1), the outer lines' squeeze, the circle's swell; SHT how sharp it
@@ -1476,29 +1534,65 @@ let SHNA = 6, SHNB = 6;   /* which shapes it is changing from and to (the two tr
 let SHA = POLY[6], SHB = POLY[6], SHQ = 0, SHZ = SQZ[6], SHE = 0, SHT = 0, SHJ = 1, SHKA = INK[6][0], SHKB = INK[6][1], SHR = 1;
 const CORNER = 2.04;                       /* past this a corner is eased in (the bars start at 2.1) */
 const FAMILY = {2: "r", 33: "r", 4: "r", 5: "r", 6: "r", 7: "r", 8: "r", 64: "r", 65: "r", 66: "r",
+  74: "r", 75: "r", 76: "r",
   44: "s", 46: "s", 47: "s", 62: "s", 48: "s", 50: "s", 51: "s", 52: "s", 63: "s",
-  54: "i", 55: "i", 57: "i", 61: "i", 67: "i", 68: "i", 69: "i", 70: "i", 71: "i", 72: "i"};
+  54: "i", 55: "i", 57: "i", 61: "i", 67: "i", 68: "i", 69: "i", 70: "i", 71: "i", 72: "i"};   /* the rest: angular */
+/* ROUNDS, laid out to look good: every round opens on the circle and plays every shape once, then the next round, in a new order.
+   - the first round (what plays first every time the app opens) shows the NEWEST shapes early, one every other shape, straight and
+     curved in turn - a curve every fourth shape;
+   - the CURVES (circle, oval, reuleaux, protection knot, pinwheel, flower, clover, spade, club) are spread out evenly, never two in a
+     row, and a round never ends on one (the next one opens on the circle);
+   - RELATIVES - a shape and the ones made from it (rectangle, parallelogram, square, X, cross, plus; diamond, kite, wide diamond;
+     circle, oval, flower, clover, club; ...) - at least 4 apart, across the end of a round too;
+   - never two of a FAMILY back to back.
+   Seeded by the round's number, so two devices play the same order. */
+const NEWEST = [73, 74, 75, 76, 77, 78];
+const CURVE = {0: 1, 2: 1, 33: 1, 52: 1, 63: 1, 65: 1, 74: 1, 75: 1, 76: 1};
+const KIN = [[4, 42, 43, 68, 73, 78], [40, 41, 77], [0, 2, 65, 74, 76], [66, 75], [3, 45, 51, 54, 62], [5, 69], [6, 57], [7, 70], [8, 71],
+  [58, 59, 67, 68], [44, 46, 47, 48, 50]];
 const LOOPS = (() => {
-  const fam = n => FAMILY[n] || "a", others = RING_CONFIG.order.filter(n => n), out = [];
+  const fam = n => FAMILY[n] || "a", others = RING_CONFIG.order.filter(n => n), out = [], N = others.length + 1, RN = 24;
   const rnd = seed => () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-  for (let r = 0; r < 24; r++) {
-    let L = null;
-    for (let tr = 0; !L && tr < 400; tr++) {
-      const R = rnd(1009 + r * 7919 + tr * 104729), left = {};
-      others.forEach(n => (left[fam(n)] = left[fam(n)] || []).push(n));
-      const seq = [0];
-      let last = "", ok = true;
-      for (let k = 0; k < others.length; k++) {
-        const fs = Object.keys(left).filter(f => left[f].length && f !== last);
-        if (!fs.length) { ok = false; break; }
-        const w = fs.map(f => left[f].length * left[f].length), tot = w.reduce((a, b) => a + b, 0);
-        let x = R() * tot, i = 0;
-        while (i < w.length - 1 && x >= w[i]) { x -= w[i]; i++; }
-        const f = fs[i];
-        seq.push(left[f].splice(Math.floor(R() * left[f].length), 1)[0]); last = f;
-      }
-      if (ok) L = seq;
+  const kin = {}; KIN.forEach((g, i) => g.forEach(n => (kin[n] = kin[n] || []).push(i)));
+  const related = (a, b) => a >= 0 && b >= 0 && (kin[a] || []).some(g => (kin[b] || []).indexOf(g) >= 0);
+  const fresh = NEWEST.filter(n => others.indexOf(n) >= 0);
+  const build = (r, R, prev, next, gap) => {
+    const seq = new Array(N).fill(-1), curve = new Array(N).fill(0);
+    const shuf = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); const x = a[i]; a[i] = a[j]; a[j] = x; } return a; };
+    seq[0] = 0; curve[0] = 1;
+    let anchor = 0;                                                   /* the last curve placed by hand */
+    if (r === 0 && fresh.length) {                                    /* the newest: straight, curve, straight, ... every other slot */
+      const S = shuf(fresh.filter(n => !CURVE[n])), C = shuf(fresh.filter(n => CURVE[n])), lst = [];
+      while (S.length || C.length) { if (S.length) lst.push(S.shift()); if (C.length) lst.push(C.shift()); }
+      lst.forEach((n, i) => { seq[2 + 2 * i] = n; curve[2 + 2 * i] = CURVE[n] ? 1 : 0; if (CURVE[n]) anchor = 2 + 2 * i; });
     }
+    const left = new Set(others.filter(n => seq.indexOf(n) < 0)), k = [...left].filter(n => CURVE[n]).length;
+    for (let i = 0; i < k; i++) {                                     /* the rest of the curves, evenly from there to the next circle */
+      const s = anchor + Math.round((i + 1) * (N - anchor) / (k + 1)) + Math.floor(R() * 3) - 1;
+      if (s <= anchor + 1 || s >= N - 1 || curve[s] || curve[s - 1] || curve[s + 1] || seq[s] >= 0) return null;
+      curve[s] = 1;
+    }
+    const at = i => i < 0 ? (prev ? prev[N + i] : -1) : i >= N ? (next ? next[i - N] : -1) : seq[i];
+    const famN = {}; left.forEach(n => famN[fam(n)] = (famN[fam(n)] || 0) + 1);
+    for (let s = 1; s < N; s++) {
+      if (seq[s] >= 0) continue;
+      const ok = [...left].filter(n => {
+        if (!!CURVE[n] !== !!curve[s]) return false;
+        for (const t of [s - 1, s + 1]) { const m = t < N ? seq[t] : -1; if (m > 0 && fam(m) === fam(n)) return false; }
+        for (let d = 1; d < gap; d++) if (related(n, at(s - d)) || related(n, at(s + d))) return false;
+        return true;
+      });
+      if (!ok.length) return null;
+      const w = ok.map(n => famN[fam(n)] * famN[fam(n)]), tot = w.reduce((x, y) => x + y, 0);   /* the biggest family spread out first */
+      let x = R() * tot, i = 0;
+      while (i < w.length - 1 && x >= w[i]) { x -= w[i]; i++; }
+      seq[s] = ok[i]; left.delete(ok[i]); famN[fam(ok[i])]--;
+    }
+    return seq;
+  };
+  for (let r = 0; r < RN; r++) {
+    let L = null;
+    for (const gap of [4, 3, 1]) for (let tr = 0; !L && tr < 3000; tr++) L = build(r, rnd(1009 + r * 7919 + tr * 104729), r ? out[r - 1] : null, r === RN - 1 ? out[0] : null, gap);
     out.push(L || [0].concat(others));
   }
   return out;
@@ -2448,9 +2542,9 @@ function plSub(p) {
   if (w) sub = n ? sub + "\n" + w.toLocaleString() + " on the way" : nSongs(w) + " on the way";
   return sub;
 }
-/* a wide sideways screen (900 px+, landscape) gets the wide home - see the WIDE css. The playlists redraw when it
+/* a sideways screen (600 px+, landscape - a phone or a tablet) gets the wide home - see the WIDE css. The playlists redraw when it
    turns. */
-const WIDE = window.matchMedia("(orientation: landscape) and (min-width: 900px)");
+const WIDE = window.matchMedia("(orientation: landscape) and (min-width: 600px)");
 try { WIDE.addEventListener("change", function () { if (typeof LIB !== "undefined" && LIB) renderHome(); }); } catch (e) { /* old WebView: next open */ }
 function renderHome() {
   const ul = $("#pls");
@@ -3924,6 +4018,7 @@ function gxSize() {
   box.style.setProperty("--rr", (d.width / 2).toFixed(1) + "px");
   box.style.setProperty("--gy", (d.top + d.height / 2 - b.top).toFixed(1) + "px");
   box.style.setProperty("--gd", D + "px");
+  box.classList.add("placed");
   return D;
 }
 const GPITCH = 1 / Math.tan(14 * Math.PI / 180);
@@ -4653,49 +4748,122 @@ function andromeda(T, tint) {
 /* a supernova now and then (see .gxs .sn) - every 2.5 to 11 minutes, mostly in an arm, sometimes out in the disc, somewhere
    new each time; only while the player is open and a song plays (otherwise it just waits for the next turn) */
 let snTimer = 0;
-const supernovaSoon = () => { clearTimeout(snTimer); snTimer = setTimeout(supernova, 136000 + Math.random() * 464000); };
+/* a supernova every 2 - 5 minutes, only somewhere you can see it - not behind the record, the black band or the song name */
+const supernovaSoon = ms => { clearTimeout(snTimer); snTimer = setTimeout(supernova, ms || 120000 + Math.random() * 180000); };
+function snView() {
+  const B = $("#nowgx"), cs = getComputedStyle(B), br = B.getBoundingClientRect();
+  const gx = parseFloat(cs.getPropertyValue("--gx")) || B.offsetWidth / 2, gy = parseFloat(cs.getPropertyValue("--gy")) || B.offsetHeight * .4;
+  const rr = parseFloat(cs.getPropertyValue("--rr")) || 0, W = innerWidth, H = innerHeight;
+  const t = $("#now .meta > div"), tr = t && t.offsetWidth ? t.getBoundingClientRect() : null;   /* the song name + artists stay readable */
+  const bare = $("#now").classList.contains("bare");
+  /* seen: off the record (1.3 x), inside the ring up to where the black band starts (2.55 x), or out past it (3.6 x) */
+  return {B: B, br: br, cx: br.left + gx, cy: br.top + gy, r0: bare ? 0 : rr * 1.3, r1: bare ? 1e9 : rr * 2.55, r2: rr * 3.6,
+    W: W, H: H, m: Math.min(W, H) * .06, t: tr};
+}
+const snSeen = (V, x, y) => { const d = Math.hypot(x - V.cx, y - V.cy);
+  return x > V.m && x < V.W - V.m && y > V.m && y < V.H - V.m && (d > V.r0 && d < V.r1 || d > V.r2)
+    && !(V.t && x > V.t.left - 30 && x < V.t.right + 30 && y > V.t.top - 30 && y < V.t.bottom + 30); };
 function supernova() {
-  supernovaSoon();
   const box = $("#nowgx .gxs");
-  if (!box || document.hidden || !$("#now").classList.contains("show") || !document.body.classList.contains("playing")) return;
+  if (!box || document.hidden || !$("#now").classList.contains("show") || !document.body.classList.contains("playing")) { supernovaSoon(15000); return; }
+  supernovaSoon();
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const D = box.offsetWidth; if (!D) return;
-  if (GXA && Math.random() < .3) { supernovaFar(); return; }
-  const h = D / 2, Rg = h * .96, el = document.createElement("i");
-  const B = $("#nowgx"), cs = getComputedStyle(B), gx = parseFloat(cs.getPropertyValue("--gx")) || B.offsetWidth / 2, gy = parseFloat(cs.getPropertyValue("--gy")) || B.offsetHeight * .4;
-  const top = Math.min(gx, B.offsetWidth - gx, gy, B.offsetHeight - gy) * .92 / Rg;
-  let k = ARMPICK(Math.random()), lo = Math.max(ARM_IN[k], .18), hi = Math.min(lo + .27, top);
-  if (hi < lo + .04) { k = Math.random() < .5 ? 0 : 1; lo = .18; hi = Math.max(lo + .04, Math.min(.45, top)); }
-  const u = lo + (hi - lo) * Math.random();
-  const a = Math.random() < .8 ? mwTh(k, u) + (Math.random() - .5) * .1 : Math.random() * 6.2832;
-  el.className = "sn";
-  el.style.left = (h + Math.cos(a) * u * Rg).toFixed(1) + "px";
-  el.style.top = (h + Math.sin(a) * u * Rg).toFixed(1) + "px";
-  /* 2 in 5 are BIG and bright (2-4x the size, a white-hot core, 9 s), the rest small and faint (6 s) */
-  const big = Math.random() < .4;
-  if (big) el.classList.add("big");
-  el.style.setProperty("--sn", Math.round(D * (big ? .13 + .07 * Math.random() : .045 + .025 * Math.random())) + "px");
-  el.style.setProperty("--snp", "1");
-  el.style.animationDuration = big ? "10s" : "7s";
-  el.addEventListener("animationend", () => el.remove(), {once: true});
-  box.appendChild(el);
+  const V = snView();
+  if (GXA && Math.random() < .3 && supernovaFar(V)) return;
+  const h = D / 2, Rg = h * .96, el = document.createElement("i"), probe = document.createElement("i");
+  probe.style.cssText = "position:absolute;left:0;top:0;width:0;height:0";
+  box.appendChild(probe);
+  let x = 0, y = 0, ok = false;
+  for (let t = 0; t < 40 && !ok; t++) {
+    const k = ARMPICK(Math.random()), lo = Math.max(ARM_IN[k], .1), u = lo + (.98 - lo) * Math.random();
+    const a = Math.random() < .8 ? mwTh(k, u) + (Math.random() - .5) * .1 : Math.random() * 6.2832;
+    x = h + Math.cos(a) * u * Rg; y = h + Math.sin(a) * u * Rg;
+    probe.style.left = x.toFixed(1) + "px"; probe.style.top = y.toFixed(1) + "px";
+    const p = probe.getBoundingClientRect();
+    ok = snSeen(V, p.left, p.top);
+  }
+  probe.remove();
+  if (!ok) { supernovaSoon(15000); return; }
+  snBurst(box, x, y, D * .16);
 }
-function supernovaFar() {
-  const far = $("#nowgx"); if (!far || !GXA) return;
-  const G = GXA, q = Math.random(), el = document.createElement("i");
-  let x, y, sz;
+/* the real kinds: Type II (most of them), Type Ia, Type Ib/c (a third of those a hypernova) and a Crab-like one - each its own colours,
+   light curve and size, then a remnant that lingers 50 - 130 s, the stronger the longer */
+const SNK = [["ii", .55], ["ia", .25], ["ibc", .12], ["crab", .08]];
+function snBurst(parent, x, y, base) {
+  let r = Math.random(), k = "ii"; for (const [n, w] of SNK) { if ((r -= w) < 0) { k = n; break; } }
+  const q = Math.random(), hyper = k === "ibc" && Math.random() < .33;
+  const p = hyper ? 1.55 + .2 * q : k === "ia" ? .85 + .15 * q : k === "ibc" ? .5 + .4 * q : k === "crab" ? .45 + .35 * q : .35 + .8 * q * q * q;   /* power: II mostly small, a few huge */
+  const sz = Math.max(10, Math.round(base * p));
+  const fl = (k === "ia" ? 8 : k === "ibc" ? (hyper ? 13 : 6.5) : k === "crab" ? 10 : 12) * (.8 + .3 * Math.min(p, 1.2));   /* the flash, s */
+  const H = {ia: "255,247,226", ii: "205,222,255", ibc: "172,200,255", crab: "235,232,255"}[k];
+  const C = {ia: ["255,214,140", "255,168,92"], ii: ["255,170,108", "255,86,66"], ibc: ["255,150,140", "214,96,170"], crab: ["255,176,96", "255,104,64"]}[k];
+  const mk = (bg, anim, dur, cls) => { const e = document.createElement("i"); e.className = "sn" + (cls ? " " + cls : "");
+    e.style.cssText = "left:" + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;--sn:" + sz + "px;background:" + bg + ";animation:" + anim + " " + dur.toFixed(1) + "s ease-out forwards";
+    e.addEventListener("animationend", () => e.remove(), {once: true}); parent.appendChild(e); };
+  mk("radial-gradient(circle closest-side,#fff 0,#fff 14%,rgba(" + H + ",.97) 26%,rgba(" + H + ",.7) 42%,rgba(" + H + ",.3) 62%,rgba(" + H + ",.08) 84%,transparent 100%)",
+     "snh" + k, fl, p > .9 ? "snb" : "");
+  mk("radial-gradient(circle closest-side,rgba(" + C[0] + ",.9) 0,rgba(" + C[0] + ",.7) 22%,rgba(" + C[1] + ",.45) 48%,rgba(" + C[1] + ",.14) 76%,transparent 100%)", "snc" + k, fl * 1.15, "");
+  /* the remnant */
+  const rd = Math.min(130, Math.max(50, 50 + 80 * Math.min(1, (p - .35) / .8) + (Math.random() - .5) * 16));
+  const disp = Math.round(sz * (k === "crab" ? 1.05 : 1.45)), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const n = Math.max(32, Math.min(320, Math.round(disp * dpr)));
+  const cv = document.createElement("canvas"); cv.width = cv.height = n; cv.className = "snr";
+  cv.style.cssText = "left:" + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;width:" + disp + "px;height:" + disp + "px;margin:" + (-disp / 2) + "px 0 0 " + (-disp / 2) + "px;"
+    + "animation:snrem " + rd.toFixed(1) + "s linear " + (fl * .35).toFixed(1) + "s forwards";
+  try { snRemnant(cv.getContext("2d"), n, k, hyper); } catch (e) { return; }
+  cv.addEventListener("animationend", () => cv.remove(), {once: true});
+  parent.appendChild(cv);
+}
+/* the remnant: soft clouds of gas, blurred - no threads */
+function snRemnant(g, n, k, hyper) {
+  const c = n / 2, R = n * .34, TAU = 6.2832, rnd = Math.random;
+  g.globalCompositeOperation = "lighter"; g.lineCap = "round";
+  const sx = 1 + (rnd() - .5) * (k === "ia" ? .06 : .24), rot = rnd() * TAU, bright = rnd() * TAU;   /* a little lopsided, one side brighter */
+  g.translate(c, c); g.rotate(rot); g.scale(sx, 1 / sx);
+  const side = a => .55 + .45 * Math.cos(a - bright);
+  const glow = (r0, r1, col, a) => { const gr = g.createRadialGradient(0, 0, r0, 0, 0, r1); gr.addColorStop(0, "rgba(" + col + ",0)");
+    gr.addColorStop(.6, "rgba(" + col + "," + a + ")"); gr.addColorStop(1, "rgba(" + col + ",0)"); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r1, 0, TAU); g.fill(); };
+  const puff = (r0, r1, cnt, cols, sz, a) => { for (let i = 0; i < cnt; i++) {
+      const an = rnd() * TAU, rr = R * (r0 + (r1 - r0) * Math.sqrt(rnd())), s = R * sz * (.55 + .9 * rnd()), x = Math.cos(an) * rr, y = Math.sin(an) * rr;
+      const gr = g.createRadialGradient(x, y, 0, x, y, s), col = cols[i % cols.length], al = a * side(an) * (.5 + .5 * rnd());
+      gr.addColorStop(0, "rgba(" + col + "," + al.toFixed(3) + ")"); gr.addColorStop(.45, "rgba(" + col + "," + (al * .5).toFixed(3) + ")");
+      gr.addColorStop(1, "rgba(" + col + ",0)"); g.fillStyle = gr; g.beginPath(); g.arc(x, y, s, 0, TAU); g.fill(); } };
+  const fillG = (r1, col, a) => { const gr = g.createRadialGradient(0, 0, 0, 0, 0, r1); gr.addColorStop(0, "rgba(" + col + "," + a + ")");
+    gr.addColorStop(.5, "rgba(" + col + "," + (a * .45) + ")"); gr.addColorStop(1, "rgba(" + col + ",0)"); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r1, 0, TAU); g.fill(); };
+  try { g.filter = "blur(" + Math.max(1, n * .03).toFixed(1) + "px)"; } catch (e) {}
+  if (k === "ia") {          /* Tycho / Kepler: a soft round haze, a little brighter at its rim, a hint of gold */
+    glow(R * .5, R * .98, "170,198,255", .24); fillG(R * .8, "130,150,220", .08);
+    puff(.7, .92, 30, ["185,208,255", "200,220,255", "255,214,160"], .2, .16);
+  } else if (k === "ii") {   /* a red-pink cloud, patchy and lopsided, a teal haze inside */
+    glow(R * .4, R, "255,82,100", .16);
+    puff(.35, .9, 42, ["255,84,100", "255,124,160", "255,100,116"], .26, .2);
+    puff(0, .55, 14, ["80,206,196", "120,196,255", "255,120,150"], .34, .1);
+  } else if (k === "ibc") {  /* Cassiopeia A: soft clumps of green, blue, violet */
+    glow(R * .4, R * .95, "130,110,255", .12);
+    fillG(R * .75, "120,110,220", .06);
+    puff(.35, .9, 44, ["120,255,170", "110,170,255", "196,124,255", "255,110,120"], hyper ? .24 : .2, .24);
+  } else {                   /* the Crab: a blue-white glow, brightest in the middle, an orange-red haze round it */
+    fillG(R * .78, "150,176,255", .38); fillG(R * .22, "235,240,255", .5);
+    puff(.25, .85, 24, ["255,150,80", "255,110,70", "255,186,120"], .22, .16);
+  }
+}
+function supernovaFar(V) {
+  const far = $("#nowgx"); if (!far || !GXA) return false;
+  const G = GXA, el = document.createElement("i");
+  let x, y, sz, ok = false;
+  for (let t = 0; t < 12 && !ok; t++) {
+  const q = Math.random();
   if (q < .45) { const u = (Math.random() - .5) * 1.4 * G.A, v = (Math.random() - .5) * 1.4 * G.A * G.inc;          /* in Andromeda's disc */
     x = G.ax + u * Math.cos(G.rot) - v * Math.sin(G.rot); y = G.ay + u * Math.sin(G.rot) + v * Math.cos(G.rot); sz = G.A * (.18 + .12 * Math.random()); }
   else if (q < .7) { x = G.lx + (Math.random() - .5) * G.Lr * 1.6; y = G.ly + (Math.random() - .5) * G.Lr; sz = G.Lr * (.7 + .5 * Math.random()); }   /* the LMC */
   else if (q < .82) { x = G.sx + (Math.random() - .5) * G.Lr * .8; y = G.sy + (Math.random() - .5) * G.Lr * .4; sz = G.Lr * (.5 + .4 * Math.random()); }   /* the SMC */
   else { x = G.w * (.06 + .88 * Math.random()); y = G.h * (.05 + .55 * Math.random()); sz = Math.min(G.w, G.h) * (.025 + .02 * Math.random()); }   /* far off */
-  el.className = "sn";
-  el.style.left = x.toFixed(1) + "px"; el.style.top = y.toFixed(1) + "px";
-  el.style.setProperty("--sn", Math.round(sz * 1.3) + "px");
-  el.style.setProperty("--snp", "1");
-  el.style.animationDuration = "8s";
-  el.addEventListener("animationend", () => el.remove(), {once: true});
-  far.appendChild(el);
+  ok = snSeen(V, V.br.left + x, V.br.top + y);
+  }
+  if (!ok) return false;
+  snBurst(far, x, y, sz * 1.85);
+  return true;
 }
 supernovaSoon();
 /* the glow behind the buttons: four of the song's colours, low on the screen; fades over the last */

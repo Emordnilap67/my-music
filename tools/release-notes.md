@@ -1,3 +1,16 @@
+**New in 21.0:**
+
+Alright, so this one's mostly about the visualizer and all.
+
+- **Six new shapes - 46 now, counting the circle:** a cross (basically a rectangle with another rectangle joined on - the record sits right on the crossing), a plus sign (as thick as the rectangle, goes all the way out to the bars, up, down, left and right), a four-leaf clover, a spade and a club (smooth and round, like on a deck of cards - we already had the diamond and the heart), and a second diamond that's wider. They're pretty much the old shapes re-angled and redesigned, you know what I'm saying
+- **The newer shapes show up early:** the first round after you open the app shows the new ones right away, one every other shape, straights and curves taking turns. The curvy shapes are spread out through every round so you never get two curvy ones back to back, and shapes that are related (the rectangle, the cross and the plus, or the diamond and the wide diamond and whatnot) stay apart. Still starts on the circle, still every shape once before anything repeats. Looks a lot better, honestly
+- **A little more bounce:** both rings bounce about 7% more on the beat
+- **Phones turn sideways now too,** not just tablets - it follows your auto-rotate. Sideways you get the two-column player, the wide home page and all that
+- **Real supernovas:** different kinds now - Type II, Type Ia, Type Ib/c (some of those are hypernovas) and Crab-like ones - each with its own colours and the way it fades, and they leave a soft, cloudy remnant hanging there for like a minute or two. One every 2 to 5 minutes, anywhere you can actually see it, not hiding behind the record or the song name
+- **Easier to see:** the artist name under the song is way brighter (it was grey and hard to read), and the close arrow in the top left is white like the three dots
+- **Fixed:** the dark ring that would pop up in the middle of the screen for a second when you open the player. Gone
+- **Fixed:** the big supernovas were picking up the play button's look and showing up in the wrong spot. Sorted
+
 **New in 20.0:**
 
 - **An event horizon round the visualizer:** the gravitational lens is now a narrow dark ring with light orbiting it - a thin photon ring in the song's own colours and short streaks going round right to left (one turn in about a minute and three-quarters): the song's colours, a few bright stars with glowing heads and a little of the galaxy's light. The galaxy bends harder round it, brighter towards the ring the way a real lens magnifies what is behind it. Galaxy only takes it all away
