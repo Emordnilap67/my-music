@@ -1,3 +1,9 @@
+**New in 21.1:**
+
+Quick fix, basically.
+
+- **Hearts show up on both devices now** - if your tablet was playing and your phone was the remote, hearting a song on the tablet wouldn't really show on the phone (it'd catch up like a minute later, if that). Now the phone shows it pretty much right away, and a heart you tap on the remote doesn't flick back off on you. Both devices need 21.1 for it
+
 **New in 21.0:**
 
 Alright, so this one's mostly about the visualizer and all.

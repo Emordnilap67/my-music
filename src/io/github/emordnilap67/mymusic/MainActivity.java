@@ -1624,8 +1624,13 @@ public class MainActivity extends Activity implements PlayerService.Listener {
         /** heart a song on or off; returns the new state */
         @JavascriptInterface
         public boolean fav(final String key, final boolean on) {
-            if (Connect.remote != null) Connect.cmd("fav", "key", key, "on", on);   // the device playing hearts it too
-            return Favs.set(MainActivity.this, key, on);
+            if (Connect.remote != null) {
+                Connect.heldFav(key);                  // its answers may lag the tap by a moment
+                Connect.cmd("fav", "key", key, "on", on);   // the device playing hearts it too
+            }
+            boolean r = Favs.set(MainActivity.this, key, on);
+            if (Connect.remote == null) Connect.favChanged();   // a remote following this device shows it at once
+            return r;
         }
 
         /** how often and when each song was played: {"playlist/file": [times, last ms]} */

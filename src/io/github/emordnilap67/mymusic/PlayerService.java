@@ -1168,6 +1168,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                     + ",\"up\":" + keys(q.upNext)
                     + ",\"nx\":" + keys(q.upcoming(12))
                     + ",\"queued\":" + (q.extra != null)
+                    + ",\"fav\":" + Favs.has(this, k)   // the heart, so a remote shows the one this device has
                     + ",\"note\":" + Library.q(note) + "}";
         } catch (Exception e) {
             return "{}";

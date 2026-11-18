@@ -86,6 +86,13 @@ final class Connect {
     static volatile String remoteState = "{}";
     private static volatile int fails;
     private static volatile boolean asking;
+    /* the same heart on both: /state carries the playing device's heart ("fav") and the remote takes it; the playing device
+       pokes the devices following it the moment its heart changes, so they ask at once instead of at the next 2.5 s.
+       followers = who asked /state lately (id -> when); favHold = the remote's own tap, kept for 4 s so an answer already on
+       its way (from before the tap) can't flip it back */
+    private static final Map<String, Long> followers = new ConcurrentHashMap<>();
+    private static volatile String favHoldKey = "";
+    private static volatile long favHoldUntil;
 
     /** devices found (id -> where) */
     private static final Map<String, Peer> seen = new ConcurrentHashMap<>();
@@ -279,7 +286,24 @@ final class Connect {
         if (path.startsWith("/hello")) {
             return "{\"id\":" + Library.q(myId) + ",\"name\":" + Library.q(myName) + ",\"label\":" + Library.q(myLabel) + ",\"port\":" + myPort + "}";
         }
-        if (path.startsWith("/state")) return localState();
+        if (path.startsWith("/state")) {
+            int f = path.indexOf("f=");                  // who is asking - a remote following this device
+            if (f > 0) {
+                String id = path.substring(f + 2).replaceAll("[^A-Za-z0-9]", "");
+                if (!id.isEmpty() && !id.equals(myId)) followers.put(id, System.currentTimeMillis());
+            }
+            return localState();
+        }
+        if (path.startsWith("/poke")) {                  // the device this one follows changed something - ask now
+            final Peer p = remote;
+            if (p != null) POOL.execute(new Runnable() {
+                @Override
+                public void run() {
+                    fetch(p);
+                }
+            });
+            return "{\"ok\":true}";
+        }
         if (path.startsWith("/hand")) {                  // the other device takes the music: our queue + spot, and we stop
             final String[] out = {"{}"};
             onMain(new Runnable() {
@@ -375,6 +399,7 @@ final class Connect {
         if (c.equals("fav")) {                          // hearted on the remote - hearted here too
             Favs.set(app, o.optString("key"), o.optBoolean("on"));
             MainActivity.page("window.loadFavs&&loadFavs()");
+            favChanged();                                // any other device following this one
             return "{\"ok\":true}";
         }
         if (c.equals("vol")) {
@@ -750,7 +775,7 @@ final class Connect {
     }
 
     private static void fetch(Peer p) {
-        String r = call(p, "GET", "/state", null, 2500);
+        String r = call(p, "GET", "/state?f=" + myId, null, 2500);   // + who asks, so it can poke this device
         if (remote != p) return;
         if (r == null) {
             if (++fails >= 4) {                          // ~8 s without an answer: the music is lost - back to this device
@@ -765,6 +790,7 @@ final class Connect {
         }
         fails = 0;
         String s = r.trim();
+        takeFav(s);                                      // the playing device's heart
         remoteState = "{\"remote\":" + Library.q(p.name) + ",\"gotAt\":" + System.currentTimeMillis() + (s.length() > 2 ? "," + s.substring(1) : "}");
         push(remoteState);
         final String st = s;
@@ -775,6 +801,49 @@ final class Connect {
                 if (ps != null && remote != null) ps.remoteState(st);
             }
         });
+    }
+
+    /** the playing device's heart for its song - this remote shows (and keeps) the same */
+    private static void takeFav(String s) {
+        try {
+            JSONObject o = new JSONObject(s);
+            String k = o.optString("key");
+            if (k.isEmpty() || !o.has("fav")) return;   // an older version there - no heart in its answer
+            boolean on = o.optBoolean("fav");
+            if (on == Favs.has(app, k)) {
+                if (k.equals(favHoldKey)) favHoldUntil = 0;   // they agree - the hold is done
+                return;
+            }
+            if (k.equals(favHoldKey) && System.currentTimeMillis() < favHoldUntil) return;   // this remote's own tap, not there yet
+            Favs.set(app, k, on);
+            MainActivity.page("window.loadFavs&&loadFavs()");
+        } catch (Exception ignored) {
+        }
+    }
+
+    /** a heart tapped on this remote - the other device's next answer may still be from before it */
+    static void heldFav(String key) {
+        favHoldKey = key == null ? "" : key;
+        favHoldUntil = System.currentTimeMillis() + 4000;
+    }
+
+    /** this device's heart changed - the devices that asked /state in the last 20 s ask again now */
+    static void favChanged() {
+        long now = System.currentTimeMillis();
+        for (Map.Entry<String, Long> e : followers.entrySet()) {
+            if (now - e.getValue() > 20000) {
+                followers.remove(e.getKey());
+                continue;
+            }
+            final Peer p = seen.get(e.getKey());
+            if (p == null || p.host.isEmpty()) continue;
+            POOL.execute(new Runnable() {
+                @Override
+                public void run() {
+                    call(p, "POST", "/poke", "{}", 1500);
+                }
+            });
+        }
     }
 
     /** back to this device's own song on its notification, lock screen and widget */
