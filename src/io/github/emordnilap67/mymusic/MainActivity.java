@@ -259,6 +259,13 @@ public class MainActivity extends Activity implements PlayerService.Listener {
                 @Override
                 public void run() {
                     if (Favs.sync(a)) page("window.loadFavs&&loadFavs()");
+
+                    Library lib = Library.get(a);
+                    boolean wrote = Covers.shareAll(a, lib);
+                    if (wrote || Covers.changed(lib)) {
+                        Library.load(a);                     // only the cards change - an open playlist stays open
+                        page("window.coversChanged&&coversChanged()");
+                    }
                 }
             }).start();
             h.postDelayed(this, 60000);
@@ -809,7 +816,14 @@ public class MainActivity extends Activity implements PlayerService.Listener {
             if (p.equals("/cover")) {
                 String pl = u.getQueryParameter("p");
                 if (pl != null && !pl.contains("/") && !pl.contains("..")) {
-                    File picked = Covers.file(this, pl);
+                    File sh = Covers.shared(pl), picked = Covers.file(this, pl);
+                    if (sh.isFile() && sh.length() > 0) {
+                        try {
+                            return ok("image/jpeg", Covers.openShared(this, pl, u.getQueryParameter("v")), "max-age=604800");
+                        } catch (Exception cannot) {
+                            // fall through to this device's own picture, the built-in one or the folder's cover.jpg
+                        }
+                    }
                     if (picked.isFile()) return ok("image/jpeg", new FileInputStream(picked), "max-age=604800");
                     try {
                         return ok("image/jpeg", getAssets().open(Covers.assetName(pl)), "max-age=604800");

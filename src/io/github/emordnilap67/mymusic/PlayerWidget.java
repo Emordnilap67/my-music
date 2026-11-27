@@ -107,8 +107,7 @@ public class PlayerWidget extends AppWidgetProvider {
                         times(c, v, z);
                         mp.put(sizeOf(z), v);
                     }
-                    m.partiallyUpdateAppWidget(wid, new RemoteViews(mp));
-                    continue;
+                    draw(c, m, wid);                    continue;
                 }
                 Bundle o = m.getAppWidgetOptions(wid);
                 RemoteViews v = new RemoteViews(c.getPackageName(), layoutFor(c, size(o)));

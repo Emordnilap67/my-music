@@ -1,3 +1,14 @@
+**New in 21.2:**
+
+Alright, so this one's a bunch of fixes and a couple of nice ones.
+
+- **Playlist pictures match on every device** - pick a picture for a playlist and it goes into the playlist's own folder now, so if you share your music folder between your phone and your tablet (Syncthing or whatever), both show the same picture. Pictures you picked before get put there once by themselves
+- **Fixed: black playlist pictures** - some playlists showed a black card instead of their picture. Sorted
+- **Shapes** - the irregular octagon is gone (45 now, counting the circle), and the first round after you open the app is laid out by hand now: the circle, the simple shapes first, then the stars and the irregular ones, and the fun ones like the clover, the spade and the heart spread out in the second half instead of all showing up early
+- **Refresh button** - top right of the home page, reloads the page. Your music keeps playing
+- **Fixed: Delete playlist and Delete all songs** - they were opening the "Play on" devices sheet instead of asking to delete. They work now
+- **Fixed: the widget's progress bar and time** - they only moved when you paused or played. Now they move every second like they should
+
 **New in 21.1:**
 
 Quick fix, basically.

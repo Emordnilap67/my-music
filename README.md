@@ -33,7 +33,7 @@ known as MY MUSIC.*
   full-screen **karaoke** mode, and badly timed lyrics are caught and
   replaced automatically.
 - **A player worth looking at.** The record sits inside a ring of light that
-  changes shape - forty-six of them, from a triangle, hexagon and octagon to a
+  changes shape - forty-five of them, from a triangle, hexagon and octagon to a
   pentagram, a pinwheel, a gear, a pixel heart, a cross, a plus, a four-leaf
   clover and the card suits - and dances to the music
   (bass, voice and treble each move their own part, and both rings bounce
@@ -190,7 +190,7 @@ top right) plays the music on another device.
   bars follows the music (bass at the bottom, voice at the sides, treble at
   the top), the voice ripples the inner wave and the high notes make a cloud
   of stars drift and twinkle. The ring starts on a circle and melts from shape
-  to shape - forty-six of them, every one once a round in a new order, never
+  to shape - forty-five of them, every one once a round in a new order, never
   two of the same family (smooth, star, angular, irregular) back to back, the
   curvy ones spread out and never two in a row, related shapes kept apart, and
   the newest ones up front in the first round - and swells out to the bars as a circle. On every beat both rings grow a touch and settle back - not

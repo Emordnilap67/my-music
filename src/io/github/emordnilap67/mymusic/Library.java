@@ -155,8 +155,11 @@ final class Library {
                     return a.file.compareToIgnoreCase(b.file);
                 }
             });
-            File picked = Covers.file(c, p.name);
-            if (picked.isFile()) {
+            File picked = Covers.file(c, p.name), sh = Covers.shared(p.name);
+            if (sh.isFile() && sh.length() > 0) {
+                p.cover = Covers.stamp(sh);
+                p.custom = true;
+            } else if (picked.isFile()) {
                 p.cover = "u" + picked.lastModified();
                 p.custom = true;
             } else if (Covers.hasAsset(c, p.name)) {
